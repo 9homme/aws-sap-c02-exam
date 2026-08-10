@@ -21,13 +21,17 @@ test("ships the Architect Lab product shell instead of the starter preview", asy
   assert.match(css, /--canvas/);
   assert.match(css, /question-card/);
   assert.match(css, /bible-sidebar/);
+  assert.match(css, /bible-article p \{[^}]*font-size: 17\.5px/s);
+  assert.match(css, /bible-article li \{[^}]*font-size: 16\.5px/s);
   assert.match(css, /question-grid \{ display: flex/);
   assert.match(css, /drawer-backdrop/);
   assert.match(css, /@media \(max-width: 430px\)/);
   assert.match(bibleReader, /ค้นหาในคัมภีร์/);
   assert.match(bibleReader, /topic-toggle/);
   assert.match(bibleReader, /lang="th"/);
-  assert.equal((bible.match(/^##\s/gm) ?? []).length, 27);
+  assert.equal((bible.match(/^##\s/gm) ?? []).length, 28);
+  assert.match(bible, /AWS Product Primer/);
+  assert.match(bible, /มันคืออะไรแบบง่าย/);
   assert.match(bible, /Domain 1 — Design Solutions for Organizational Complexity/);
   assert.match(bible, /แผนเตรียมสอบ 21 วัน/);
   assert.match(bible, /เห็นคำนี้ ให้คิดถึงสิ่งนี้/);

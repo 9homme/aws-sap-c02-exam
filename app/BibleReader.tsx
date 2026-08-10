@@ -168,6 +168,7 @@ function parseBible(markdown: string) {
 
 export default function BibleReader({ hasActiveAttempt, onPractice }: BibleReaderProps) {
   const bible = useMemo(() => parseBible(bibleMarkdown), []);
+  const primerSection = useMemo(() => bible.sections.find((section) => section.title.includes("AWS Product Primer")), [bible.sections]);
   const [query, setQuery] = useState("");
   const [activeId, setActiveId] = useState(bible.sections[0]?.id ?? "");
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -207,7 +208,7 @@ export default function BibleReader({ hasActiveAttempt, onPractice }: BibleReade
 
       <section className="bible-hero">
         <div><span className="eyebrow">SAP-C02 Thai study bible</span><h1>คัมภีร์สถาปัตยกรรม<br />ที่ค้นหาได้ทันที</h1></div>
-        <p>เนื้อหาเต็ม 4 Domains, 70 decision rules, ตารางเทียบ service, กับดัก และแผนเตรียมสอบ 21 วัน</p>
+        <div className="bible-hero-aside"><p>เนื้อหาเต็ม 4 Domains, 70 decision rules, ตารางเทียบ service, กับดัก และแผนเตรียมสอบ 21 วัน</p>{primerSection && <button className="button secondary" onClick={() => goTo(primerSection.id)}>ใหม่กับ AWS? เริ่มที่ Product Primer →</button>}</div>
       </section>
 
       <div className="bible-mobile-tools">

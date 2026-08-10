@@ -8,7 +8,7 @@ A browser-based AWS Certified Solutions Architect – Professional practice site
 - Study mode with immediate correction and concise rationale.
 - A 75-question, 180-minute full mock that uses the SAP-C02 domain mix.
 - Saved in-progress attempts, past results, missed-question practice, and topic/domain performance summaries.
-- A searchable Thai SAP-C02 study bible with 27 sidebar topics, service comparisons, exam traps, decision rules, and a 21-day preparation plan.
+- A searchable Thai SAP-C02 study bible with 28 sidebar topics, beginner-friendly AWS product explanations, service comparisons, exam traps, decision rules, and a 21-day preparation plan.
 - Responsive navigation, touch-friendly quiz controls, scrollable comparison tables, and a mobile topic drawer.
 
 All progress is stored only in the browser's local storage on the device being used.

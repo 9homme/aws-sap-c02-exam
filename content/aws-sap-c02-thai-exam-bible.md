@@ -150,6 +150,177 @@ AWS ให้คะแนนเมื่อเลือกคำตอบถู�
 
 ---
 
+## AWS Product Primer — รู้จักบริการแบบ Engineer ที่เพิ่งเริ่ม AWS
+
+ส่วนนี้มีไว้แปลชื่อ product ให้เป็นภาพที่ engineer คุ้นเคย ไม่จำเป็นต้องจำ marketing phrase ให้จำว่า **service อยู่ชั้นไหน รับ input อะไร และส่งมอบ responsibility อะไรให้ AWS ดูแลแทนเรา**
+
+### แนวคิดพื้นฐานก่อนรู้จัก product
+
+| คำ AWS | อธิบายแบบ engineer |
+|---|---|
+| AWS account | security, billing และ quota boundary คล้าย cloud project/subscription ขนาดใหญ่ ไม่ใช่แค่ user login |
+| Organization | กลุ่มหลาย AWS accounts ภายใต้บริษัทเดียว มี policy และ billing ส่วนกลาง |
+| Region | พื้นที่ภูมิศาสตร์ เช่น Singapore หรือ Tokyo แต่ละ Region แยกกันโดย design |
+| Availability Zone (AZ) | กลุ่ม data center ที่แยก failure domain ภายใน Region เดียวกัน เชื่อมกันด้วย network latency ต่ำ |
+| VPC | private software-defined network ของเราในหนึ่ง Region |
+| Subnet | ช่วง IP ภายใน VPC และผูกกับ AZ เดียว ใช้แบ่ง public/private/app/data tiers |
+| Resource | สิ่งที่สร้างใน AWS เช่น EC2 instance, S3 bucket, RDS database |
+| ARN | identifier แบบเต็มของ resource/principal ใช้ใน IAM policy และ API |
+| Managed service | AWS ดูแล infrastructure/patching/scaling บางส่วนหรือเกือบทั้งหมดให้ แต่เรายังรับผิดชอบ configuration, data และ access |
+| Global service | control plane หรือ service ที่มองทั้ง AWS เช่น Organizations/IAM บางส่วน; ต้องอ่าน behavior ราย service |
+| Regional service | สร้างและใช้งานภายใน Region เช่น Lambda, RDS, DynamoDB |
+| Zonal resource | ผูกกับ AZ เช่น EC2 instance, EBS volume, NAT Gateway |
+
+Mental model ที่ใช้ได้เกือบทุก architecture:
+
+`Organization → Account → Region → VPC → Subnet/AZ → Compute → Data → Integration → Observability/Security`
+
+### Accounts, identity และ governance
+
+| Product | มันคืออะไรแบบง่าย | ใช้เมื่อไร | อย่าสับสนกับ |
+|---|---|---|---|
+| AWS Organizations | parent control plane สำหรับรวมหลาย accounts เป็น Root/OU และใส่ policy ส่วนกลาง | บริษัทมีหลายทีม/environment/account และต้องการ governance + consolidated billing | IAM ซึ่งให้สิทธิ์ principal ภายใน/cross-account; Organizations ไม่ได้ login แทน user |
+| AWS Control Tower | ตัวติดตั้งและดูแล multi-account landing zone ตามแนวทาง AWS โดยประกอบ Organizations, Identity Center, Config และ logging | ต้องการเริ่มหลาย accounts ให้ baseline เหมือนกันโดยไม่ต่อ service เองทั้งหมด | Organizations ซึ่งเป็นโครงสร้างพื้นฐาน; Control Tower เป็น orchestration และ opinionated setup บนโครงนั้น |
+| IAM | ระบบ authorization ของ AWS: users, roles, policies และ temporary credentials | กำหนดว่าใครหรือ workload ใดเรียก action ใดกับ resource ใดได้ | IAM Identity Center ซึ่งจัด workforce SSO หลาย accounts |
+| IAM Identity Center | portal SSO สำหรับพนักงาน เข้า AWS accounts/apps ด้วย identity กลางและ permission sets | มี workforce หลายคน/หลาย accounts หรือเชื่อม corporate IdP | Cognito ซึ่งทำ identity ให้ลูกค้าของ application |
+| AWS RAM | share resource บางชนิดข้าม account โดยไม่ต้อง copy เช่น Transit Gateway/subnet/Resolver rule | หลาย accounts ต้องใช้ network/resource กลางร่วมกัน | IAM permission; share resource แล้วผู้ใช้ยังต้องมี authorization ที่ถูก |
+| AWS Service Catalog | catalog ของ infrastructure products ที่ platform team อนุมัติแล้วให้ทีมอื่น self-service | ต้องการให้ developer กดสร้างเฉพาะ pattern ที่ผ่านมาตรฐาน | CloudFormation ซึ่งเป็น engine สำหรับสร้าง resource; Service Catalog ห่อ template เป็น product/portfolio |
+| CloudFormation | Infrastructure as Code แบบ declarative: ระบุ desired resources แล้ว AWS สร้าง/update เป็น stack | ต้องการ repeatable, versioned, reviewable infrastructure และ rollback | Systems Manager ซึ่งดูแล resource/OS หลังถูกสร้าง |
+| CloudFormation StackSets | deploy stack เดียวไปหลาย account และหลาย Region จากส่วนกลาง | rollout baseline, IAM role, Config rule หรือ resource pattern ข้ามองค์กร | stack ปกติที่ทำงานใน target account/Region เดียว |
+| Systems Manager | ชุด fleet operations เช่น inventory, patch, run command, session, parameter และ automation | ดูแล EC2/hybrid servers โดยลด SSH/manual scripts | CloudWatch/Config ซึ่ง observe มากกว่า execute operational action |
+| AWS Config | inventory + configuration history + compliance evaluation ของ resources | ต้องรู้ว่า resource ตั้งค่าอะไร เปลี่ยนเมื่อไร และผิด rule หรือไม่ | CloudTrail ซึ่งบันทึก API activity ว่าใครเรียกอะไร |
+
+### Network, connectivity และ edge
+
+| Product | มันคืออะไรแบบง่าย | ใช้เมื่อไร | อย่าสับสนกับ |
+|---|---|---|---|
+| Amazon VPC | private network boundary ที่เรากำหนด CIDR, subnet, route และ security | ทุก workload ที่ต้องควบคุม private network | AWS account; account หนึ่งมีหลาย VPC ได้ |
+| Internet Gateway | managed gateway ที่เชื่อม VPC กับ internet สำหรับ resource ที่มี route/public IP | public-facing subnet/instance ตาม design | NAT Gateway ซึ่งให้ private subnet ออก internet แต่ไม่รับ inbound ใหม่โดยตรง |
+| NAT Gateway | managed outbound translation จาก private subnet ไป internet อยู่ใน AZ | private instances ต้อง download package/call public endpoint | Internet Gateway; NAT ยังต้องมี IGW path และมีค่า data processing |
+| VPC Peering | private one-to-one routing ระหว่างสอง VPC | VPC จำนวนน้อย, CIDR ไม่ชน และไม่ต้อง transitive routing | Transit Gateway ที่เป็น hub สำหรับหลาย networks |
+| Transit Gateway | regional network hub เชื่อมหลาย VPC, VPN และ Direct Connect | hub-and-spoke, route segmentation และ network scale | simple router ที่ทุก attachment คุยกันเสมอ; TGW route tables ต้องออกแบบ |
+| AWS PrivateLink | เปิด service ให้ VPC อื่นเข้าผ่าน private endpoint/ENI โดยไม่เปิด network ทั้งก้อน | provider-consumer service access และลด CIDR/transitive complexity | VPC Peering/TGW ซึ่งให้ network connectivity กว้างกว่า |
+| VPC Lattice | application service network สำหรับ connect, discover และ authorize service-to-service ข้าม VPC/account | microservices หลาย VPC/accounts ต้องการ connectivity + policy ระดับ service | TGW ที่ทำ routing ระดับ network |
+| Site-to-Site VPN | managed IPsec tunnels ระหว่าง on-prem/site กับ AWS ผ่าน internet | เชื่อมเร็ว, encrypted และ bandwidth requirement ไม่สูงเท่า dedicated link | Client VPN ที่ต่อผู้ใช้รายบุคคล |
+| AWS Client VPN | managed remote-access VPN ใช้ client บน laptop/user device | พนักงาน remote ต้องเข้าถึง private VPC | Site-to-Site VPN ที่เชื่อม network-to-network |
+| Direct Connect | dedicated private circuit จาก site/colo ไป AWS | ต้องการ bandwidth/latency สม่ำเสมอและไม่วิ่งบน public internet path | encryption; DX ไม่ encrypted โดยอัตโนมัติและควรมี HA design |
+| Route 53 | authoritative DNS + routing policies + health checks | map domain ไป endpoints และทำ DNS-level routing/failover | load balancer; DNS response ไม่ proxy ทุก packet |
+| Route 53 Resolver | managed DNS resolver/endpoints/rules สำหรับ VPC และ hybrid DNS | on-prem resolve private AWS names หรือ AWS resolve on-prem names | Route 53 hosted zone ที่เก็บ DNS records |
+| CloudFront | CDN ที่ cache/serve HTTP(S) ผ่าน edge locations และรัน edge logic ได้ | web/static/media/global HTTP latency, origin protection | Global Accelerator ซึ่งไม่ cache และรองรับ TCP/UDP |
+| Global Accelerator | anycast static IP front door ที่พา TCP/UDP เข้า AWS global backbone ไป healthy endpoint | game/VoIP/non-HTTP/global app/static IP/fast failover | CloudFront CDN และ Route 53 DNS routing |
+| ALB | Layer 7 load balancer สำหรับ HTTP/HTTPS/gRPC และ route ตาม host/path/header | web/API/microservices | NLB สำหรับ TCP/UDP/TLS และ performance/static IP |
+| NLB | Layer 4 load balancer throughput สูง รองรับ TCP/UDP/TLS และ IP targets | non-HTTP, source IP, static IP per AZ, very high performance | ALB ที่เข้าใจ HTTP request |
+| GWLB | transparent gateway/load balancer สำหรับ network security appliances | scale third-party firewall/inspection fleet | AWS Network Firewall ซึ่งเป็น managed firewall service โดยตรง |
+
+### Compute, containers และ application runtime
+
+| Product | มันคืออะไรแบบง่าย | ใช้เมื่อไร | เราต้องดูแลอะไร |
+|---|---|---|---|
+| EC2 | virtual machine ที่เลือก OS/instance type/network/disk ได้ | ต้อง control OS, custom agent/driver, long-running legacy workload | OS patch, runtime, scaling pattern และ application |
+| Auto Scaling | controller ที่เพิ่ม/ลด/แทน EC2 instances ตาม desired capacity/metric/health | stateless fleet, variable demand, self-healing | launch template, metric, cooldown/warmup และ state placement |
+| Elastic Beanstalk | application platform ที่ deploy code แล้ว AWS สร้าง EC2/LB/ASG environment ให้ | web app ที่อยากลด infrastructure setup แต่ยังใช้ EC2 model | app/config และ platform updates บางส่วน |
+| ECS | AWS-native container orchestrator จัด task/service/cluster | ทีมต้องการ containers โดยไม่ต้องใช้ Kubernetes API | task definition, service, networking, image และ scaling |
+| EKS | managed Kubernetes control plane | มี Kubernetes ecosystem/skills/workload requirement | cluster add-ons, workload, policy และ node/Fargate choice |
+| Fargate | serverless compute capacity สำหรับ ECS/EKS tasks | รัน container โดยไม่ provision/patch worker nodes | container image, task sizing, networking และ app |
+| Lambda | event-driven function runtime ที่ scale ต่อ invocation | short-lived API/event/file/queue processing | function code, timeout, concurrency, idempotency และ downstream limits |
+| AWS Batch | managed job queues/scheduler ที่ใช้ EC2/Fargate compute environments | batch/HPC/render/ETL jobs ที่มี dependency และ retry | job definition/image/data และ compute strategy |
+| Lightsail | simplified VPS/bundle price พร้อม templates | small predictable web app หรือทีมใหม่ที่ไม่ต้องการ AWS primitives จำนวนมาก | instance/app/backup ตาม bundle |
+| ECR | private container image registry | เก็บ image สำหรับ ECS/EKS/Lambda containers | image lifecycle, scanning และ access policy |
+
+### Storage และ file systems
+
+| Product | มันคืออะไรแบบง่าย | ใช้เมื่อไร | Key behavior |
+|---|---|---|---|
+| S3 | durable object storage เข้าผ่าน API; ไม่ใช่ mounted block disk โดยธรรมชาติ | files, backup, data lake, static assets, logs | bucket อยู่ระดับ Region; object key ไม่ใช่ POSIX path จริง |
+| EBS | block volume คล้าย virtual disk ต่อกับ EC2 | boot/data disk, database block storage ใน AZ | ผูก AZ, snapshot ไป S3-managed backend, Multi-Attach มีข้อจำกัด |
+| EFS | managed elastic NFS file system หลาย AZ | Linux instances/containers ต้องแชร์ POSIX files | regional mount targets, throughput/latency ต่างจาก local block disk |
+| FSx for Windows File Server | managed Windows SMB file server รวม AD integration | Windows apps, home directories, SMB shares | Windows semantics/permissions |
+| FSx for Lustre | high-performance parallel file system | HPC/ML/large dataset processing และเชื่อม S3 ได้ | performance-oriented ไม่ใช่ general cheap archive |
+| Storage Gateway | appliance/service bridge ให้ on-prem ใช้ file/volume/tape interface โดย backend อยู่ AWS | hybrid storage และ gradual migration | มี File, Volume และ Tape Gateway คนละ access model |
+| AWS Backup | central policy, schedule, vault และ restore สำหรับหลาย AWS resource types | standardized backup ข้าม accounts/Regions | ต้องตรวจ resource support, retention, vault policy และ restore testing |
+
+### Databases, cache และ analytics
+
+| Product | มันคืออะไรแบบง่าย | ใช้เมื่อไร | อย่าสับสนกับ |
+|---|---|---|---|
+| RDS | managed relational database engines เช่น PostgreSQL/MySQL/Oracle/SQL Server | app ต้อง SQL, transaction, joins และไม่อยากดูแล DB host เองทั้งหมด | EC2 database ที่เราดูแล OS/engine เอง |
+| Aurora | AWS-built relational engine compatible กับ MySQL/PostgreSQL แยก compute/storage และมี HA/read scale สูง | cloud-native relational, fast failover, Global Database | RDS engine ทั่วไป; feature/price/compatibility ต้องตรวจ |
+| DynamoDB | serverless key-value/document database ที่ scale ด้วย partition key | predictable access by key, massive scale, low latency | relational DB; ไม่มี joins/ad-hoc SQL แบบเดียวกัน |
+| DAX | managed in-memory cache ที่เข้าใจ DynamoDB API | repeated eventually consistent reads ต้อง microseconds | ElastiCache general cache และ DynamoDB table เอง |
+| ElastiCache | managed Redis/Valkey หรือ Memcached cache | cache, session, leaderboard, rate data ลด DB load | durable primary database; persistence/HA ขึ้นกับ engine/config |
+| MemoryDB | durable Redis-compatible in-memory database พร้อม Multi-AZ transaction log | ต้องการ Redis API เป็น primary database และ durability | ElastiCache ซึ่งเป้าหมายหลักคือ cache |
+| Redshift | managed columnar data warehouse | analytical SQL บน structured/curated data ปริมาณมาก | RDS OLTP และ S3 data lake |
+| Athena | serverless SQL query บน data ใน S3 | ad-hoc analysis/log query โดยไม่ provision cluster | database ที่รับ application transactions |
+| AWS Glue | serverless data integration/ETL + Data Catalog | discover schema, transform/move data, catalog datasets | Lake Formation ที่เน้น build/govern data lake permissions |
+| Lake Formation | orchestration/governance layer สำหรับ data lake บน S3/Glue | central fine-grained data access และ data lake setup | S3 storage หรือ query engine |
+| EMR | managed platform สำหรับ Spark/Hadoop/Trino ecosystem | big-data jobs ที่ต้อง framework/control มากกว่า serverless SQL | Glue/Athena ที่ลด cluster management มากกว่า |
+| OpenSearch Service | managed search/analytics engine | full-text search, log analytics, dashboards | relational database |
+| QuickSight | managed BI visualization/dashboard | business users สำรวจ Athena/Redshift/RDS datasets | data warehouse/ETL engine |
+
+### Messaging, events และ workflow
+
+| Product | มันคืออะไรแบบง่าย | ใช้เมื่อไร | Delivery mental model |
+|---|---|---|---|
+| SQS | durable queue คั่น producer กับ workers | buffer spike, async work, independent scaling | consumer pull; Standard at-least-once, FIFO order/dedup ตามเงื่อนไข |
+| SNS | push pub/sub topic | fan-out notification/event ไปหลาย subscribers | publisher ส่งครั้งเดียวแล้ว SNS push ไป endpoints/queues |
+| EventBridge | managed event bus ที่ route ตาม event content/schema | AWS/SaaS/custom events, cross-account routing, event-driven automation | router ไม่ใช่ work queue ทดแทน SQS ทุกกรณี |
+| Kinesis Data Streams | partitioned real-time stream ที่ retain/replay records | telemetry/click/log/financial stream และหลาย consumers | ordering ต่อ shard; ต้องออกแบบ partition key/capacity |
+| Kinesis Data Firehose | delivery pipe ที่ buffer/transform แล้วส่ง stream ไป destination เช่น S3/Redshift/OpenSearch | ต้องส่ง streaming data ไป storage/analytics ด้วย ops ต่ำ | ไม่ใช่ general replayable stream แบบ Data Streams |
+| Amazon MQ | managed ActiveMQ/RabbitMQ broker | migrate legacy JMS/AMQP/STOMP/MQTT app โดยลด protocol rewrite | cloud-native queue อย่าง SQS ที่มี API/semantics คนละแบบ |
+| Step Functions | state machine/orchestrator ที่เก็บ state ระหว่าง steps | retry, branch, parallel, wait, long workflow, human approval | Lambda function เดียวยาว ๆ หรือ EventBridge router |
+
+### Security, encryption และ observability
+
+| Product | มันคืออะไรแบบง่าย | ใช้เมื่อไร | Output ที่ได้ |
+|---|---|---|---|
+| KMS | managed cryptographic key control plane ที่ integrate กับ AWS services | encrypt S3/EBS/RDS/secrets และ application envelope encryption | KMS keys, policies, grants และ audit events |
+| CloudHSM | single-tenant general-purpose HSM cluster ที่ลูกค้าควบคุม crypto users/keys/algorithms มากกว่า | direct HSM APIs, PKCS#11/JCE/CNG, special compliance/control | HSM cluster ที่ operational responsibility สูงกว่า KMS |
+| Secrets Manager | encrypted secret store + rotation workflow/integration | DB credentials/API keys ที่ต้อง rotate | secret versions และ retrieval API |
+| Parameter Store | hierarchical configuration/key-value store มี SecureString | app config/feature settings/simple secrets | parameter; rotation automation ไม่ครบเท่า Secrets Manager |
+| ACM | certificate lifecycle service | TLS cert สำหรับ ALB, CloudFront, API Gateway และ private CA use cases | managed certificates; private key export/placement มีข้อจำกัดตาม cert type |
+| WAF | Layer 7 web request rules | SQLi/XSS/rate/bot/geo filtering หน้า CloudFront/ALB/API Gateway | allowed/blocked/count web requests |
+| Shield | managed DDoS protection; Standard มีพื้นฐานและ Advanced เพิ่ม response/visibility | internet-facing workloads ที่ต้อง DDoS posture สูง | attack detection/mitigation ไม่แทน WAF application rules |
+| Network Firewall | managed VPC firewall สำหรับ stateful/stateless traffic inspection | central ingress/egress/east-west filtering | firewall endpoints/rules/logs |
+| GuardDuty | threat detection วิเคราะห์ CloudTrail, DNS, VPC และ data sources อื่น | หา compromised credential, crypto mining, suspicious behavior | security findings ไม่ใช่ packet block โดยตัวมันเอง |
+| Inspector | vulnerability/exposure scanning สำหรับ supported workloads | หา CVE/package/network exposure ใน EC2/container/Lambda ตาม coverage | vulnerability findings |
+| Macie | sensitive-data discovery และ S3 security monitoring | หา PII/credentials/sensitive patterns ใน S3 | sensitive-data findings/classification |
+| IAM Access Analyzer | reasoning จาก policies เพื่อหา external/public access และ validate policy | ตรวจ resource share ออกนอก zone of trust | access findings/policy validation |
+| Security Hub | central dashboard/normalization/correlation ของ security findings | รวม GuardDuty, Inspector, Macie และ standards ข้าม accounts/Regions | aggregated findings ไม่ได้แทน detector ต้นทาง |
+| CloudTrail | audit log ของ AWS API activity | สืบว่าใครทำ action อะไร เมื่อไร จาก IP/role ใด | management/data/network activity events ตาม configuration |
+| CloudWatch | metrics, logs, alarms, dashboards และ application observability | ดู health/performance และ trigger automation | time-series metrics/log events/alarms |
+| VPC Flow Logs | metadata ของ accepted/rejected IP flows | troubleshoot network path/ports/bytes | flow records ไม่มี packet payload |
+
+### Migration, transfer และ cost
+
+| Product | มันคืออะไรแบบง่าย | ใช้เมื่อไร | จุดตัดสิน |
+|---|---|---|---|
+| Migration Hub | dashboard กลางติดตาม servers/apps และ migration tools | portfolio/wave tracking | track ไม่ได้ย้าย workload เอง |
+| Application Discovery Service | เก็บ inventory/utilization/dependency ของ on-prem servers | assessment ก่อนวาง wave | discovery ไม่ใช่ migration engine |
+| Application Migration Service (MGN) | block-level continuous replication แล้ว launch server บน EC2 | rehost physical/VM servers ด้วย downtime ต่ำ | รักษา server model ไม่ได้ modernize app ให้เอง |
+| Database Migration Service (DMS) | move/replicate database data ด้วย full load + CDC | homogeneous/heterogeneous DB migration | data movement; schema conversion ใช้ SCT เมื่อ engine ต่างกัน |
+| Schema Conversion Tool (SCT) | วิเคราะห์และ convert database schema/code | Oracle/SQL Server/Db2 ไป target engine คนละชนิด | ไม่ได้ย้าย transactional rows แทน DMS |
+| DataSync | agent-based accelerated online file/object transfer | NFS/SMB/object transfer ซ้ำหรือ scheduled | online network transfer ไม่ใช่ offline appliance |
+| Snow Family | physical/edge devices สำหรับ offline bulk transfer/edge compute | network ช้ามาก, data ใหญ่มาก, disconnected location | ต้องรวม shipping/import time ใน calculation |
+| Transfer Family | managed SFTP/FTPS/FTP/AS2 front door ไป S3/EFS | partner/client ต้องใช้ file-transfer protocol เดิม | ไม่ใช่ bulk migration optimizer แบบ DataSync |
+| Cost Explorer | UI/API วิเคราะห์ cost/usage trend | หา spend pattern และ forecast | ไม่ใช่ hard budget enforcement |
+| AWS Budgets | threshold/forecast notification และ action | เตือน/จำกัดก่อนหรือเมื่อเกินงบ | data อาจไม่ real-time; billing control ไม่ใช่ resource architecture ทั้งหมด |
+| Compute Optimizer | recommendation จาก utilization metrics | rightsize EC2/EBS/Lambda/ECS ตาม supported resources | recommendation ต้อง validate business context |
+| Savings Plans | commitment ค่า compute ต่อชั่วโมงเพื่อรับส่วนลด | baseline usage ที่คาดการณ์ได้ | ไม่ใช่ capacity reservation โดยตัวมันเอง |
+| Reserved Instances | pricing/capacity construct ตาม service/type | baseline database/EC2 patterns ตามชนิด RI | Standard/Convertible/Regional/Zonal มี trade-off ต่างกัน |
+| Spot | spare EC2 capacity ราคาต่ำแต่ถูก interrupt ได้ | batch, fault-tolerant, stateless, flexible jobs | ห้ามใช้เป็น capacity เดียวของงานที่หยุดไม่ได้ |
+
+### วิธีอ่านตาราง Product Primer
+
+อย่าท่องว่า service ใด “ดีที่สุด” ให้ถามสามข้อ:
+
+1. service นี้รับผิดชอบ **ชั้นไหน** — identity, network, compute, data, integration หรือ observation?
+2. requirement ต้องการ **connect, protect, store, process, route, observe หรือ govern**?
+3. หลังเลือก service แล้ว ทีมเรายังต้องดูแล **อะไรที่ AWS ไม่ได้ดูแลให้**?
+
+เมื่อเข้าใจสามข้อนี้ ชื่อบริการจะไม่ใช่ศัพท์โดด ๆ แต่กลายเป็น building blocks ที่ประกอบ architecture ได้
+
+---
+
 # ภาคที่ 1 — เนื้อหาตาม Domain
 
 ## 4. Domain 1 — Design Solutions for Organizational Complexity (26%)
@@ -164,6 +335,99 @@ AWS ให้คะแนนเมื่อเลือกคำตอบถู�
 4. **Security/Log Archive/Audit accounts** — แยก blast radius และหน้าที่
 5. **Delegated administrator** — ให้ account เฉพาะดูแล Security Hub, GuardDuty, Config, Backup ฯลฯ แทน management account
 6. **Account Factory / Service Catalog** — provision account และ approved products แบบมาตรฐาน
+
+ถ้าเพิ่งรู้จัก AWS ให้คิดภาพเป็นบริษัทที่มีหลายทีม:
+
+`บริษัท (Organization) → แผนก/สภาพแวดล้อม (OU) → ห้องแยกของแต่ละ workload (Account) → พนักงานใช้บัตรกลางเข้าแต่ละห้อง (Identity Center)`
+
+#### AWS Organizations — โครงสร้างบริษัทและ policy ส่วนกลาง
+
+Organizations เป็น service ที่เอา AWS accounts หลายบัญชีมาอยู่ใต้การบริหารเดียวกัน แทนที่จะให้ทุกทีมเปิด account แยกโดยไม่มีมาตรฐาน
+
+- **Root** คือจุดบนสุดของ organization ไม่ใช่ root user
+- **OU (Organizational Unit)** คือ folder เชิงนโยบาย เช่น `Security`, `Infrastructure`, `Production`, `NonProduction`, `Sandbox`
+- **Account** เป็น security/billing/quota boundary ที่รัน workload จริง เช่น `payments-prod` หรือ `central-logs`
+- policy ที่ attach กับ Root/OU จะถูก inherit ลงไปยัง accounts ใต้จุดนั้นตามชนิด policy
+- consolidated billing รวมค่าใช้จ่ายเพื่อจ่ายส่วนกลางและใช้ volume discount/benefit บางชนิดร่วมกัน
+
+Organizations **ไม่ได้สร้างสิทธิ์ให้ developer เข้า resource** งานนั้นยังเป็น IAM/Identity Center และ Organizations **ไม่ได้ deploy application** แต่กำหนดโครงสร้าง, guardrail และ relationship ระหว่าง accounts
+
+ตัวอย่าง: บริษัทมี 40 applications แทนที่จะใส่ทุกระบบใน account เดียว เราแยก production/non-production accounts แล้วใช้ SCP ที่ Production OU ห้ามปิด CloudTrail และห้ามใช้ Region ที่ไม่อนุมัติ
+
+#### AWS Control Tower — ตัวสร้าง landing zone ให้พร้อมใช้
+
+Landing zone คือ multi-account foundation ที่เตรียม identity, logging, audit และ guardrails ไว้ก่อนทีม application เข้ามาใช้ ถ้าสร้างเองต้องต่อ Organizations, IAM Identity Center, Config, CloudTrail และ automation หลายชุด Control Tower ทำหน้าที่ orchestrate setup เหล่านี้ตามแนวทาง AWS
+
+Control Tower มักสร้าง/ใช้:
+
+- management account สำหรับ control plane; ไม่ควรวาง application workload ทั่วไป
+- Log Archive account สำหรับเก็บ log ส่วนกลาง
+- Audit/Security account สำหรับทีม security ตรวจ accounts อื่น
+- IAM Identity Center สำหรับ workforce access
+- controls เพื่อ preventive/detective/proactive governance
+- Account Factory สำหรับสร้าง member account ใหม่จาก baseline
+
+Control Tower ไม่ใช่ runtime ที่รับ user traffic และไม่ใช่ SIEM มันคือบริการดูแล **multi-account environment lifecycle**
+
+#### IAM Identity Center — ประตู SSO ของพนักงาน
+
+Identity Center เชื่อม user/group จาก corporate directory หรือสร้าง identity ภายใน แล้วให้ user login ที่ portal เดียวเพื่อเห็น AWS accounts และ roles ที่ได้รับ
+
+แนวคิดสำคัญคือ **permission set**: template ของสิทธิ์ เช่น `ReadOnly`, `Developer`, `SecurityAudit` เมื่อ assign user/group + permission set ให้ account ระบบจะ provision IAM role ที่เกี่ยวข้องใน account เป้าหมาย
+
+จึงไม่ต้องสร้าง IAM user/password ซ้ำใน 40 accounts และเมื่อพนักงานออกจากบริษัทสามารถปิดที่ identity source ส่วนกลางได้
+
+อย่าสับสนกับ Amazon Cognito: Identity Center ใช้กับ **workforce/พนักงาน**, Cognito ใช้กับ **ผู้ใช้ application เช่นลูกค้า mobile/web app**
+
+#### Security, Log Archive และ Audit accounts — แยกหน้าที่เพื่อลด blast radius
+
+การแยก account ไม่ได้มีไว้จัด folder สวย ๆ แต่ใช้ AWS account เป็น isolation boundary:
+
+- **Log Archive account** รับ CloudTrail/Config/log สำคัญจาก accounts อื่น ผู้ดูแล workload ไม่ควรแก้หรือลบ log ได้
+- **Security Tooling account** เป็น delegated admin ของ GuardDuty, Security Hub, Inspector หรือเครื่องมือ security กลาง
+- **Audit account** ให้ auditor/security role อ่าน evidence และตรวจข้าม account โดยไม่ต้องใช้ management account
+- บางองค์กรแยก Network, Backup หรือ Shared Services accounts เพิ่มตาม ownership และ risk
+
+ถ้า production credential ถูก compromise ผู้โจมตีไม่ควรลบ audit logs หรือปิด detector ส่วนกลางได้ง่าย นี่คือเหตุผลของการแยก blast radius
+
+#### Delegated administrator — มอบงาน service ให้ account ผู้เชี่ยวชาญ
+
+Management account มีอำนาจสูงมาก จึงไม่ควรให้ทีมใช้ทำงานประจำ Organizations-integrated services หลายตัวอนุญาตให้แต่งตั้ง member account เป็น delegated administrator
+
+ตัวอย่าง: ตั้ง `security-tooling` เป็น delegated admin ของ Security Hub และ GuardDuty จากนั้นทีม security จัดการ members/findings จาก account นี้ โดยไม่ต้อง login management account
+
+ข้อดี:
+
+- แยก duty และลดการใช้ management account
+- เปิด/จัดการ service ให้ current/future member accounts จากส่วนกลางได้ตาม capability
+- รวม findings/configuration/backup policy โดยไม่เขียน script loop ทุก account
+
+แต่ละ service มี delegated-admin behavior และ Region behavior ต่างกัน ต้อง enable trusted access และตั้ง home/aggregation Region ตามเอกสารของ service
+
+#### Account Factory และ Service Catalog — โรงงานสร้างของมาตรฐาน
+
+**Account Factory** อยู่ใน Control Tower ใช้สร้าง AWS account ใหม่พร้อม baseline เช่น OU, network option, SSO access และ controls แทนการเปิด account แล้วตั้งค่าด้วยมือ
+
+**Service Catalog** เป็น catalog ของ infrastructure products เช่น “VPC มาตรฐาน”, “three-tier app”, “approved RDS database” Platform team publish product จาก CloudFormation/Terraform configuration แล้วให้ทีม application deploy แบบ self-service ภายใต้ constraints
+
+จำความสัมพันธ์:
+
+- CloudFormation = engine สร้าง resources
+- Service Catalog = หน้าร้าน/approval boundary ของ templates ที่อนุมัติ
+- Account Factory = product/process เฉพาะสำหรับสร้าง governed AWS accounts
+
+#### ตัวอย่าง end-to-end
+
+เมื่อทีม Payments ขอ production account:
+
+1. Platform team ใช้ Account Factory สร้าง `payments-prod` ใต้ Production OU
+2. SCP ของ OU จำกัด Region และห้ามปิด security logging
+3. Developer login ผ่าน Identity Center และ assume role จาก permission set
+4. ทีม deploy เฉพาะ approved products ผ่าน Service Catalog
+5. CloudTrail/Config ส่ง evidence ไป Log Archive account
+6. GuardDuty/Security Hub findings ถูกรวมที่ Security delegated-admin account
+
+นี่คือเหตุผลที่ข้อสอบมักเลือก Organizations + Control Tower + Identity Center + delegated administration แทนการสร้าง IAM users และ Lambda scripts แยกทุก account
 
 #### SCP ไม่ใช่ IAM policy
 
