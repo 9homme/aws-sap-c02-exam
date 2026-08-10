@@ -1,6 +1,7 @@
 "use client";
 
 import { type CSSProperties, useEffect, useMemo, useState } from "react";
+import BibleReader from "./BibleReader";
 
 type SourceCategory = "captured" | "csv" | "course-derived" | "original" | "emerging";
 type Mode = "study" | "exam";
@@ -123,6 +124,7 @@ function getResult(item: HistoryItem, questionsById: Map<string, Question>) {
 }
 
 export default function Home() {
+  const [workspaceView, setWorkspaceView] = useState<"practice" | "bible">("practice");
   const [bank, setBank] = useState<Question[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState("");
@@ -356,6 +358,21 @@ export default function Home() {
       .slice(0, 4);
   }, [history, questionsById]);
 
+  function showPractice() {
+    setWorkspaceView("practice");
+    setScreen("dashboard");
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
+  function showBible() {
+    setWorkspaceView("bible");
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
+  if (workspaceView === "bible") {
+    return <BibleReader hasActiveAttempt={Boolean(activeAttempt)} onPractice={showPractice} />;
+  }
+
   if (loading || !hydrated) {
     return <main className="loading-shell"><div className="pulse-orb" /><p>Loading your SAP-C02 practice library…</p></main>;
   }
@@ -447,7 +464,7 @@ export default function Home() {
     const missedIds = result.outcomes.filter((outcome) => !outcome.correct).map((outcome) => outcome.question.id);
     return (
       <main className="app-shell">
-        <header className="site-header"><button className="brand button-text" onClick={() => setScreen("dashboard")}><span>◈</span> Architect Lab</button><button className="button secondary" onClick={() => setScreen("dashboard")}>Dashboard</button></header>
+        <header className="site-header"><button className="brand button-text" onClick={() => setScreen("dashboard")}><span>◈</span> Architect Lab</button><nav className="main-nav" aria-label="Main navigation"><button className="active" onClick={() => setScreen("dashboard")}>Practice</button><button onClick={showBible}>คัมภีร์</button></nav></header>
         <section className="results-wrap">
           <div className="result-hero">
             <span className="eyebrow">{resultState.item.mode === "exam" ? "Mock exam complete" : "Study set complete"}</span>
@@ -471,9 +488,9 @@ export default function Home() {
 
   return (
     <main className="app-shell">
-      <header className="site-header"><button className="brand button-text" onClick={() => setScreen("dashboard")}><span>◈</span> Architect Lab</button><div className="header-actions">{history.length > 0 && <button className="button-text subtle" onClick={clearAllProgress}>Clear local data</button>}<span className="local-badge">Saved on this device</span></div></header>
+      <header className="site-header"><button className="brand button-text" onClick={() => setScreen("dashboard")}><span>◈</span> Architect Lab</button><nav className="main-nav" aria-label="Main navigation"><button className="active" aria-current="page">Practice</button><button onClick={showBible}>คัมภีร์</button></nav><div className="header-actions">{history.length > 0 && <button className="button-text subtle" onClick={clearAllProgress}>Clear local data</button>}<span className="local-badge">Saved on this device</span></div></header>
       <section className="hero">
-        <div className="hero-copy"><span className="eyebrow">AWS Certified Solutions Architect – Professional</span><h1>Practice the architecture decisions that matter.</h1><p>A realistic SAP-C02 study companion built from your course record, with explanations that turn every miss into a reusable decision rule.</p><div className="hero-metrics"><div><strong>{bank.length}</strong><span>questions</span></div><div><strong>75</strong><span>exam questions</span></div><div><strong>3h</strong><span>full mock timer</span></div></div></div>
+        <div className="hero-copy"><span className="eyebrow">AWS Certified Solutions Architect – Professional</span><h1>Practice the architecture decisions that matter.</h1><p>A realistic SAP-C02 study companion built from your course record, with explanations that turn every miss into a reusable decision rule.</p><div className="hero-quick-actions"><button className="button secondary" onClick={showBible}>อ่านคัมภีร์ภาษาไทย →</button></div><div className="hero-metrics"><div><strong>{bank.length}</strong><span>questions</span></div><div><strong>75</strong><span>exam questions</span></div><div><strong>3h</strong><span>full mock timer</span></div></div></div>
         <div className="hero-panel"><span className="panel-mark">↗</span><p className="eyebrow">Your readiness</p><strong>{cumulativeStats.latestExam ?? "—"}{cumulativeStats.latestExam !== null && "%"}</strong><p>{cumulativeStats.exams ? `Latest full mock · best ${cumulativeStats.bestExam}%` : "Take a full mock to establish your baseline."}</p><button className="button primary" onClick={startFullExam}>Start full mock</button></div>
       </section>
       <section className="dashboard-grid">
