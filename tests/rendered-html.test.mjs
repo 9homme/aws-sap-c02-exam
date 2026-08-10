@@ -3,12 +3,13 @@ import { access, readFile } from "node:fs/promises";
 import test from "node:test";
 
 test("ships the Architect Lab product shell instead of the starter preview", async () => {
-  const [page, bibleReader, bible, html, css] = await Promise.all([
+  const [page, bibleReader, bible, html, css, vercelConfig] = await Promise.all([
     readFile(new URL("../app/page.tsx", import.meta.url), "utf8"),
     readFile(new URL("../app/BibleReader.tsx", import.meta.url), "utf8"),
     readFile(new URL("../content/aws-sap-c02-thai-exam-bible.md", import.meta.url), "utf8"),
     readFile(new URL("../index.html", import.meta.url), "utf8"),
     readFile(new URL("../app/globals.css", import.meta.url), "utf8"),
+    readFile(new URL("../vercel.json", import.meta.url), "utf8"),
   ]);
 
   assert.match(page, /Architect Lab/);
@@ -20,6 +21,7 @@ test("ships the Architect Lab product shell instead of the starter preview", asy
   assert.match(page, /popstate/);
   assert.match(bibleReader, /href="\/exam"/);
   assert.match(bibleReader, /href="\/bible"/);
+  assert.deepEqual(JSON.parse(vercelConfig).rewrites, [{ source: "/(.*)", destination: "/index.html" }]);
   assert.doesNotMatch(page, /SkeletonPreview|codex-preview/);
   assert.match(html, /Architect Lab — SAP-C02 Practice/);
   assert.match(html, /og\.png/);
