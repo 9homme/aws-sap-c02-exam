@@ -15,6 +15,11 @@ test("ships the Architect Lab product shell instead of the starter preview", asy
   assert.match(page, /Start full mock/);
   assert.match(page, /Saved on this device/);
   assert.match(page, /คัมภีร์/);
+  assert.match(page, /practice: "\/exam", bible: "\/bible"/);
+  assert.match(page, /window\.history\.pushState/);
+  assert.match(page, /popstate/);
+  assert.match(bibleReader, /href="\/exam"/);
+  assert.match(bibleReader, /href="\/bible"/);
   assert.doesNotMatch(page, /SkeletonPreview|codex-preview/);
   assert.match(html, /Architect Lab — SAP-C02 Practice/);
   assert.match(html, /og\.png/);

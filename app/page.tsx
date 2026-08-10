@@ -6,6 +6,7 @@ import BibleReader from "./BibleReader";
 type SourceCategory = "captured" | "csv" | "course-derived" | "original" | "emerging";
 type Mode = "study" | "exam";
 type Screen = "dashboard" | "attempt" | "result";
+type WorkspaceView = "practice" | "bible";
 
 type Question = {
   id: string;
@@ -55,6 +56,7 @@ type ResultState = {
 };
 
 const STORAGE_KEY = "sap-c02-practice-state-v1";
+const VIEW_PATHS: Record<WorkspaceView, string> = { practice: "/exam", bible: "/bible" };
 const DOMAIN_NAMES: Record<string, string> = {
   "1": "Organizational Complexity",
   "2": "New Solutions",
@@ -70,6 +72,10 @@ const sourceNames: Record<SourceCategory, string> = {
   original: "Original mock",
   emerging: "Emerging AI",
 };
+
+function viewFromPath(pathname: string): WorkspaceView {
+  return pathname.replace(/\/$/, "") === VIEW_PATHS.bible ? "bible" : "practice";
+}
 
 function shuffle<T>(values: T[]) {
   const copy = [...values];
@@ -124,7 +130,7 @@ function getResult(item: HistoryItem, questionsById: Map<string, Question>) {
 }
 
 export default function Home() {
-  const [workspaceView, setWorkspaceView] = useState<"practice" | "bible">("practice");
+  const [workspaceView, setWorkspaceView] = useState<WorkspaceView>(() => viewFromPath(window.location.pathname));
   const [bank, setBank] = useState<Question[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState("");
@@ -138,6 +144,18 @@ export default function Home() {
   const [sourceFilter, setSourceFilter] = useState<"all" | SourceCategory>("all");
   const [includeEmerging, setIncludeEmerging] = useState(false);
   const [reviewFilter, setReviewFilter] = useState<"all" | "incorrect" | "unanswered" | "flagged">("incorrect");
+
+  useEffect(() => {
+    const applyRoute = () => setWorkspaceView(viewFromPath(window.location.pathname));
+    const canonicalPath = VIEW_PATHS[viewFromPath(window.location.pathname)];
+    if (window.location.pathname !== canonicalPath) window.history.replaceState(null, "", canonicalPath);
+    window.addEventListener("popstate", applyRoute);
+    return () => window.removeEventListener("popstate", applyRoute);
+  }, []);
+
+  useEffect(() => {
+    document.title = workspaceView === "bible" ? "คัมภีร์ AWS SAP-C02 — Architect Lab" : "SAP-C02 Practice Exam — Architect Lab";
+  }, [workspaceView]);
 
   useEffect(() => {
     let mounted = true;
@@ -359,12 +377,14 @@ export default function Home() {
   }, [history, questionsById]);
 
   function showPractice() {
+    if (window.location.pathname !== VIEW_PATHS.practice) window.history.pushState(null, "", VIEW_PATHS.practice);
     setWorkspaceView("practice");
     setScreen("dashboard");
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
   function showBible() {
+    if (window.location.pathname !== VIEW_PATHS.bible) window.history.pushState(null, "", VIEW_PATHS.bible);
     setWorkspaceView("bible");
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
@@ -464,7 +484,7 @@ export default function Home() {
     const missedIds = result.outcomes.filter((outcome) => !outcome.correct).map((outcome) => outcome.question.id);
     return (
       <main className="app-shell">
-        <header className="site-header"><button className="brand button-text" onClick={() => setScreen("dashboard")}><span>◈</span> Architect Lab</button><nav className="main-nav" aria-label="Main navigation"><button className="active" onClick={() => setScreen("dashboard")}>Practice</button><button onClick={showBible}>คัมภีร์</button></nav></header>
+        <header className="site-header"><button className="brand button-text" onClick={() => setScreen("dashboard")}><span>◈</span> Architect Lab</button><nav className="main-nav" aria-label="Main navigation"><a className="active" href="/exam" aria-current="page" onClick={(event) => { event.preventDefault(); setScreen("dashboard"); }}>Practice</a><a href="/bible" onClick={(event) => { event.preventDefault(); showBible(); }}>คัมภีร์</a></nav></header>
         <section className="results-wrap">
           <div className="result-hero">
             <span className="eyebrow">{resultState.item.mode === "exam" ? "Mock exam complete" : "Study set complete"}</span>
@@ -488,7 +508,7 @@ export default function Home() {
 
   return (
     <main className="app-shell">
-      <header className="site-header"><button className="brand button-text" onClick={() => setScreen("dashboard")}><span>◈</span> Architect Lab</button><nav className="main-nav" aria-label="Main navigation"><button className="active" aria-current="page">Practice</button><button onClick={showBible}>คัมภีร์</button></nav><div className="header-actions">{history.length > 0 && <button className="button-text subtle" onClick={clearAllProgress}>Clear local data</button>}<span className="local-badge">Saved on this device</span></div></header>
+      <header className="site-header"><button className="brand button-text" onClick={() => setScreen("dashboard")}><span>◈</span> Architect Lab</button><nav className="main-nav" aria-label="Main navigation"><a className="active" href="/exam" aria-current="page" onClick={(event) => event.preventDefault()}>Practice</a><a href="/bible" onClick={(event) => { event.preventDefault(); showBible(); }}>คัมภีร์</a></nav><div className="header-actions">{history.length > 0 && <button className="button-text subtle" onClick={clearAllProgress}>Clear local data</button>}<span className="local-badge">Saved on this device</span></div></header>
       <section className="hero">
         <div className="hero-copy"><span className="eyebrow">AWS Certified Solutions Architect – Professional</span><h1>Practice the architecture decisions that matter.</h1><p>A realistic SAP-C02 study companion built from your course record, with explanations that turn every miss into a reusable decision rule.</p><div className="hero-quick-actions"><button className="button secondary" onClick={showBible}>อ่านคัมภีร์ภาษาไทย →</button></div><div className="hero-metrics"><div><strong>{bank.length}</strong><span>questions</span></div><div><strong>75</strong><span>exam questions</span></div><div><strong>3h</strong><span>full mock timer</span></div></div></div>
         <div className="hero-panel"><span className="panel-mark">↗</span><p className="eyebrow">Your readiness</p><strong>{cumulativeStats.latestExam ?? "—"}{cumulativeStats.latestExam !== null && "%"}</strong><p>{cumulativeStats.exams ? `Latest full mock · best ${cumulativeStats.bestExam}%` : "Take a full mock to establish your baseline."}</p><button className="button primary" onClick={startFullExam}>Start full mock</button></div>

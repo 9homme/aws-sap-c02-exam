@@ -201,8 +201,8 @@ export default function BibleReader({ hasActiveAttempt, onPractice }: BibleReade
       <header className="site-header bible-header">
         <button className="brand button-text" onClick={onPractice}><span>◈</span> Architect Lab</button>
         <nav className="main-nav" aria-label="Main navigation">
-          <button onClick={onPractice}>Practice{hasActiveAttempt && <i aria-label="saved attempt" />}</button>
-          <button className="active" aria-current="page">คัมภีร์</button>
+          <a href="/exam" onClick={(event) => { event.preventDefault(); onPractice(); }}>Practice{hasActiveAttempt && <i aria-label="saved attempt" />}</a>
+          <a className="active" href="/bible" aria-current="page" onClick={(event) => event.preventDefault()}>คัมภีร์</a>
         </nav>
       </header>
 

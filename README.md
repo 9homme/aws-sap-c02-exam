@@ -13,6 +13,8 @@ A browser-based AWS Certified Solutions Architect – Professional practice site
 
 All progress is stored only in the browser's local storage on the device being used.
 
+Bookmark `/exam` for the practice dashboard and `/bible` for the Thai study Bible. Both routes support direct loading and browser Back/Forward navigation.
+
 ## Development
 
 ```bash
