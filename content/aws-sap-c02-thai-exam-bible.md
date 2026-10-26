@@ -1220,76 +1220,80 @@ KMS high-yield:
 
 ## 15. เห็นคำนี้ ให้คิดถึงสิ่งนี้
 
-1. **all current and future accounts** → ต้องครอบคลุมทั้ง account เดิมและใหม่: ใช้ Organizations integration และ auto-enrollment
-2. **least operational overhead** → ลดงานดูแล: มองหา managed service, native integration หรือ delegated admin
-3. **cross-account infrastructure deployment** → StackSets
-4. **approved self-service configurations** → Service Catalog
-5. **SCP** (Service Control Policy) → กำหนดเพดานสิทธิ์; ไม่ได้ให้สิทธิ์ใช้งานเอง
-6. **external principal access** → IAM (Identity and Access Management) Access Analyzer; zone of trust ต้องเป็น Organization หาก account ใน org ไม่ควรถูกนับว่า external
-7. **central security findings** → Security Hub
-8. **packet payload** → Traffic Mirroring; Flow Logs ไม่เห็น payload
-9. **ขาไปผ่าน แต่ขากลับ REJECT** → ตรวจ NACL (Network Access Control List) และ ephemeral ports; Security Group จำ connection และอนุญาตขากลับอัตโนมัติ
-10. **แยก prod/dev บน Transit Gateway** → แยก route tables; ตรวจว่า attachment ผูกตารางไหน (association) และส่ง route ไปตารางไหน (propagation)
-11. **two static global IPs** → Global Accelerator
-12. **UDP global** → Global Accelerator
-13. **HTTP cache/edge logic** → CloudFront
-14. **apex domain** → Route 53 alias
-15. **on-prem resolves private AWS name** → Resolver inbound endpoint
-16. **AWS resolves on-prem name** → Resolver outbound endpoint + rule
-17. **no inbound SSH + audit + port forwarding** → Session Manager
-18. **CloudFront-only S3 (Simple Storage Service) origin** → Origin Access Control + bucket policy
-19. **CloudFront-only ALB (Application Load Balancer) origin** → secret custom header + WAF (Web Application Firewall) validation หรือ architecture ที่ปิด direct access ตาม requirement
-20. **custom AMI (Amazon Machine Image) batch + restartable** → AWS Batch EC2 (Elastic Compute Cloud) managed compute + Spot
-21. **tightly coupled HPC (High Performance Computing)** — งานคำนวณที่แต่ละเครื่องต้องคุยกันเร็วมาก → EFA (Elastic Fabric Adapter) + cluster placement group ใน Availability Zone เดียว
-22. **requests หนักไม่เท่ากัน** → scale ด้วย metric ที่สะท้อน work เช่น CPU
-23. **CPU ไม่สัมพันธ์ traffic** → RequestCountPerTarget/custom business metric
-24. **queue workers** → target tracking จากจำนวนงานค้างต่อ instance
-25. **แชร์ไฟล์ข้ามหลาย Availability Zones** → EFS (Elastic File System)
-26. **แชร์ไฟล์ Windows ผ่าน SMB (Server Message Block)** → FSx for Windows
-27. **unpredictable S3 access** → Intelligent-Tiering
-28. **retrieve within 3–5 hours** → Glacier Flexible Retrieval
-29. **12 hours acceptable/cheapest archive** → Deep Archive
-30. **re-creatable infrequent data** → One Zone-IA (Infrequent Access) อาจเหมาะ
-31. **ห้ามแก้/ลบ 5 ปี แม้เป็น admin** → Object Lock แบบ compliance mode
-32. **แก้ object เดิมหลายล้านรายการใน S3** → Inventory สร้างรายการ + Batch Operations ทำงานเป็นชุด
-33. **replicate S3 ทั้งของเก่าและใหม่** → Batch Replication สำหรับของเก่า + replication rule สำหรับของใหม่
-34. **prefix/access pattern scale** → S3 Access Points
-35. **repetitive cross-Region reads** → replication อาจคุ้มกว่า transfer ซ้ำ
-36. **rare low-volume private cross-Region access** → private connectivity อาจคุ้มกว่า replicate dataset ทั้งก้อน
-37. **hybrid NFS (Network File System)/SMB to S3 objects** → S3 File Gateway
-38. **automated backup many resource types** → AWS Backup
-39. **DynamoDB อ่าน key เดิมซ้ำมาก** → DAX (DynamoDB Accelerator) ลดการอ่านซ้ำจาก table
-40. **durable Redis-compatible database** → MemoryDB
-41. **RDS (Relational Database Service) credential rotation** → Secrets Manager
-42. **RDS ต้อง failover อัตโนมัติ** → Multi-AZ; ตรวจว่าเป็น database instance หรือ database cluster
-43. **RDS ต้องรองรับการอ่านเพิ่ม** → read replica; standby ของ Multi-AZ database instance ไม่รับงานอ่าน
-44. **global Aurora relational** → Aurora Global Database
-45. **backend ทำงาน 90 วินาที แต่ client รอได้ 10 วินาที** → รับงานแบบ asynchronous, ใส่ SQS (Simple Queue Service) แล้วให้ worker ทำ; client มาตรวจผลทีหลัง
-46. **คิวต้องเรียงลำดับและลด message ซ้ำ** → สร้าง SQS FIFO (First In, First Out) ใหม่; เปลี่ยนชนิด Standard เดิมตรง ๆ ไม่ได้
-47. **legacy broker protocol** → Amazon MQ
-48. **workflow ต้อง retry, แยกเงื่อนไข, รอ หรือขออนุมัติ** → Step Functions
-49. **server-rendered web app** → S3 static hosting ไม่ได้; container/compute
-50. **รัน container โดยไม่ดูแล host** → Fargate
-51. **เว็บ stack ง่าย ๆ เช่น Linux + Apache + MySQL + PHP และต้องการราคาคาดเดาได้** → Lightsail
-52. **runbook install + infrastructure** → CloudFormation + user data/Systems Manager
-53. **ระบบยืนยันตัวตนเดิม (Identity Provider) ไม่ใช้มาตรฐาน SAML (Security Assertion Markup Language) หรือ OIDC (OpenID Connect)** → Cognito developer-authenticated identity pattern
-54. **contact center intents** → Connect + Lex + Lambda
-55. **ต้องย้ายใน 90 วัน และไม่มี source code** → Application Migration Service เพื่อ rehost server
-56. **ย้าย database ข้าม engine** (heterogeneous) → Schema Conversion Tool แปลง schema/code + Database Migration Service ย้ายข้อมูล
-57. **online recurring file transfer** → DataSync
-58. **offline huge data/network too slow** → Snow Family
-59. **SFTP (SSH File Transfer Protocol) managed endpoint** → Transfer Family
-60. **console and SDK (Software Development Kit) audit + tamper detection** → CloudTrail + integrity validation
-61. **single-tenant/direct HSM (Hardware Security Module) control + flexible crypto interface** → CloudHSM; FIPS (Federal Information Processing Standards) Level 3 อย่างเดียวไม่ใช่ตัวแยกจาก KMS (Key Management Service) ปัจจุบัน
-62. **forecast budget before threshold + action** → AWS Budgets forecasted alert/action
-63. **baseline compute** → Savings Plans/Reserved Instances
-64. **fault-tolerant batch** → Spot
-65. **แก้ resource จาก event แบบรวมศูนย์** → EventBridge ส่ง event ให้ Lambda หรือ Systems Manager Automation แก้
-66. **who changed resource** → CloudTrail
-67. **resource compliance/history** → Config
-68. **application metric/log/alarm** → CloudWatch
-69. **sensitive S3 data** → Macie
-70. **ช่องโหว่ของ EC2 หรือ package** → Inspector
+อ่านแต่ละข้อเป็น **“ถ้าโจทย์มีเงื่อนไขนี้ → ควรทำอะไร → เพราะอะไร”** คำตัวหนาคือจุดที่ใช้ตัดสินคำตอบ แต่ยังต้องตรวจข้อจำกัดอื่นในโจทย์ด้วย
+
+1. ถ้าโจทย์ต้องการให้ policy หรือบริการ **ครอบคลุมทุก account ทั้งที่มีอยู่และที่จะสร้างใหม่** ให้เลือก **AWS Organizations integration พร้อม auto-enrollment/auto-enable** ที่บริการนั้นรองรับ เพื่อให้ account ใหม่เข้าระบบส่วนกลางได้ด้วย ไม่ต้องตามตั้งค่าทีละ account
+2. ถ้าโจทย์เน้น **least operational overhead หรือดูแลระบบให้น้อยที่สุด** ให้เลือก **managed service และการเชื่อมต่อที่ AWS มีให้โดยตรง** เมื่อทำ requirement ครบ; ถ้ามีหลาย account ให้ดู delegated administrator ก่อนเขียน script วนจัดการเอง งานดูแลน้อยไม่ได้แปลว่าค่าใช้งานถูกที่สุดเสมอ
+3. ถ้าทีมส่วนกลางต้อง **deploy infrastructure ชุดเดียวกันไปหลาย account หรือหลาย Region** ให้ใช้ **CloudFormation StackSets** เพื่อกระจายและอัปเดต stack จากส่วนกลาง แทนการเข้าไป deploy ทีละที่
+4. ถ้าต้องการให้ developer **เลือกสร้าง infrastructure เองได้ แต่เลือกได้เฉพาะแบบที่องค์กรอนุมัติ** ให้ใช้ **AWS Service Catalog** จัด template เป็น product พร้อมข้อจำกัดการ deploy ต่างจาก StackSets ซึ่งเน้นให้ส่วนกลาง deploy ให้
+5. ถ้าต้องการ **ห้าม action หรือจำกัด Region ของ account ในองค์กร** ให้ใช้ **SCP (Service Control Policy)** กำหนดเพดานสิทธิ์ แต่ยังต้องมี policy อนุญาตให้ผู้ใช้ทำงานด้วย เพราะ SCP ไม่ได้ให้สิทธิ์ด้วยตัวเอง
+6. ถ้าต้องตรวจว่า resource **เปิดสิทธิ์ให้คนนอก account หรือองค์กรหรือไม่** ให้ใช้ **IAM Access Analyzer (IAM ย่อมาจาก Identity and Access Management)** และกำหนด zone of trust ให้ตรงขอบเขตที่เชื่อถือ เช่น เลือกทั้ง Organization ถ้า account ภายในบริษัทไม่ควรถูกนับเป็นคนนอก
+7. ถ้ามี **ผลตรวจ security จากหลายบริการ หลาย account หรือหลาย Region** และต้องการดูรวมกัน ให้ใช้ **Security Hub** เป็นศูนย์รวม findings พร้อมตั้ง delegated administrator และการรวมข้าม Region; ตัวตรวจต้นทางอย่าง GuardDuty หรือ Macie ยังทำหน้าที่ตรวจของตัวเอง
+8. ถ้าโจทย์ต้องการ **ดูเนื้อหาภายใน packet เพื่อวิเคราะห์ traffic** ให้ใช้ **VPC Traffic Mirroring (Virtual Private Cloud Traffic Mirroring)** กับ network interface ที่รองรับ เพื่อคัดลอก traffic ไปเครื่องวิเคราะห์; Flow Logs มีข้อมูลการรับส่ง แต่ไม่มีเนื้อหา packet
+9. ถ้า **request ขาไปผ่าน แต่ response ขากลับถูก REJECT** ให้ตรวจ **NACL (Network Access Control List)** และ ephemeral ports หรือ port ชั่วคราวฝั่ง client เพราะ NACL ตรวจขาไปและขากลับแยกกัน ส่วน Security Group จำ connection และอนุญาต response ของ connection ที่ผ่านแล้วโดยอัตโนมัติ
+10. ถ้า network ของ **production กับ development ใช้ Transit Gateway ตัวเดียวกัน แต่ห้ามคุยข้ามกัน** ให้แยก **Transit Gateway route tables** แล้วผูกแต่ละ connection หรือ attachment เข้าตารางของกลุ่มตัวเอง (association) และไม่เพิ่มเส้นทางของอีกกลุ่มเข้ามา (propagation) เช่น prod มี route ไป prod เท่านั้น
+11. ถ้า application มีผู้ใช้ทั่วโลก และ firewall ของลูกค้า **ต้องอนุญาตปลายทางด้วย static IP สองค่าที่ไม่เปลี่ยน** ให้พิจารณา **Global Accelerator** เพราะให้ static anycast IP เป็นทางเข้าระดับโลก แล้วส่ง traffic ไปยัง endpoint ที่พร้อมใช้งาน
+12. ถ้าเป็นเกมหรือ application ที่ใช้ **UDP (User Datagram Protocol) และต้องการลด latency สำหรับผู้ใช้ทั่วโลก** ให้พิจารณา **Global Accelerator** เพราะรองรับ traffic แบบนี้และใช้เครือข่าย AWS พาไปยัง endpoint; CloudFront เน้นรับส่งเว็บ จึงไม่ใช่ตัวแทนสำหรับ UDP ทั่วไป
+13. ถ้าโจทย์ต้องการ **cache รูป วิดีโอ หรือเนื้อหาเว็บใกล้ผู้ใช้** ให้ใช้ **CloudFront** เพื่อลดเวลาโหลดและการเรียก origin; ถ้าต้องปรับ request/response ที่ edge ให้เลือก CloudFront Functions หรือ Lambda@Edge ตามความสามารถที่งานต้องใช้
+14. ถ้าต้องการให้ **ชื่อ domain หลักแบบไม่มี www เช่น `example.com` ชี้ไป CloudFront หรือ load balancer** ให้ใช้ **Route 53 Alias record** เพราะชื่อระดับนี้เรียกว่า apex domain และใช้ CNAME (Canonical Name) ไม่ได้; Alias ชี้ได้เฉพาะปลายทางที่รองรับ
+15. ถ้า server ใน **data center ของบริษัทต้องแปลงชื่อ private domain ฝั่ง AWS** ให้ตั้ง **Route 53 Resolver inbound endpoint** และตั้ง DNS (Domain Name System) ฝั่งบริษัทให้ forward คำถามของ domain นั้นเข้ามา; จำว่า “คำถามเข้ามาใน AWS = inbound” และต้องมี network เชื่อมถึงกันก่อน
+16. ถ้า application ใน **AWS ต้องแปลงชื่อ domain ภายใน data center ของบริษัท** ให้ตั้ง **Route 53 Resolver outbound endpoint พร้อม forwarding rule** ส่งคำถามไป DNS server ของบริษัท; จำว่า “คำถามออกจาก AWS = outbound” และต้องมี network เชื่อมถึงกันก่อน
+17. ถ้าต้อง **เข้า shell ของ server โดยไม่เปิด inbound port สำหรับ SSH (Secure Shell)** ให้ใช้ **Systems Manager Session Manager** และกำหนดสิทธิ์จากส่วนกลาง สามารถตั้ง log สำหรับ shell session ปกติได้; ถ้าใช้ port forwarding หรือ SSH tunnel จะบันทึกเนื้อหาภายใน session ด้วยวิธีนี้ไม่ได้
+18. ถ้าเก็บไฟล์ใน **S3 (Simple Storage Service) และต้องการให้ผู้ใช้อ่านผ่าน CloudFront เท่านั้น** ให้ใช้ **Origin Access Control พร้อม bucket policy** อนุญาต CloudFront distribution ของเรา และปิด public access ของ bucket วิธีนี้ใช้กับ S3 origin ปกติ ไม่ใช่ S3 website endpoint
+19. ถ้าใช้ **CloudFront อยู่หน้า ALB (Application Load Balancer) ที่เปิด public และต้องกันผู้ใช้ยิงเข้า ALB โดยตรง** ให้ CloudFront **แนบ custom header ที่มีค่าลับ** และตั้ง **WAF (Web Application Firewall) ที่ ALB ให้ block request ที่ไม่มี header หรือค่าไม่ตรง**; ถ้าโจทย์กำหนดว่า origin ต้องเป็น private ให้พิจารณา **CloudFront VPC origins** แทน
+20. ถ้าเป็น **batch job ที่ต้องใช้ custom AMI (Amazon Machine Image) และหยุดแล้วเริ่มงานใหม่ได้** ให้ใช้ **AWS Batch บน EC2 (Elastic Compute Cloud) พร้อม Spot Instances** เพื่อใช้ image ที่ต้องการและลดค่า compute; ต้องออกแบบ retry หรือ checkpoint รองรับการถูกเรียกคืนเครื่องด้วย
+21. ถ้าเป็น **HPC (High Performance Computing) ที่หลายเครื่องต้องคุยกันเร็วมาก** ให้พิจารณา **cluster placement group ใน Availability Zone เดียว พร้อม EFA (Elastic Fabric Adapter)** บน instance ที่รองรับ เพื่อให้ latency ระหว่างเครื่องต่ำ; การกระจายข้ามหลายโซนอาจทำให้การคุยกันช้าลง
+22. ถ้า **แต่ละ request ใช้แรงประมวลผลไม่เท่ากัน** อย่าเพิ่มเครื่องตามจำนวน request อย่างเดียว ให้เลือก **metric ที่สะท้อนภาระจริง เช่น CPU (Central Processing Unit) utilization** เมื่อสัมพันธ์กับงาน เพราะ request สิบงานเบาอาจใช้เครื่องน้อยกว่างานหนักเพียงงานเดียว
+23. ถ้า **CPU utilization ไม่สะท้อนความต้องการเพิ่มเครื่อง แต่จำนวน web request ต่อเครื่องสะท้อนได้ดี** ให้ใช้ Auto Scaling แบบ **target tracking ด้วย `ALBRequestCountPerTarget`** หรือ custom metric ที่เหมาะกับธุรกิจ แทนการยึด CPU ทุกกรณี
+24. ถ้ามี **worker หลายเครื่องดึงงานจากคิว และต้องเพิ่ม/ลด worker ตามงานค้าง** ให้ scale จาก **backlog per instance หรือจำนวนงานค้างต่อ worker** ไม่ใช่งานค้างรวมอย่างเดียว เช่น งานค้าง 1,000 ชิ้นกับ worker 2 เครื่องมีภาระต่อเครื่องมากกว่า worker 20 เครื่อง
+25. ถ้า application บน Linux หลายเครื่องใน **หลาย Availability Zones ต้อง mount และใช้ไฟล์ชุดเดียวกัน** ให้เลือก **EFS (Elastic File System) แบบ Regional** ซึ่งเป็น shared file storage; disk EBS (Elastic Block Store) ทั่วไปผูกกับโซนเดียว จึงไม่ใช่ตัวแทนสำหรับโจทย์นี้
+26. ถ้า Windows application ต้อง **แชร์ไฟล์ผ่าน SMB (Server Message Block) และใช้สิทธิ์จาก Active Directory** ให้เลือก **FSx for Windows File Server** เพราะให้ file system และการเชื่อมต่อ directory ที่ตรงกับ Windows workload
+27. ถ้าเก็บข้อมูลใน S3 แล้ว **เดาไม่ได้ว่าไฟล์ไหนจะถูกอ่านบ่อยหรือเงียบไปนาน** ให้พิจารณา **S3 Intelligent-Tiering** เพื่อปรับ tier ตามการเข้าถึง โดยต้องพิจารณาค่า monitoring และเปิด archive tiers เองหากต้องการใช้
+28. ถ้าข้อมูลเป็น archive ที่อ่านไม่บ่อย และ **ยอมรอ restore ประมาณ 3–5 ชั่วโมงได้** ให้พิจารณา **S3 Glacier Flexible Retrieval แบบ Standard retrieval**; เวลานี้เป็นระยะเวลาทั่วไป ไม่ใช่การรับประกันตายตัว และต้องเลือก retrieval option ให้ตรงโจทย์
+29. ถ้าเป็น archive ที่เก็บยาว อ่านน้อยมาก และ **ยอมรอ restore ราว 12 ชั่วโมงได้โดยต้องการค่าจัดเก็บต่ำ** ให้พิจารณา **S3 Glacier Deep Archive แบบ Standard retrieval** พร้อมคิดค่า restore และ minimum storage duration; ถ้าต้องได้ข้อมูลภายในไม่กี่ชั่วโมง ตัวนี้อาจไม่ผ่าน requirement
+30. ถ้าข้อมูล **อ่านไม่บ่อย แต่สร้างใหม่ได้หรือมีสำเนาหลักอยู่ที่อื่น** ให้พิจารณา **S3 One Zone-IA (Infrequent Access)** เพื่อลดค่าเก็บ เพราะเก็บในโซนเดียว จึงไม่ควรใช้เป็นสำเนาเดียวของข้อมูลที่สูญเสียไม่ได้
+31. ถ้าต้องเก็บข้อมูล **ห้ามลบหรือเขียนทับเป็นเวลา 5 ปี แม้แต่ admin ก็ห้าม** ให้ใช้ **S3 Object Lock แบบ compliance mode** พร้อมตั้ง retention ตามกำหนด เพราะ governance mode ยังมีช่องให้ผู้มีสิทธิ์ bypass ได้ แต่ compliance mode ห้ามลบ object version ที่ล็อกไว้ก่อนครบกำหนด
+32. ถ้าต้อง **แก้ tag, copy หรือทำงานแบบเดียวกันกับ S3 objects เดิมหลายล้านรายการ** ให้ใช้ **S3 Batch Operations** โดยใช้ S3 Inventory เป็นรายการตั้งต้นได้ แทนการเขียน script เรียกทีละ object; Inventory ทำหน้าที่สำรวจรายการ ไม่ได้แก้ไฟล์ให้เอง
+33. ถ้าต้องการ **replicate S3 ทั้งไฟล์เก่าที่มีอยู่แล้วและไฟล์ใหม่ที่จะเข้ามา** ให้ใช้ **S3 Batch Replication สำหรับของเก่า และ replication rule สำหรับของใหม่** เพราะการสร้าง replication rule ใหม่อย่างเดียวไม่ได้ตามคัดลอกของเก่าให้ทั้งหมด
+34. ถ้ามี **หลายทีมใช้ S3 bucket เดียว แต่ต้องเข้าถึงคนละกลุ่มไฟล์หรือใช้ policy ต่างกัน** ให้พิจารณา **S3 Access Points** เพื่อแยกทางเข้าและ policy ตามการใช้งาน ช่วยจัดการสิทธิ์ได้ง่ายกว่าการอัดทุกเงื่อนไขไว้ใน bucket policy เดียว; ไม่ได้เพิ่มความเร็วให้ bucket โดยอัตโนมัติ
+35. ถ้า application ในอีก Region ต้อง **อ่านข้อมูลชุดใหญ่เดิมซ้ำบ่อย ๆ** ให้เปรียบเทียบ **replication ไปเก็บใกล้ application** กับการอ่านข้าม Region ทุกครั้ง โดยคิดทั้งค่าเก็บสำเนา ค่า replicate ความสดของข้อมูล และค่า transfer; จำนวนการอ่านมากอาจทำให้เก็บสำเนาคุ้มกว่า
+36. ถ้า application ในอีก Region **อ่านข้อมูลน้อยและนาน ๆ ครั้ง แต่ต้องใช้ private network** ให้เปรียบเทียบ **การเชื่อมต่อ private เพื่ออ่านจากต้นทาง** กับการ replicate ทั้งชุด อย่าคัดลอกข้อมูลก้อนใหญ่โดยอัตโนมัติเมื่อใช้งานจริงเพียงเล็กน้อย; ต้องคิดค่า connection และ data transfer ด้วย
+37. ถ้า server ใน data center ต้อง **ใช้ file share แบบเดิมผ่าน NFS (Network File System) หรือ SMB แต่ต้องการเก็บข้อมูลปลายทางเป็น S3 objects** ให้ใช้ **S3 File Gateway** เพื่อเชื่อม file interface เดิมกับ S3 และ cache ข้อมูลที่ใช้บ่อยไว้ใกล้ server
+38. ถ้าต้อง **กำหนด backup schedule และ retention ให้หลายชนิด resource หรือหลาย account จากส่วนกลาง** ให้ใช้ **AWS Backup** พร้อม policy ตามขอบเขตที่ต้องการ แทนการสร้างระบบตั้งเวลา backup แยกทุกบริการ; ตรวจด้วยว่า resource นั้นรองรับการ backup/restore แบบที่โจทย์ต้องการ
+39. ถ้า **DynamoDB ถูกอ่าน key เดิมซ้ำมาก และยอมรับข้อมูลแบบ eventually consistent ได้** ให้พิจารณา **DAX (DynamoDB Accelerator)** เพื่อ cache ผลอ่านและลดงานของ table; ไม่ใช่ cache ทั่วไปสำหรับ database ทุกชนิด และการอ่านแบบ strongly consistent ไม่ได้ประโยชน์จาก cache แบบเดียวกัน
+40. ถ้าต้องการ **database หลักที่ใช้ Redis-compatible interface และข้อมูลต้องทนต่อเครื่องล่ม** ให้พิจารณา **MemoryDB** ซึ่งมี transaction log ข้ามหลาย Availability Zones เพื่อความทนทาน ต่างจากการเลือก cache เพียงเพราะอ่านเขียนเร็ว
+41. ถ้า application ใช้ **RDS (Relational Database Service) และต้องเปลี่ยนรหัสผ่าน database อัตโนมัติ** ให้ใช้ **Secrets Manager พร้อม rotation** และให้ application อ่าน secret ที่เป็นปัจจุบัน แทนการฝังรหัสผ่านคงที่ไว้ใน code หรือ image
+42. ถ้า database ต้อง **ให้บริการต่อได้เมื่อเครื่องหลักหรือ Availability Zone ล่ม โดย failover อัตโนมัติ** ให้พิจารณา **RDS Multi-AZ (Multi-Availability Zone)**; แบบ database instance มี standby ที่ไม่รับงานอ่าน ส่วนแบบ database cluster มี reader ที่รับงานอ่านได้ จึงต้องดูชนิดให้ชัด
+43. ถ้า **RDS รับงานอ่านไม่ไหว และ application ยอมรับ replication lag ได้** ให้ใช้ **read replica** แล้วแยก read traffic ไปที่ replica; การเพิ่ม standby ของ Multi-AZ database instance ช่วย failover แต่ไม่ได้เพิ่มปลายทางสำหรับอ่าน
+44. ถ้าใช้ Aurora และต้อง **ให้อีก Region อ่านข้อมูลได้ใกล้ผู้ใช้ พร้อมมีทางกู้ระบบเมื่อ Region หลักล่ม** ให้พิจารณา **Aurora Global Database** ซึ่ง replicate ข้าม Region; ยังต้องวางแผน failover และยอมรับ replication lag ตาม requirement
+45. ถ้า backend ใช้เวลา **90 วินาที แต่ client รอได้เพียง 10 วินาที** ให้เปลี่ยนเป็น **asynchronous processing**: รับคำขอแล้วส่งงานเข้า **SQS (Simple Queue Service)**, ตอบกลับพร้อมรหัสติดตามงาน แล้วให้ worker ทำต่อและให้ client ตรวจผลภายหลัง แทนการบังคับให้ connection เดิมรอจนงานเสร็จ
+46. ถ้าคิวงานต้อง **รักษาลำดับและลด message ที่ส่งซ้ำ** ให้ใช้ **SQS FIFO (First In, First Out)** และกำหนด message group ตามลำดับที่ต้องรักษา ถ้ามี Standard queue อยู่แล้วต้องสร้าง FIFO queue ใหม่; application ยังควรป้องกันผลซ้ำ เช่น ไม่ตัดเงินซ้ำเมื่อ message ถูกประมวลผลใหม่
+47. ถ้า application เดิมใช้ **ActiveMQ หรือ RabbitMQ และต้องย้ายโดยแก้ code/protocol ให้น้อยที่สุด** ให้ใช้ **Amazon MQ** เพราะรองรับ broker ที่ application รู้จักอยู่แล้ว การเปลี่ยนไปใช้ SQS อาจต้องแก้วิธีส่งและรับข้อความ
+48. ถ้างานมี **หลายขั้น ต้อง retry, แยกเงื่อนไข, รอผล, ทำขนาน หรือรอคนอนุมัติ** ให้ใช้ **Step Functions** คุม workflow แทนการเขียน function เดียวยาว ๆ ที่ต้องจำสถานะและจัดการ retry เองทั้งหมด
+49. ถ้าเว็บต้อง **รัน code ฝั่ง server เพื่อสร้างหน้าเว็บทุกครั้งที่มี request** ให้ใช้ **compute เช่น EC2, container หรือ Lambda ตาม runtime**; S3 static website hosting ส่งไฟล์ที่เก็บไว้ได้ แต่รัน backend code เพื่อสร้างหน้าเว็บให้ไม่ได้
+50. ถ้าทีมต้อง **รัน container แต่ไม่อยาก provision หรือ patch host ที่รองรับ container** ให้ใช้ **Fargate** ร่วมกับ **ECS (Elastic Container Service) หรือ EKS (Elastic Kubernetes Service)** โดยทีมยังต้องดูแล image, configuration และตัว application
+51. ถ้าเป็น **เว็บหรือ application ขนาดเล็ก ใช้ stack มาตรฐาน และต้องการราคาชุดที่คาดเดาง่าย** ให้พิจารณา **Lightsail** เช่น เว็บ Linux + Apache + MySQL + PHP; ถ้าต้องใช้ network หรือ infrastructure ที่ซับซ้อน ให้ตรวจว่าเกินขอบเขตความเรียบง่ายที่ Lightsail เหมาะจะดูแลหรือไม่
+52. ถ้าต้อง **สร้าง infrastructure และติดตั้ง software ตามขั้นตอนเดิมซ้ำได้ทุกครั้ง** ให้ใช้ **CloudFormation สร้าง resource** แล้วใช้ **EC2 user data** สำหรับ bootstrap ตอน launch หรือ **Systems Manager** สำหรับรันขั้นตอนจัดการเครื่อง ตามช่วงเวลาที่โจทย์ต้องการ ไม่ใช่ให้คนเข้าไปติดตั้งด้วยมือทุกเครื่อง
+53. ถ้ามี **ระบบ login ของ application เดิมที่ไม่รองรับ SAML (Security Assertion Markup Language) หรือ OIDC (OpenID Connect)** และต้องการให้ผู้ใช้ที่ login แล้วได้รับสิทธิ์เรียก AWS ให้พิจารณา **Cognito identity pool แบบ developer-authenticated identities** โดยให้ backend ที่เชื่อถือได้ยืนยันผู้ใช้ก่อน; ไม่ใช่ส่งรหัสผ่าน AWS ให้ client
+54. ถ้าต้องสร้าง **contact center ที่เข้าใจว่าลูกค้าต้องการทำอะไร แล้วเรียก backend ไปทำงานต่อ** ให้ใช้ **Amazon Connect รับสาย, Amazon Lex เข้าใจคำพูด/เจตนา และ Lambda เรียก business logic** เช่น ลูกค้าขอตรวจสถานะคำสั่งซื้อ แล้วระบบดึงข้อมูลมาตอบ
+55. ถ้าต้อง **ย้าย server ภายในเวลาจำกัด เช่น 90 วัน และไม่มี source code ให้แก้** ให้พิจารณา **AWS Application Migration Service เพื่อ rehost** โดย replicate server แล้วเปิดใช้งานบน EC2 แทนการเริ่ม redesign application ใหม่ตั้งแต่ต้น
+56. ถ้าต้อง **ย้าย database ข้าม engine เช่น Oracle ไป Aurora PostgreSQL** ต้องทำทั้งสองงาน: **Schema Conversion Tool แปลง schema/code และ Database Migration Service ย้ายข้อมูล**; ถ้าต้อง downtime ต่ำ ให้ตามคัดลอกข้อมูลที่เปลี่ยนระหว่างย้ายด้วย **CDC (Change Data Capture)** ก่อน cutover
+57. ถ้าต้อง **ย้ายหรือ sync ไฟล์ผ่าน network ซ้ำ ๆ ตาม schedule** ให้พิจารณา **AWS DataSync** ซึ่งช่วยจัดการการส่งและตรวจสอบข้อมูล; ถ้าโจทย์ต้องการเพียงเปิด server รับไฟล์ด้วย protocol เดิมของคู่ค้า ให้แยกไปพิจารณา Transfer Family
+58. ถ้าต้องย้ายข้อมูล **ใหญ่มากจนส่งผ่าน network ไม่ทันกำหนด** ให้พิจารณา **offline transfer** และรวมเวลาส่งอุปกรณ์/นำเข้าข้อมูลด้วย ในเนื้อหาหลักสูตรเดิมตัวอย่างคือ **Snowball Edge**; ปัจจุบันเปิดให้เฉพาะลูกค้าเดิมตั้งแต่ 7 พฤศจิกายน 2025 ลูกค้าใหม่ต้องดูทางเลือกที่เปิดให้ใช้ เช่น Data Transfer Terminal หรือ partner solution
+59. ถ้าคู่ค้าต้อง **อัปโหลดหรือดาวน์โหลดไฟล์ด้วย SFTP (SSH File Transfer Protocol) เดิม โดยไม่อยากดูแล file-transfer server เอง** ให้ใช้ **AWS Transfer Family** เชื่อมไปยัง storage ที่รองรับ; จุดตัดสินคือรักษาวิธีเชื่อมต่อของ client ไม่ใช่การย้ายข้อมูลก้อนใหญ่ให้เร็วที่สุด
+60. ถ้าต้อง **ตรวจย้อนหลังว่าใครเรียก AWS ผ่านทั้ง console และ code พร้อมตรวจว่า log ถูกแก้หรือไม่** ให้ใช้ **CloudTrail** บันทึก activity และเปิด **log file integrity validation**; การตรวจความถูกต้องของ log ช่วยพบการเปลี่ยนแปลง แต่ไม่ได้ป้องกันการลบแทนการตั้งสิทธิ์และ retention
+61. ถ้า requirement ต้อง **ใช้ hardware เก็บ key แบบ single-tenant และควบคุมผู้ใช้ key, algorithm หรือ cryptographic interface เองโดยตรง** ให้พิจารณา **CloudHSM (Hardware Security Module)**; ถ้าต้องการ managed key ที่เชื่อม AWS services ง่ายให้ดู **KMS (Key Management Service)** และอย่าใช้คำว่า FIPS (Federal Information Processing Standards) Level 3 เพียงอย่างเดียวตัดสิน เพราะ KMS standard key store ก็มีการรับรองระดับนี้
+62. ถ้าต้อง **เตือนก่อนสิ้นเดือนว่าค่าใช้จ่ายมีแนวโน้มเกินงบ และให้ทำ action เมื่อถึงเกณฑ์** ให้ใช้ **AWS Budgets แบบ forecasted alert พร้อม Budget Actions ที่รองรับ** เช่น จำกัดการสร้าง resource; ต้องตั้ง action และสิทธิ์เพิ่มเอง ไม่ใช่ตั้งงบแล้ว AWS จะหยุดค่าใช้จ่ายทั้งหมดให้ทันที
+63. ถ้าระบบมี **การใช้งานพื้นฐานสม่ำเสมอและคาดว่าจะใช้ต่อระยะยาว** ให้พิจารณา **Savings Plans หรือ Reserved Instances** ตามบริการและความยืดหยุ่นที่ต้องการ โดย commit เฉพาะส่วนที่มั่นใจว่าจะใช้จริง แทนการจ่าย On-Demand ทั้งหมดหรือซื้อส่วนลดเผื่อ load สูงสุดชั่วคราว
+64. ถ้าเป็น **batch job ที่ถูกขัดจังหวะได้และ retry หรือเริ่มจาก checkpoint ได้** ให้ใช้ **Spot Instances** เพื่อลดค่า compute เพราะ AWS เรียกคืนเครื่องได้; ถ้าห้ามหยุดกลางงานและไม่มีวิธีรับมือ การใช้ Spot เป็นกำลังหลักเพียงอย่างเดียวอาจไม่ผ่าน requirement
+65. ถ้าต้อง **รวม event จากหลาย account แล้วแก้ปัญหาจากส่วนกลางโดยอัตโนมัติ** ให้ใช้ **EventBridge ส่ง event ไป central event bus** พร้อม policy ที่อนุญาต แล้วให้ **Lambda หรือ Systems Manager Automation** ทำ remediation ตาม rule; การรวม event อย่างเดียวไม่ได้แก้ resource ให้เอง
+66. ถ้าโจทย์ถามว่า **ใครลบหรือแก้ resource เมื่อไร และทำผ่าน role ไหน** ให้ดู **CloudTrail** เพราะบันทึก AWS activity โดยต้องเปิด event ประเภทที่เกี่ยวข้อง เช่น งานระดับ object ใน S3 ต้องดู data events ไม่ใช่คาดว่าจะอยู่ใน management events ทั้งหมด
+67. ถ้าโจทย์ถามว่า **resource เคยตั้งค่าไว้อย่างไร เปลี่ยนจากอะไร และตรงข้อกำหนดหรือไม่** ให้ใช้ **AWS Config** เก็บประวัติ configuration และประเมิน compliance; ถ้าถามว่าใครเป็นคนกดเปลี่ยน ให้กลับไปดู CloudTrail
+68. ถ้าต้องดู **CPU utilization, latency, error rate, application logs หรือให้ alarm เมื่อเกินค่า** ให้ใช้ **CloudWatch** พร้อมส่ง metric/log ที่ต้องการและตั้ง alarm; ถ้าเป็น custom application metric ต้อง instrument ให้ระบบส่งข้อมูลนั้นด้วย
+69. ถ้าต้อง **ค้นหาข้อมูลส่วนบุคคลหรือข้อมูลอ่อนไหวใน S3 เช่น เลขบัตรเครดิตหรือข้อมูลส่วนบุคคล** ให้ใช้ **Amazon Macie** เพื่อจำแนกข้อมูลและสร้าง findings; Macie ช่วยตรวจพบ แต่ไม่ได้ลบหรือปกปิดข้อมูลให้โดยอัตโนมัติ
+70. ถ้าต้อง **ตรวจช่องโหว่ของ software/package บน EC2, container image หรือ Lambda ที่บริการรองรับ** ให้ใช้ **Amazon Inspector**; ถ้าโจทย์เน้นพฤติกรรมน่าสงสัย เช่น credential ถูกขโมยหรือเครื่องถูกใช้ขุดเหรียญ ให้พิจารณา GuardDuty ซึ่งทำหน้าที่ตรวจภัยคุกคามคนละด้าน
+
+**แหล่งตรวจเงื่อนไขเพิ่มเติมจาก AWS:** [Transit Gateway association/propagation](https://docs.aws.amazon.com/vpc/latest/tgw/how-transit-gateways-work.html), [Route 53 Alias กับ apex domain](https://docs.aws.amazon.com/Route53/latest/DeveloperGuide/resource-record-sets-choosing-alias-non-alias.html), [Session Manager และข้อจำกัด session logs](https://docs.aws.amazon.com/systems-manager/latest/userguide/session-manager.html), [CloudFront กับ public load balancer](https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/restrict-access-to-load-balancer.html), [CloudFront private origins](https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/private-content-vpc-origins.html), [เวลา restore ของ Glacier](https://docs.aws.amazon.com/AmazonS3/latest/userguide/glacier-storage-classes.html), [SQS และการประมวลผลซ้ำ](https://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/designing-for-outage-recovery-scenarios.html), [Snowball availability ปัจจุบัน](https://aws.amazon.com/snowball/faqs/), [Budget Actions](https://docs.aws.amazon.com/cost-management/latest/userguide/budgets-controls.html)
 
 ---
 
