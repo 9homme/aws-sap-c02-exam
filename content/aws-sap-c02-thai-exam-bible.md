@@ -2,9 +2,13 @@
 
 > ฉบับสังเคราะห์จาก Stella League Week 1–8, ข้อสอบฝึก 75 ข้อ, คลังแบบทดสอบ และ AWS Exam Guide ปัจจุบัน
 >
-> อัปเดต: 10 สิงหาคม 2026
+> เนื้อหาหลัก: 10 สิงหาคม 2026 · ปรับภาษาให้อ่านต่อได้คล่อง: 26 ตุลาคม 2026
+>
+> ลำดับหัวข้อเดิมทั้งหมด อ่านต่อจากจุดเดิมได้เลย ตัวย่อสำคัญมีคำเต็มกำกับเมื่อเริ่มหัวข้อ ส่วนชื่อบริการและ tech term ยังใช้ตามที่เจอในข้อสอบ
 
 ## คำเตือนที่จริงใจ
+
+AWS ย่อมาจาก **Amazon Web Services**
 
 เอกสารนี้ออกแบบให้เป็นแกนหลักสำหรับสอบผ่าน SAP-C02 แต่ไม่มีเอกสารใดรับประกันผลสอบได้ 100% เพราะข้อสอบวัดการตัดสินใจเชิงสถาปัตยกรรม ไม่ใช่การจำชื่อบริการอย่างเดียว ต้องอ่านเอกสารนี้ควบคู่กับการทำโจทย์ในเว็บไซต์ `sap-c02-practice`, วิเคราะห์ทุกข้อที่ผิด และมีประสบการณ์ลงมือทำหรือวาด data flow ด้วยตัวเอง
 
@@ -14,7 +18,7 @@
 
 ## 1. วิธีใช้คัมภีร์เล่มนี้ให้คุ้มที่สุด
 
-อ่าน 3 รอบ โดยแต่ละรอบมีเป้าหมายต่างกัน:
+ถ้ามีเวลาเตรียมตัวหลายวัน ให้อ่าน 3 รอบตามนี้ ถ้าสอบพรุ่งนี้ อ่านต่อจากจุดเดิม แล้วใช้ข้อ 16, 17 และ 21 ทวนก่อนสอบ:
 
 1. **รอบเข้าใจภาพใหญ่** — อ่านส่วนหลักคิด, 4 Domains และตารางเปรียบเทียบบริการ อย่าพยายามจำทุกบรรทัด
 2. **รอบตัดสินใจ** — อ่านส่วน “เห็นคำนี้ ให้คิดถึงอะไร” และฝึกอธิบายว่าเหตุใดตัวเลือกอื่นจึงผิด
@@ -56,7 +60,7 @@
 
 ### หัวข้อ emerging ที่อาจเจอแบบไม่คิดคะแนน
 
-AWS Exam Guide ปัจจุบันระบุหัวข้อ Responsible AI ได้แก่:
+AWS Exam Guide ปัจจุบันระบุหัวข้อ Responsible AI (Artificial Intelligence) ได้แก่:
 
 - Amazon Bedrock Guardrails สำหรับ content filtering และ compliance
 - AgentCore Identity สำหรับควบคุมการเข้าถึง generative/agentic AI
@@ -78,12 +82,12 @@ AWS Exam Guide ปัจจุบันระบุหัวข้อ Responsibl
 - **lowest cost** → ต้องผ่าน requirement ทั้งหมดก่อน แล้วจึงเลือกตัวที่ถูกสุดในกลุ่มที่ผ่าน
 - **minimal application changes** → rehost/replatform, รักษา protocol/engine/API เดิม
 - **most secure** → private path, least privilege, centralized audit, encryption, no long-lived credentials
-- **fastest recovery** → warm standby / multi-site / promoted replica ตาม RTO/RPO
+- **fastest recovery** → warm standby / multi-site / promoted replica ตาม RTO (Recovery Time Objective — เวลาหยุดระบบสูงสุดที่ยอมได้)/RPO (Recovery Point Objective — ช่วงข้อมูลย้อนหลังที่ยอมเสียได้)
 - **near real time** → streaming/event-driven ไม่ใช่ scheduled batch
 
 ### ขั้นที่ 2 — ขีดเส้นใต้ข้อห้ามและ SLA
 
-คำว่า `must`, `cannot`, `without`, `within`, `all accounts`, `existing and future`, `no public internet`, `RPO`, `RTO` มักเป็นตัวฆ่า distractor
+คำว่า `must`, `cannot`, `without`, `within`, `all accounts`, `existing and future`, `no public internet`, `RPO`, `RTO` มักเป็นเงื่อนไขที่ใช้ตัดตัวลวง
 
 ตัวอย่าง: “retrieve within 5 hours” ทำให้ Glacier Deep Archive ผิด แม้ราคาถูกกว่า
 
@@ -92,7 +96,7 @@ AWS Exam Guide ปัจจุบันระบุหัวข้อ Responsibl
 ถามตัวเอง:
 
 - บัญชีเดียวหรือทั้ง Organization?
-- AZ เดียว, หลาย AZ หรือหลาย Region?
+- AZ (Availability Zone) เดียว, หลาย AZ หรือหลาย Region?
 - HTTP หรือ TCP/UDP?
 - AWS-to-AWS, on-prem-to-AWS หรือ user-to-AWS?
 - ข้อมูลเก่า, ข้อมูลใหม่ หรือทั้งสองแบบ?
@@ -116,10 +120,10 @@ AWS Exam Guide ปัจจุบันระบุหัวข้อ Responsibl
 
 | หน้าที่ | เครื่องมือ |
 |---|---|
-| ให้/จำกัดสิทธิ์ | IAM, resource policy, SCP, permission boundary |
-| กำหนดเส้นทาง | Route table, TGW route table, Route 53 policy |
-| กรอง network | Security group, NACL, WAF, Network Firewall |
-| เข้ารหัส | KMS, CloudHSM, ACM, TLS |
+| ให้/จำกัดสิทธิ์ | IAM (Identity and Access Management), resource policy, SCP (Service Control Policy), permission boundary |
+| กำหนดเส้นทาง | Route table, Transit Gateway route table, Route 53 policy |
+| กรอง network | Security group, NACL (Network Access Control List), WAF (Web Application Firewall), Network Firewall |
+| เข้ารหัส | KMS (Key Management Service), CloudHSM, ACM (AWS Certificate Manager), TLS (Transport Layer Security) |
 | ตรวจและบันทึก | CloudTrail, Config, CloudWatch, Flow Logs |
 | รวม security findings | Security Hub |
 
@@ -127,7 +131,7 @@ Distractor ที่พบบ่อยคือเอาเครื่องม
 
 ### ขั้นที่ 6 — ตัด self-managed ก่อนเมื่อ requirement ไม่ได้บังคับ
 
-ถ้ามี managed service ที่ทำ requirement ครบ มักชนะการสร้าง EC2 + script + cron + custom Lambda จำนวนมาก โดยเฉพาะเมื่อโจทย์มีคำว่า least operational overhead
+ถ้ามี managed service ที่ทำ requirement ครบ มักชนะการสร้าง EC2 (Elastic Compute Cloud) + script + cron + custom Lambda จำนวนมาก โดยเฉพาะเมื่อโจทย์มีคำว่า least operational overhead
 
 ### ขั้นที่ 7 — Multiple response ต้องครบชุด
 
@@ -156,20 +160,24 @@ AWS ให้คะแนนเมื่อเลือกคำตอบถู�
 
 ### แนวคิดพื้นฐานก่อนรู้จัก product
 
+**ศัพท์พื้นฐานที่เจอบ่อย:** API (Application Programming Interface) = ช่องทางเรียก service; IP (Internet Protocol) = ที่อยู่ใน network; CPU (Central Processing Unit) = หน่วยประมวลผล
+
+**protocol:** HTTP (Hypertext Transfer Protocol) / HTTPS (Hypertext Transfer Protocol Secure) ใช้กับเว็บ; TCP (Transmission Control Protocol) เน้นส่งครบตามลำดับ; UDP (User Datagram Protocol) ไม่รับประกันการส่งถึง; SSH (Secure Shell) ใช้เข้าเครื่องระยะไกล; SQL (Structured Query Language) ใช้ query database
+
 | คำ AWS | อธิบายแบบ engineer |
 |---|---|
 | AWS account | security, billing และ quota boundary คล้าย cloud project/subscription ขนาดใหญ่ ไม่ใช่แค่ user login |
 | Organization | กลุ่มหลาย AWS accounts ภายใต้บริษัทเดียว มี policy และ billing ส่วนกลาง |
 | Region | พื้นที่ภูมิศาสตร์ เช่น Singapore หรือ Tokyo แต่ละ Region แยกกันโดย design |
-| Availability Zone (AZ) | กลุ่ม data center ที่แยก failure domain ภายใน Region เดียวกัน เชื่อมกันด้วย network latency ต่ำ |
-| VPC | private software-defined network ของเราในหนึ่ง Region |
+| AZ (Availability Zone) | กลุ่ม data center ที่แยก failure domain ภายใน Region เดียวกัน เชื่อมกันด้วย network latency ต่ำ |
+| VPC (Virtual Private Cloud) | private software-defined network ของเราในหนึ่ง Region |
 | Subnet | ช่วง IP ภายใน VPC และผูกกับ AZ เดียว ใช้แบ่ง public/private/app/data tiers |
-| Resource | สิ่งที่สร้างใน AWS เช่น EC2 instance, S3 bucket, RDS database |
-| ARN | identifier แบบเต็มของ resource/principal ใช้ใน IAM policy และ API |
+| Resource | สิ่งที่สร้างใน AWS เช่น EC2 (Elastic Compute Cloud) instance, S3 (Simple Storage Service) bucket, RDS (Relational Database Service) database |
+| ARN (Amazon Resource Name) | identifier แบบเต็มของ resource/principal ใช้ใน IAM (Identity and Access Management) policy และ API |
 | Managed service | AWS ดูแล infrastructure/patching/scaling บางส่วนหรือเกือบทั้งหมดให้ แต่เรายังรับผิดชอบ configuration, data และ access |
 | Global service | control plane หรือ service ที่มองทั้ง AWS เช่น Organizations/IAM บางส่วน; ต้องอ่าน behavior ราย service |
 | Regional service | สร้างและใช้งานภายใน Region เช่น Lambda, RDS, DynamoDB |
-| Zonal resource | ผูกกับ AZ เช่น EC2 instance, EBS volume, NAT Gateway |
+| Zonal resource | ผูกกับ AZ เช่น EC2 instance, EBS (Elastic Block Store) volume, NAT (Network Address Translation) Gateway |
 
 Mental model ที่ใช้ได้เกือบทุก architecture:
 
@@ -179,13 +187,13 @@ Mental model ที่ใช้ได้เกือบทุก architecture:
 
 | Product | มันคืออะไรแบบง่าย | ใช้เมื่อไร | อย่าสับสนกับ |
 |---|---|---|---|
-| AWS Organizations | parent control plane สำหรับรวมหลาย accounts เป็น Root/OU และใส่ policy ส่วนกลาง | บริษัทมีหลายทีม/environment/account และต้องการ governance + consolidated billing | IAM ซึ่งให้สิทธิ์ principal ภายใน/cross-account; Organizations ไม่ได้ login แทน user |
+| AWS Organizations | parent control plane สำหรับรวมหลาย accounts เป็น Root/OU (Organizational Unit) และใส่ policy ส่วนกลาง | บริษัทมีหลายทีม/environment/account และต้องการ governance + consolidated billing | IAM ซึ่งให้สิทธิ์ principal ภายใน/cross-account; Organizations ไม่ได้ login แทน user |
 | AWS Control Tower | ตัวติดตั้งและดูแล multi-account landing zone ตามแนวทาง AWS โดยประกอบ Organizations, Identity Center, Config และ logging | ต้องการเริ่มหลาย accounts ให้ baseline เหมือนกันโดยไม่ต่อ service เองทั้งหมด | Organizations ซึ่งเป็นโครงสร้างพื้นฐาน; Control Tower เป็น orchestration และ opinionated setup บนโครงนั้น |
-| IAM | ระบบ authorization ของ AWS: users, roles, policies และ temporary credentials | กำหนดว่าใครหรือ workload ใดเรียก action ใดกับ resource ใดได้ | IAM Identity Center ซึ่งจัด workforce SSO หลาย accounts |
-| IAM Identity Center | portal SSO สำหรับพนักงาน เข้า AWS accounts/apps ด้วย identity กลางและ permission sets | มี workforce หลายคน/หลาย accounts หรือเชื่อม corporate IdP | Cognito ซึ่งทำ identity ให้ลูกค้าของ application |
-| AWS RAM | share resource บางชนิดข้าม account โดยไม่ต้อง copy เช่น Transit Gateway/subnet/Resolver rule | หลาย accounts ต้องใช้ network/resource กลางร่วมกัน | IAM permission; share resource แล้วผู้ใช้ยังต้องมี authorization ที่ถูก |
+| IAM | ระบบ authorization ของ AWS: users, roles, policies และ temporary credentials | กำหนดว่าใครหรือ workload ใดเรียก action ใดกับ resource ใดได้ | IAM Identity Center ซึ่งจัด workforce SSO (Single Sign-On) หลาย accounts |
+| IAM Identity Center | portal SSO สำหรับพนักงาน เข้า AWS accounts/apps ด้วย identity กลางและ permission sets | มี workforce หลายคน/หลาย accounts หรือเชื่อม corporate IdP (Identity Provider) | Cognito ซึ่งทำ identity ให้ลูกค้าของ application |
+| AWS RAM (Resource Access Manager) | share resource บางชนิดข้าม account โดยไม่ต้อง copy เช่น Transit Gateway/subnet/Resolver rule | หลาย accounts ต้องใช้ network/resource กลางร่วมกัน | IAM permission; share resource แล้วผู้ใช้ยังต้องมี authorization ที่ถูก |
 | AWS Service Catalog | catalog ของ infrastructure products ที่ platform team อนุมัติแล้วให้ทีมอื่น self-service | ต้องการให้ developer กดสร้างเฉพาะ pattern ที่ผ่านมาตรฐาน | CloudFormation ซึ่งเป็น engine สำหรับสร้าง resource; Service Catalog ห่อ template เป็น product/portfolio |
-| CloudFormation | Infrastructure as Code แบบ declarative: ระบุ desired resources แล้ว AWS สร้าง/update เป็น stack | ต้องการ repeatable, versioned, reviewable infrastructure และ rollback | Systems Manager ซึ่งดูแล resource/OS หลังถูกสร้าง |
+| CloudFormation | Infrastructure as Code แบบ declarative: ระบุ desired resources แล้ว AWS สร้าง/update เป็น stack | ต้องการ repeatable, versioned, reviewable infrastructure และ rollback | Systems Manager ซึ่งดูแล resource และ OS หลังสร้างแล้ว |
 | CloudFormation StackSets | deploy stack เดียวไปหลาย account และหลาย Region จากส่วนกลาง | rollout baseline, IAM role, Config rule หรือ resource pattern ข้ามองค์กร | stack ปกติที่ทำงานใน target account/Region เดียว |
 | Systems Manager | ชุด fleet operations เช่น inventory, patch, run command, session, parameter และ automation | ดูแล EC2/hybrid servers โดยลด SSH/manual scripts | CloudWatch/Config ซึ่ง observe มากกว่า execute operational action |
 | AWS Config | inventory + configuration history + compliance evaluation ของ resources | ต้องรู้ว่า resource ตั้งค่าอะไร เปลี่ยนเมื่อไร และผิด rule หรือไม่ | CloudTrail ซึ่งบันทึก API activity ว่าใครเรียกอะไร |
@@ -194,48 +202,48 @@ Mental model ที่ใช้ได้เกือบทุก architecture:
 
 | Product | มันคืออะไรแบบง่าย | ใช้เมื่อไร | อย่าสับสนกับ |
 |---|---|---|---|
-| Amazon VPC | private network boundary ที่เรากำหนด CIDR, subnet, route และ security | ทุก workload ที่ต้องควบคุม private network | AWS account; account หนึ่งมีหลาย VPC ได้ |
+| Amazon VPC | private network boundary ที่เรากำหนด CIDR (Classless Inter-Domain Routing), subnet, route และ security | ทุก workload ที่ต้องควบคุม private network | AWS account; account หนึ่งมีหลาย VPC ได้ |
 | Internet Gateway | managed gateway ที่เชื่อม VPC กับ internet สำหรับ resource ที่มี route/public IP | public-facing subnet/instance ตาม design | NAT Gateway ซึ่งให้ private subnet ออก internet แต่ไม่รับ inbound ใหม่โดยตรง |
-| NAT Gateway | managed outbound translation จาก private subnet ไป internet อยู่ใน AZ | private instances ต้อง download package/call public endpoint | Internet Gateway; NAT ยังต้องมี IGW path และมีค่า data processing |
+| NAT Gateway | managed outbound translation จาก private subnet ไป internet อยู่ใน AZ | private instances ต้อง download package/call public endpoint | Internet Gateway; NAT ยังต้องมี Internet Gateway path และมีค่า data processing |
 | VPC Peering | private one-to-one routing ระหว่างสอง VPC | VPC จำนวนน้อย, CIDR ไม่ชน และไม่ต้อง transitive routing | Transit Gateway ที่เป็น hub สำหรับหลาย networks |
-| Transit Gateway | regional network hub เชื่อมหลาย VPC, VPN และ Direct Connect | hub-and-spoke, route segmentation และ network scale | simple router ที่ทุก attachment คุยกันเสมอ; TGW route tables ต้องออกแบบ |
-| AWS PrivateLink | เปิด service ให้ VPC อื่นเข้าผ่าน private endpoint/ENI โดยไม่เปิด network ทั้งก้อน | provider-consumer service access และลด CIDR/transitive complexity | VPC Peering/TGW ซึ่งให้ network connectivity กว้างกว่า |
-| VPC Lattice | application service network สำหรับ connect, discover และ authorize service-to-service ข้าม VPC/account | microservices หลาย VPC/accounts ต้องการ connectivity + policy ระดับ service | TGW ที่ทำ routing ระดับ network |
+| Transit Gateway | regional network hub เชื่อมหลาย VPC, VPN (Virtual Private Network) และ Direct Connect | hub-and-spoke, route segmentation และ network scale | simple router ที่ทุก attachment คุยกันเสมอ; Transit Gateway route tables ต้องออกแบบ |
+| AWS PrivateLink | เปิด service ให้ VPC อื่นเข้าผ่าน private endpoint/ENI (Elastic Network Interface) โดยไม่เปิด network ทั้งก้อน | provider-consumer service access และลด CIDR/transitive complexity | VPC Peering/Transit Gateway ซึ่งให้ network connectivity กว้างกว่า |
+| VPC Lattice | application service network สำหรับ connect, discover และ authorize service-to-service ข้าม VPC/account | microservices หลาย VPC/accounts ต้องการ connectivity + policy ระดับ service | Transit Gateway ที่ทำ routing ระดับ network |
 | Site-to-Site VPN | managed IPsec tunnels ระหว่าง on-prem/site กับ AWS ผ่าน internet | เชื่อมเร็ว, encrypted และ bandwidth requirement ไม่สูงเท่า dedicated link | Client VPN ที่ต่อผู้ใช้รายบุคคล |
 | AWS Client VPN | managed remote-access VPN ใช้ client บน laptop/user device | พนักงาน remote ต้องเข้าถึง private VPC | Site-to-Site VPN ที่เชื่อม network-to-network |
-| Direct Connect | dedicated private circuit จาก site/colo ไป AWS | ต้องการ bandwidth/latency สม่ำเสมอและไม่วิ่งบน public internet path | encryption; DX ไม่ encrypted โดยอัตโนมัติและควรมี HA design |
-| Route 53 | authoritative DNS + routing policies + health checks | map domain ไป endpoints และทำ DNS-level routing/failover | load balancer; DNS response ไม่ proxy ทุก packet |
+| Direct Connect | dedicated private circuit จาก site/colo ไป AWS | ต้องการ bandwidth/latency สม่ำเสมอและไม่วิ่งบน public internet path | encryption; Direct Connect ไม่ encrypted โดยอัตโนมัติและควรมี high availability design |
+| Route 53 | authoritative DNS (Domain Name System) + routing policies + health checks | map domain ไป endpoints และทำ DNS-level routing/failover | load balancer; DNS response ไม่ proxy ทุก packet |
 | Route 53 Resolver | managed DNS resolver/endpoints/rules สำหรับ VPC และ hybrid DNS | on-prem resolve private AWS names หรือ AWS resolve on-prem names | Route 53 hosted zone ที่เก็บ DNS records |
-| CloudFront | CDN ที่ cache/serve HTTP(S) ผ่าน edge locations และรัน edge logic ได้ | web/static/media/global HTTP latency, origin protection | Global Accelerator ซึ่งไม่ cache และรองรับ TCP/UDP |
+| CloudFront | CDN (Content Delivery Network) ที่ cache/serve HTTP(S) ผ่าน edge locations และรัน edge logic ได้ | web/static/media/global HTTP latency, origin protection | Global Accelerator ซึ่งไม่ cache และรองรับ TCP/UDP |
 | Global Accelerator | anycast static IP front door ที่พา TCP/UDP เข้า AWS global backbone ไป healthy endpoint | game/VoIP/non-HTTP/global app/static IP/fast failover | CloudFront CDN และ Route 53 DNS routing |
-| ALB | Layer 7 load balancer สำหรับ HTTP/HTTPS/gRPC และ route ตาม host/path/header | web/API/microservices | NLB สำหรับ TCP/UDP/TLS และ performance/static IP |
+| ALB (Application Load Balancer) | Layer 7 load balancer สำหรับ HTTP/HTTPS/gRPC (gRPC Remote Procedure Calls) และ route ตาม host/path/header | web/API/microservices | NLB (Network Load Balancer) สำหรับ TCP/UDP/TLS (Transport Layer Security) และ performance/static IP |
 | NLB | Layer 4 load balancer throughput สูง รองรับ TCP/UDP/TLS และ IP targets | non-HTTP, source IP, static IP per AZ, very high performance | ALB ที่เข้าใจ HTTP request |
-| GWLB | transparent gateway/load balancer สำหรับ network security appliances | scale third-party firewall/inspection fleet | AWS Network Firewall ซึ่งเป็น managed firewall service โดยตรง |
+| GWLB (Gateway Load Balancer) | transparent gateway/load balancer สำหรับ network security appliances | scale third-party firewall/inspection fleet | AWS Network Firewall ซึ่งเป็น managed firewall service โดยตรง |
 
 ### Compute, containers และ application runtime
 
 | Product | มันคืออะไรแบบง่าย | ใช้เมื่อไร | เราต้องดูแลอะไร |
 |---|---|---|---|
-| EC2 | virtual machine ที่เลือก OS/instance type/network/disk ได้ | ต้อง control OS, custom agent/driver, long-running legacy workload | OS patch, runtime, scaling pattern และ application |
+| EC2 | virtual machine ที่เลือก OS, instance type, network และ disk ได้ | ต้องควบคุม OS (Operating System), custom agent/driver, long-running legacy workload | OS patch, runtime, scaling และ application |
 | Auto Scaling | controller ที่เพิ่ม/ลด/แทน EC2 instances ตาม desired capacity/metric/health | stateless fleet, variable demand, self-healing | launch template, metric, cooldown/warmup และ state placement |
-| Elastic Beanstalk | application platform ที่ deploy code แล้ว AWS สร้าง EC2/LB/ASG environment ให้ | web app ที่อยากลด infrastructure setup แต่ยังใช้ EC2 model | app/config และ platform updates บางส่วน |
-| ECS | AWS-native container orchestrator จัด task/service/cluster | ทีมต้องการ containers โดยไม่ต้องใช้ Kubernetes API | task definition, service, networking, image และ scaling |
-| EKS | managed Kubernetes control plane | มี Kubernetes ecosystem/skills/workload requirement | cluster add-ons, workload, policy และ node/Fargate choice |
+| Elastic Beanstalk | application platform ที่ deploy code แล้ว AWS สร้าง EC2/load balancer/Auto Scaling group environment ให้ | web app ที่อยากลด infrastructure setup แต่ยังใช้ EC2 model | app/config และ platform updates บางส่วน |
+| ECS (Elastic Container Service) | AWS-native container orchestrator จัด task/service/cluster | ทีมต้องการ containers โดยไม่ต้องใช้ Kubernetes API | task definition, service, networking, image และ scaling |
+| EKS (Elastic Kubernetes Service) | managed Kubernetes control plane | มี Kubernetes ecosystem/skills/workload requirement | cluster add-ons, workload, policy และ node/Fargate choice |
 | Fargate | serverless compute capacity สำหรับ ECS/EKS tasks | รัน container โดยไม่ provision/patch worker nodes | container image, task sizing, networking และ app |
 | Lambda | event-driven function runtime ที่ scale ต่อ invocation | short-lived API/event/file/queue processing | function code, timeout, concurrency, idempotency และ downstream limits |
-| AWS Batch | managed job queues/scheduler ที่ใช้ EC2/Fargate compute environments | batch/HPC/render/ETL jobs ที่มี dependency และ retry | job definition/image/data และ compute strategy |
-| Lightsail | simplified VPS/bundle price พร้อม templates | small predictable web app หรือทีมใหม่ที่ไม่ต้องการ AWS primitives จำนวนมาก | instance/app/backup ตาม bundle |
-| ECR | private container image registry | เก็บ image สำหรับ ECS/EKS/Lambda containers | image lifecycle, scanning และ access policy |
+| AWS Batch | managed job queues/scheduler ที่ใช้ EC2/Fargate compute environments | batch/HPC (High Performance Computing)/render/ETL (Extract, Transform, Load) jobs ที่มี dependency และ retry | job definition/image/data และ compute strategy |
+| Lightsail | simplified virtual private server/bundle price พร้อม templates | small predictable web app หรือทีมใหม่ที่ไม่ต้องการ AWS primitives จำนวนมาก | instance/app/backup ตาม bundle |
+| ECR (Elastic Container Registry) | private container image registry | เก็บ image สำหรับ ECS/EKS/Lambda containers | image lifecycle, scanning และ access policy |
 
 ### Storage และ file systems
 
 | Product | มันคืออะไรแบบง่าย | ใช้เมื่อไร | Key behavior |
 |---|---|---|---|
-| S3 | durable object storage เข้าผ่าน API; ไม่ใช่ mounted block disk โดยธรรมชาติ | files, backup, data lake, static assets, logs | bucket อยู่ระดับ Region; object key ไม่ใช่ POSIX path จริง |
+| S3 | durable object storage เข้าผ่าน API; ไม่ใช่ mounted block disk โดยธรรมชาติ | files, backup, data lake, static assets, logs | bucket อยู่ระดับ Region; object key ไม่ใช่ POSIX (Portable Operating System Interface) path จริง |
 | EBS | block volume คล้าย virtual disk ต่อกับ EC2 | boot/data disk, database block storage ใน AZ | ผูก AZ, snapshot ไป S3-managed backend, Multi-Attach มีข้อจำกัด |
-| EFS | managed elastic NFS file system หลาย AZ | Linux instances/containers ต้องแชร์ POSIX files | regional mount targets, throughput/latency ต่างจาก local block disk |
-| FSx for Windows File Server | managed Windows SMB file server รวม AD integration | Windows apps, home directories, SMB shares | Windows semantics/permissions |
-| FSx for Lustre | high-performance parallel file system | HPC/ML/large dataset processing และเชื่อม S3 ได้ | performance-oriented ไม่ใช่ general cheap archive |
+| EFS (Elastic File System) | managed elastic NFS (Network File System) file system หลาย AZ | Linux instances/containers ต้องแชร์ POSIX files | regional mount targets, throughput/latency ต่างจาก local block disk |
+| FSx for Windows File Server | managed Windows SMB (Server Message Block) file server รวม AD (Active Directory) integration | Windows apps, home directories, SMB shares | Windows semantics/permissions |
+| FSx for Lustre | high-performance parallel file system | HPC/machine learning/large dataset processing และเชื่อม S3 ได้ | performance-oriented ไม่ใช่ general cheap archive |
 | Storage Gateway | appliance/service bridge ให้ on-prem ใช้ file/volume/tape interface โดย backend อยู่ AWS | hybrid storage และ gradual migration | มี File, Volume และ Tape Gateway คนละ access model |
 | AWS Backup | central policy, schedule, vault และ restore สำหรับหลาย AWS resource types | standardized backup ข้าม accounts/Regions | ต้องตรวจ resource support, retention, vault policy และ restore testing |
 
@@ -243,47 +251,47 @@ Mental model ที่ใช้ได้เกือบทุก architecture:
 
 | Product | มันคืออะไรแบบง่าย | ใช้เมื่อไร | อย่าสับสนกับ |
 |---|---|---|---|
-| RDS | managed relational database engines เช่น PostgreSQL/MySQL/Oracle/SQL Server | app ต้อง SQL, transaction, joins และไม่อยากดูแล DB host เองทั้งหมด | EC2 database ที่เราดูแล OS/engine เอง |
-| Aurora | AWS-built relational engine compatible กับ MySQL/PostgreSQL แยก compute/storage และมี HA/read scale สูง | cloud-native relational, fast failover, Global Database | RDS engine ทั่วไป; feature/price/compatibility ต้องตรวจ |
-| DynamoDB | serverless key-value/document database ที่ scale ด้วย partition key | predictable access by key, massive scale, low latency | relational DB; ไม่มี joins/ad-hoc SQL แบบเดียวกัน |
-| DAX | managed in-memory cache ที่เข้าใจ DynamoDB API | repeated eventually consistent reads ต้อง microseconds | ElastiCache general cache และ DynamoDB table เอง |
-| ElastiCache | managed Redis/Valkey หรือ Memcached cache | cache, session, leaderboard, rate data ลด DB load | durable primary database; persistence/HA ขึ้นกับ engine/config |
+| RDS | managed relational database engines เช่น PostgreSQL/MySQL/Oracle/SQL Server | app ต้อง SQL, transaction, joins และไม่อยากดูแล database host เองทั้งหมด | database บน EC2 ที่เราดูแล OS และ engine เอง |
+| Aurora | AWS-built relational engine compatible กับ MySQL/PostgreSQL แยก compute/storage และมี high availability/read scale สูง | cloud-native relational, fast failover, Global Database | RDS engine ทั่วไป; feature/price/compatibility ต้องตรวจ |
+| DynamoDB | serverless key-value/document database ที่ scale ด้วย partition key | predictable access by key, massive scale, low latency | relational database; ไม่มี joins/ad-hoc SQL แบบเดียวกัน |
+| DAX (DynamoDB Accelerator) | managed in-memory cache ที่เข้าใจ DynamoDB API | repeated eventually consistent reads ต้อง microseconds | ElastiCache general cache และ DynamoDB table เอง |
+| ElastiCache | managed Redis/Valkey หรือ Memcached cache | cache, session, leaderboard, rate data ลด database load | durable primary database; persistence/high availability ขึ้นกับ engine/config |
 | MemoryDB | durable Redis-compatible in-memory database พร้อม Multi-AZ transaction log | ต้องการ Redis API เป็น primary database และ durability | ElastiCache ซึ่งเป้าหมายหลักคือ cache |
-| Redshift | managed columnar data warehouse | analytical SQL บน structured/curated data ปริมาณมาก | RDS OLTP และ S3 data lake |
+| Redshift | managed columnar data warehouse | analytical SQL บน structured/curated data ปริมาณมาก | RDS งาน transaction ของ application และ S3 data lake |
 | Athena | serverless SQL query บน data ใน S3 | ad-hoc analysis/log query โดยไม่ provision cluster | database ที่รับ application transactions |
 | AWS Glue | serverless data integration/ETL + Data Catalog | discover schema, transform/move data, catalog datasets | Lake Formation ที่เน้น build/govern data lake permissions |
 | Lake Formation | orchestration/governance layer สำหรับ data lake บน S3/Glue | central fine-grained data access และ data lake setup | S3 storage หรือ query engine |
-| EMR | managed platform สำหรับ Spark/Hadoop/Trino ecosystem | big-data jobs ที่ต้อง framework/control มากกว่า serverless SQL | Glue/Athena ที่ลด cluster management มากกว่า |
+| Amazon EMR (แพลตฟอร์ม managed Spark/Hadoop) | managed platform สำหรับ Spark/Hadoop/Trino ecosystem | big-data jobs ที่ต้อง framework/control มากกว่า serverless SQL | Glue/Athena ที่ลด cluster management มากกว่า |
 | OpenSearch Service | managed search/analytics engine | full-text search, log analytics, dashboards | relational database |
-| QuickSight | managed BI visualization/dashboard | business users สำรวจ Athena/Redshift/RDS datasets | data warehouse/ETL engine |
+| QuickSight | managed business intelligence visualization/dashboard | business users สำรวจ Athena/Redshift/RDS datasets | data warehouse/ETL engine |
 
 ### Messaging, events และ workflow
 
 | Product | มันคืออะไรแบบง่าย | ใช้เมื่อไร | Delivery mental model |
 |---|---|---|---|
-| SQS | durable queue คั่น producer กับ workers | buffer spike, async work, independent scaling | consumer pull; Standard at-least-once, FIFO order/dedup ตามเงื่อนไข |
-| SNS | push pub/sub topic | fan-out notification/event ไปหลาย subscribers | publisher ส่งครั้งเดียวแล้ว SNS push ไป endpoints/queues |
-| EventBridge | managed event bus ที่ route ตาม event content/schema | AWS/SaaS/custom events, cross-account routing, event-driven automation | router ไม่ใช่ work queue ทดแทน SQS ทุกกรณี |
+| SQS (Simple Queue Service) | durable queue คั่น producer กับ workers | buffer spike, async work, independent scaling | consumer pull; Standard at-least-once, FIFO (First In, First Out) order/dedup ตามเงื่อนไข |
+| SNS (Simple Notification Service) | push pub/sub topic | fan-out notification/event ไปหลาย subscribers | publisher ส่งครั้งเดียวแล้ว SNS push ไป endpoints/queues |
+| EventBridge | managed event bus ที่ route ตาม event content/schema | AWS/SaaS (Software as a Service)/custom events, cross-account routing, event-driven automation | router ไม่ใช่ work queue ทดแทน SQS ทุกกรณี |
 | Kinesis Data Streams | partitioned real-time stream ที่ retain/replay records | telemetry/click/log/financial stream และหลาย consumers | ordering ต่อ shard; ต้องออกแบบ partition key/capacity |
 | Kinesis Data Firehose | delivery pipe ที่ buffer/transform แล้วส่ง stream ไป destination เช่น S3/Redshift/OpenSearch | ต้องส่ง streaming data ไป storage/analytics ด้วย ops ต่ำ | ไม่ใช่ general replayable stream แบบ Data Streams |
-| Amazon MQ | managed ActiveMQ/RabbitMQ broker | migrate legacy JMS/AMQP/STOMP/MQTT app โดยลด protocol rewrite | cloud-native queue อย่าง SQS ที่มี API/semantics คนละแบบ |
+| Amazon MQ | managed ActiveMQ/RabbitMQ broker | migrate legacy messaging protocol เดิม เช่น AMQP หรือ MQTT app โดยลด protocol rewrite | cloud-native queue อย่าง SQS ที่มี API/semantics คนละแบบ |
 | Step Functions | state machine/orchestrator ที่เก็บ state ระหว่าง steps | retry, branch, parallel, wait, long workflow, human approval | Lambda function เดียวยาว ๆ หรือ EventBridge router |
 
 ### Security, encryption และ observability
 
 | Product | มันคืออะไรแบบง่าย | ใช้เมื่อไร | Output ที่ได้ |
 |---|---|---|---|
-| KMS | managed cryptographic key control plane ที่ integrate กับ AWS services | encrypt S3/EBS/RDS/secrets และ application envelope encryption | KMS keys, policies, grants และ audit events |
-| CloudHSM | single-tenant general-purpose HSM cluster ที่ลูกค้าควบคุม crypto users/keys/algorithms มากกว่า | direct HSM APIs, PKCS#11/JCE/CNG, special compliance/control | HSM cluster ที่ operational responsibility สูงกว่า KMS |
-| Secrets Manager | encrypted secret store + rotation workflow/integration | DB credentials/API keys ที่ต้อง rotate | secret versions และ retrieval API |
+| KMS (Key Management Service) | managed cryptographic key control plane ที่ integrate กับ AWS services | encrypt S3/EBS/RDS/secrets และ application envelope encryption | KMS keys, policies, grants และ audit events |
+| CloudHSM | single-tenant general-purpose HSM (Hardware Security Module) cluster ที่ลูกค้าควบคุม crypto users/keys/algorithms มากกว่า | direct HSM APIs, standard cryptographic interface เช่น PKCS#11, special compliance/control | HSM cluster ที่ operational responsibility สูงกว่า KMS |
+| Secrets Manager | encrypted secret store + rotation workflow/integration | database credentials/API keys ที่ต้อง rotate | secret versions และ retrieval API |
 | Parameter Store | hierarchical configuration/key-value store มี SecureString | app config/feature settings/simple secrets | parameter; rotation automation ไม่ครบเท่า Secrets Manager |
-| ACM | certificate lifecycle service | TLS cert สำหรับ ALB, CloudFront, API Gateway และ private CA use cases | managed certificates; private key export/placement มีข้อจำกัดตาม cert type |
-| WAF | Layer 7 web request rules | SQLi/XSS/rate/bot/geo filtering หน้า CloudFront/ALB/API Gateway | allowed/blocked/count web requests |
-| Shield | managed DDoS protection; Standard มีพื้นฐานและ Advanced เพิ่ม response/visibility | internet-facing workloads ที่ต้อง DDoS posture สูง | attack detection/mitigation ไม่แทน WAF application rules |
+| ACM (AWS Certificate Manager) | certificate lifecycle service | TLS cert สำหรับ ALB, CloudFront, API Gateway และ private certificate authority use cases | managed certificates; private key export/placement มีข้อจำกัดตาม cert type |
+| WAF (Web Application Firewall) | Layer 7 web request rules | SQL injection / cross-site scripting/rate/bot/geo filtering หน้า CloudFront/ALB/API Gateway | allowed/blocked/count web requests |
+| Shield | managed DDoS (Distributed Denial of Service) protection; Standard มีพื้นฐานและ Advanced เพิ่ม response/visibility | internet-facing workloads ที่ต้อง DDoS posture สูง | attack detection/mitigation ไม่แทน WAF application rules |
 | Network Firewall | managed VPC firewall สำหรับ stateful/stateless traffic inspection | central ingress/egress/east-west filtering | firewall endpoints/rules/logs |
 | GuardDuty | threat detection วิเคราะห์ CloudTrail, DNS, VPC และ data sources อื่น | หา compromised credential, crypto mining, suspicious behavior | security findings ไม่ใช่ packet block โดยตัวมันเอง |
-| Inspector | vulnerability/exposure scanning สำหรับ supported workloads | หา CVE/package/network exposure ใน EC2/container/Lambda ตาม coverage | vulnerability findings |
-| Macie | sensitive-data discovery และ S3 security monitoring | หา PII/credentials/sensitive patterns ใน S3 | sensitive-data findings/classification |
+| Inspector | vulnerability/exposure scanning สำหรับ supported workloads | หา package vulnerabilities และ network exposure ใน EC2/container/Lambda ตาม coverage | vulnerability findings |
+| Macie | sensitive-data discovery และ S3 security monitoring | หา ข้อมูลส่วนบุคคล/credentials/sensitive patterns ใน S3 | sensitive-data findings/classification |
 | IAM Access Analyzer | reasoning จาก policies เพื่อหา external/public access และ validate policy | ตรวจ resource share ออกนอก zone of trust | access findings/policy validation |
 | Security Hub | central dashboard/normalization/correlation ของ security findings | รวม GuardDuty, Inspector, Macie และ standards ข้าม accounts/Regions | aggregated findings ไม่ได้แทน detector ต้นทาง |
 | CloudTrail | audit log ของ AWS API activity | สืบว่าใครทำ action อะไร เมื่อไร จาก IP/role ใด | management/data/network activity events ตาม configuration |
@@ -296,17 +304,17 @@ Mental model ที่ใช้ได้เกือบทุก architecture:
 |---|---|---|---|
 | Migration Hub | dashboard กลางติดตาม servers/apps และ migration tools | portfolio/wave tracking | track ไม่ได้ย้าย workload เอง |
 | Application Discovery Service | เก็บ inventory/utilization/dependency ของ on-prem servers | assessment ก่อนวาง wave | discovery ไม่ใช่ migration engine |
-| Application Migration Service (MGN) | block-level continuous replication แล้ว launch server บน EC2 | rehost physical/VM servers ด้วย downtime ต่ำ | รักษา server model ไม่ได้ modernize app ให้เอง |
-| Database Migration Service (DMS) | move/replicate database data ด้วย full load + CDC | homogeneous/heterogeneous DB migration | data movement; schema conversion ใช้ SCT เมื่อ engine ต่างกัน |
+| Application Migration Service (MGN) | block-level continuous replication แล้ว launch server บน EC2 | rehost physical/virtual machine servers ด้วย downtime ต่ำ | รักษา server model ไม่ได้ modernize app ให้เอง |
+| Database Migration Service (DMS) | move/replicate database data ด้วย full load + CDC (Change Data Capture) | homogeneous/heterogeneous database migration | data movement; schema conversion ใช้ SCT (Schema Conversion Tool) เมื่อ engine ต่างกัน |
 | Schema Conversion Tool (SCT) | วิเคราะห์และ convert database schema/code | Oracle/SQL Server/Db2 ไป target engine คนละชนิด | ไม่ได้ย้าย transactional rows แทน DMS |
 | DataSync | agent-based accelerated online file/object transfer | NFS/SMB/object transfer ซ้ำหรือ scheduled | online network transfer ไม่ใช่ offline appliance |
 | Snow Family | physical/edge devices สำหรับ offline bulk transfer/edge compute | network ช้ามาก, data ใหญ่มาก, disconnected location | ต้องรวม shipping/import time ใน calculation |
-| Transfer Family | managed SFTP/FTPS/FTP/AS2 front door ไป S3/EFS | partner/client ต้องใช้ file-transfer protocol เดิม | ไม่ใช่ bulk migration optimizer แบบ DataSync |
-| Cost Explorer | UI/API วิเคราะห์ cost/usage trend | หา spend pattern และ forecast | ไม่ใช่ hard budget enforcement |
+| Transfer Family | managed SFTP (SSH File Transfer Protocol)/FTPS (File Transfer Protocol over TLS)/FTP (File Transfer Protocol)/AS2 front door ไป S3/EFS | partner/client ต้องใช้ file-transfer protocol เดิม | ไม่ใช่ bulk migration optimizer แบบ DataSync |
+| Cost Explorer | หน้าจอใช้งาน/API วิเคราะห์ cost/usage trend | หา spend pattern และ forecast | ไม่ใช่ hard budget enforcement |
 | AWS Budgets | threshold/forecast notification และ action | เตือน/จำกัดก่อนหรือเมื่อเกินงบ | data อาจไม่ real-time; billing control ไม่ใช่ resource architecture ทั้งหมด |
 | Compute Optimizer | recommendation จาก utilization metrics | rightsize EC2/EBS/Lambda/ECS ตาม supported resources | recommendation ต้อง validate business context |
 | Savings Plans | commitment ค่า compute ต่อชั่วโมงเพื่อรับส่วนลด | baseline usage ที่คาดการณ์ได้ | ไม่ใช่ capacity reservation โดยตัวมันเอง |
-| Reserved Instances | pricing/capacity construct ตาม service/type | baseline database/EC2 patterns ตามชนิด RI | Standard/Convertible/Regional/Zonal มี trade-off ต่างกัน |
+| Reserved Instances | pricing/capacity construct ตาม service/type | baseline database/EC2 patterns ตามชนิด Reserved Instances | Standard/Convertible/Regional/Zonal มี trade-off ต่างกัน |
 | Spot | spare EC2 capacity ราคาต่ำแต่ถูก interrupt ได้ | batch, fault-tolerant, stateless, flexible jobs | ห้ามใช้เป็น capacity เดียวของงานที่หยุดไม่ได้ |
 
 ### วิธีอ่านตาราง Product Primer
@@ -329,9 +337,9 @@ Mental model ที่ใช้ได้เกือบทุก architecture:
 
 สถาปัตยกรรมมาตรฐานขององค์กรควรคิดเป็นชั้น:
 
-1. **AWS Organizations** — สร้างลำดับ Root → OU → Account, consolidated billing และ policy inheritance
+1. **AWS Organizations** — สร้างลำดับ Root → OU (Organizational Unit) → Account, consolidated billing และ policy inheritance
 2. **AWS Control Tower** — สร้าง landing zone และ orchestration ของ Organizations, IAM Identity Center, Config, CloudTrail/central logging
-3. **IAM Identity Center** — SSO, permission sets และ federation กับ external IdP
+3. **IAM Identity Center** — SSO (Single Sign-On), permission sets และ federation กับ external IdP (Identity Provider)
 4. **Security/Log Archive/Audit accounts** — แยก blast radius และหน้าที่
 5. **Delegated administrator** — ให้ account เฉพาะดูแล Security Hub, GuardDuty, Config, Backup ฯลฯ แทน management account
 6. **Account Factory / Service Catalog** — provision account และ approved products แบบมาตรฐาน
@@ -350,9 +358,9 @@ Organizations เป็น service ที่เอา AWS accounts หลาย�
 - policy ที่ attach กับ Root/OU จะถูก inherit ลงไปยัง accounts ใต้จุดนั้นตามชนิด policy
 - consolidated billing รวมค่าใช้จ่ายเพื่อจ่ายส่วนกลางและใช้ volume discount/benefit บางชนิดร่วมกัน
 
-Organizations **ไม่ได้สร้างสิทธิ์ให้ developer เข้า resource** งานนั้นยังเป็น IAM/Identity Center และ Organizations **ไม่ได้ deploy application** แต่กำหนดโครงสร้าง, guardrail และ relationship ระหว่าง accounts
+Organizations **ไม่ได้สร้างสิทธิ์ให้ developer เข้า resource** งานนั้นยังเป็น IAM (Identity and Access Management)/Identity Center และ Organizations **ไม่ได้ deploy application** แต่กำหนดโครงสร้าง, guardrail และ relationship ระหว่าง accounts
 
-ตัวอย่าง: บริษัทมี 40 applications แทนที่จะใส่ทุกระบบใน account เดียว เราแยก production/non-production accounts แล้วใช้ SCP ที่ Production OU ห้ามปิด CloudTrail และห้ามใช้ Region ที่ไม่อนุมัติ
+ตัวอย่าง: บริษัทมี 40 applications แทนที่จะใส่ทุกระบบใน account เดียว เราแยก production/non-production accounts แล้วใช้ SCP (Service Control Policy) ที่ Production OU ห้ามปิด CloudTrail และห้ามใช้ Region ที่ไม่อนุมัติ
 
 #### AWS Control Tower — ตัวสร้าง landing zone ให้พร้อมใช้
 
@@ -367,7 +375,7 @@ Control Tower มักสร้าง/ใช้:
 - controls เพื่อ preventive/detective/proactive governance
 - Account Factory สำหรับสร้าง member account ใหม่จาก baseline
 
-Control Tower ไม่ใช่ runtime ที่รับ user traffic และไม่ใช่ SIEM มันคือบริการดูแล **multi-account environment lifecycle**
+Control Tower ไม่ใช่ runtime ที่รับ user traffic และไม่ใช่ ระบบรวมและวิเคราะห์เหตุการณ์ security มันคือบริการดูแล **multi-account environment lifecycle**
 
 #### IAM Identity Center — ประตู SSO ของพนักงาน
 
@@ -408,7 +416,7 @@ Management account มีอำนาจสูงมาก จึงไม่ค
 
 **Account Factory** อยู่ใน Control Tower ใช้สร้าง AWS account ใหม่พร้อม baseline เช่น OU, network option, SSO access และ controls แทนการเปิด account แล้วตั้งค่าด้วยมือ
 
-**Service Catalog** เป็น catalog ของ infrastructure products เช่น “VPC มาตรฐาน”, “three-tier app”, “approved RDS database” Platform team publish product จาก CloudFormation/Terraform configuration แล้วให้ทีม application deploy แบบ self-service ภายใต้ constraints
+**Service Catalog** เป็น catalog ของ infrastructure products เช่น “VPC (Virtual Private Cloud) มาตรฐาน”, “three-tier app”, “approved RDS (Relational Database Service) database” Platform team publish product จาก CloudFormation/Terraform configuration แล้วให้ทีม application deploy แบบ self-service ภายใต้ constraints
 
 จำความสัมพันธ์:
 
@@ -461,9 +469,9 @@ Management account มีอำนาจสูงมาก จึงไม่ค
 
 การ share resource ไม่ใช่การให้ IAM permission เสมอไป:
 
-- Share Transit Gateway, subnet, Route 53 Resolver rule ฯลฯ ด้วย AWS RAM
+- Share Transit Gateway, subnet, Route 53 Resolver rule ฯลฯ ด้วย AWS RAM (Resource Access Manager)
 - เปิด trusted access / sharing with Organizations เมื่อต้อง share ทั้งองค์กร
-- Resource-based policy ใช้ได้กับ S3, SQS, KMS และบริการที่รองรับ
+- Resource-based policy ใช้ได้กับ S3 (Simple Storage Service), SQS (Simple Queue Service), KMS (Key Management Service) และบริการที่รองรับ
 
 ### 4.3 Network at organization scale
 
@@ -471,11 +479,11 @@ Management account มีอำนาจสูงมาก จึงไม่ค
 
 | ทางเลือก | เหมาะกับ | ข้อจำกัดสำคัญ |
 |---|---|---|
-| VPC Peering | เชื่อมไม่กี่ VPC แบบ one-to-one | ไม่ transitive, CIDR ห้ามซ้อน, full mesh โตยาก |
-| Transit Gateway | hub-and-spoke หลาย VPC/VPN/DX | ต้องออกแบบ TGW route tables และ segmentation |
+| VPC Peering | เชื่อมไม่กี่ VPC แบบ one-to-one | ไม่ transitive, CIDR (Classless Inter-Domain Routing) ห้ามซ้อน, full mesh โตยาก |
+| Transit Gateway | hub-and-spoke หลาย VPC/VPN (Virtual Private Network)/Direct Connect | ต้องออกแบบ Transit Gateway route tables และ segmentation |
 | AWS PrivateLink | expose service แบบ private ให้ consumer | one-way service access ไม่ใช่ full network connectivity |
 | VPC Lattice | service-to-service connectivity หลาย VPC/account | เน้น application service network และ policy |
-| Cloud WAN | global network policy หลาย Region/site | เหมาะ global enterprise network มากกว่า TGW เดี่ยว |
+| Cloud WAN (Wide Area Network) | global network policy หลาย Region/site | เหมาะ global enterprise network มากกว่า Transit Gateway เดี่ยว |
 
 #### Hybrid connectivity
 
@@ -484,24 +492,24 @@ Management account มีอำนาจสูงมาก จึงไม่ค
 | remote user รายบุคคล | AWS Client VPN |
 | site/branch เชื่อมผ่าน internet แบบ encrypted | Site-to-Site VPN |
 | private bandwidth สม่ำเสมอ | Direct Connect |
-| DX ต้อง encrypted end-to-end | VPN over Direct Connect |
-| หลาย VPC ผ่าน DX | DX Gateway + Transit VIF + Transit Gateway |
-| HA ของ DX | connection อีกเส้น/อีก location และ VPN backup |
+| Direct Connect ต้อง encrypted end-to-end | VPN over Direct Connect |
+| หลาย VPC ผ่าน Direct Connect | Direct Connect Gateway + Transit VIF (Virtual Interface) + Transit Gateway |
+| high availability ของ Direct Connect | connection อีกเส้น/อีก location และ VPN backup |
 
 Direct Connect VIF:
 
 - **Public VIF** → public AWS endpoints
-- **Private VIF** → private IP ใน VPC ผ่าน VGW/DX Gateway
-- **Transit VIF** → Transit Gateway ผ่าน DX Gateway
+- **Private VIF** → private IP ใน VPC ผ่าน Virtual Private Gateway/Direct Connect Gateway
+- **Transit VIF** → Transit Gateway ผ่าน Direct Connect Gateway
 
-จำว่า DX connection เดียวไม่ใช่ HA และ DX Gateway ไม่ได้ทำให้ association สองฝั่ง route หากันเองโดยอัตโนมัติ
+จำว่า Direct Connect connection เดียวไม่ใช่ high availability และ Direct Connect Gateway ไม่ได้ทำให้ association สองฝั่ง route หากันเองโดยอัตโนมัติ
 
 #### Hybrid DNS
 
 - on-prem query private AWS zone → Route 53 Resolver **inbound endpoint** + conditional forwarder ที่ on-prem
 - AWS query on-prem domain → Resolver **outbound endpoint** + forwarding rule
 - share rule ข้าม account → AWS RAM
-- ต้องมี network path ก่อน DNS จึงทำงาน
+- ต้องมี network path ก่อน DNS (Domain Name System) จึงทำงาน
 
 #### Specialized infrastructure ตาม latency/data residency
 
@@ -512,7 +520,7 @@ Direct Connect VIF:
 | AWS Wavelength | ultra-low latency application บนเครือข่าย 5G ของผู้ให้บริการ |
 | Snowball Edge | offline transfer และ edge compute ในพื้นที่ disconnected/limited connectivity |
 
-อย่าเลือก Outposts เพียงเพราะมีระบบ on-prem; ถ้าโจทย์ต้องการเพียง connectivity ให้คิด DX/VPN ก่อน
+อย่าเลือก Outposts เพียงเพราะมีระบบ on-prem; ถ้าโจทย์ต้องการเพียง connectivity ให้คิด Direct Connect/VPN ก่อน
 
 ### 4.4 Security at organization scale
 
@@ -523,21 +531,21 @@ Direct Connect VIF:
 - Macie ค้นหา sensitive data ใน S3
 - IAM Access Analyzer หา external/public access จาก policy
 - Security Hub รวมและจัดลำดับ findings ข้าม account/Region
-- Firewall Manager บังคับ WAF, Shield Advanced, security group, Network Firewall policy หลาย account
+- Firewall Manager บังคับ WAF (Web Application Firewall), Shield Advanced, security group, Network Firewall policy หลาย account
 - Organizations + delegated admin ลดงาน setup per account
 
 อย่าสับสน:
 
 - Security Hub ไม่ใช่ตัวสร้าง finding ทุกชนิด แต่เป็น aggregator/normalizer
-- GuardDuty ไม่ได้ scan package CVE แบบ Inspector
-- Flow Logs มี metadata ไม่ใช่ packet payload; ถ้าต้องอ่าน payload ใช้ Traffic Mirroring ไปยัง inspection appliance
+- GuardDuty เน้นตรวจภัยคุกคาม; การ scan ช่องโหว่ package เป็นงานของ Inspector
+- Flow Logs มี metadata เช่น IP, port, จำนวน bytes และผล accept/reject; ไม่มีเนื้อหา packet; ถ้าต้องอ่าน payload ใช้ Traffic Mirroring ไปยัง inspection appliance
 
 ### 4.5 Resilience และ DR
 
-เริ่มจาก business requirement:
+**DR (Disaster Recovery)** คือแผนกู้ระบบหลังเหตุร้าย เริ่มจาก business requirement:
 
-- **RPO** = ยอมเสียข้อมูลย้อนหลังได้เท่าไร
-- **RTO** = ยอมให้ระบบหยุดได้นานเท่าไร
+- **RPO (Recovery Point Objective)** = ยอมเสียข้อมูลย้อนหลังได้เท่าไร
+- **RTO (Recovery Time Objective)** = ยอมให้ระบบหยุดได้นานเท่าไร
 
 | Strategy | Cost | RTO/RPO โดยเปรียบเทียบ | สภาพระบบ Region สำรอง |
 |---|---:|---|---|
@@ -546,16 +554,16 @@ Direct Connect VIF:
 | Warm Standby | กลาง-สูง | เร็ว | ระบบขนาดเล็กทำงานอยู่ตลอด |
 | Multi-site active-active | สูงสุด | เร็วที่สุด | รับ traffic เต็มทั้งสองฝั่ง |
 
-เลือกจากตัวเลข RTO/RPO ไม่ใช่เลือก multi-Region แพงที่สุดโดยอัตโนมัติ และต้องรวม DNS/failover orchestration, data replication, secrets, quotas, dependencies และการทดสอบ DR
+เลือกจากตัวเลข RTO/RPO ไม่ใช่เลือก multi-Region แพงที่สุดโดยอัตโนมัติ และต้องรวม DNS/failover orchestration, data replication, secrets, quotas, dependencies และการทดสอบ disaster recovery
 
 ### 4.6 Cost visibility
 
 - Cost Explorer → วิเคราะห์ cost/usage และ trend
 - AWS Budgets → threshold/forecast alert และ Budgets Actions
-- Cost and Usage Report (CUR) → ข้อมูลละเอียดที่สุดสำหรับ Athena/BI
+- Cost and Usage Report → ข้อมูลละเอียดที่สุดสำหรับ Athena/business intelligence
 - Compute Optimizer → rightsizing จาก metrics
 - Trusted Advisor → recommendations หลายหมวด
-- Savings Plans → commitment ตาม compute spend; ยืดหยุ่นกว่า RI ในหลายกรณี
+- Savings Plans → commitment ตาม compute spend; ยืดหยุ่นกว่า Reserved Instances ในหลายกรณี
 - Reserved Instances → benefit ผูกกับ service/attributes ตามชนิด; Standard ลดสูงกว่า Convertible แต่ยืดหยุ่นน้อยกว่า
 - Spot → interruptible, เหมาะ batch/restartable/stateless
 - Tags + account/OU structure → cost allocation และ ownership
@@ -568,8 +576,8 @@ Direct Connect VIF:
 
 ก่อนเลือก service ให้สร้าง acceptance criteria:
 
-- Availability/SLA
-- RTO/RPO
+- Availability/SLA (Service Level Agreement)
+- RTO (Recovery Time Objective — เวลาหยุดระบบสูงสุดที่ยอมได้)/RPO (Recovery Point Objective — ช่วงข้อมูลย้อนหลังที่ยอมเสียได้)
 - latency/throughput/concurrency
 - data consistency/durability
 - compliance, encryption, identity, audit
@@ -582,9 +590,9 @@ Direct Connect VIF:
 
 | Requirement | แนวทาง |
 |---|---|
-| AWS resources แบบ declarative | CloudFormation/CDK |
+| AWS resources แบบ declarative | CloudFormation/CDK (Cloud Development Kit) |
 | หลาย account/Region | StackSets |
-| software install ตาม runbook ระหว่าง EC2 launch | CloudFormation + EC2 user data หรือ Systems Manager |
+| software install ตาม runbook ระหว่าง EC2 (Elastic Compute Cloud) launch | CloudFormation + EC2 user data หรือ Systems Manager |
 | approved self-service products | Service Catalog |
 | central patch/config/inventory | Systems Manager |
 | safe deployment ต้อง rollback ได้ | blue/green, canary, rolling ตาม risk |
@@ -598,13 +606,13 @@ Deployment patterns:
 - **Blue/green** — สอง environment สลับ traffic; ค่าใช้จ่ายชั่วคราวสูงแต่เสี่ยงต่ำ
 - **Canary/linear** — ปล่อย traffic ส่วนน้อยก่อน เหมาะตรวจ metric แล้ว rollback
 
-CI/CD building blocks:
+CI/CD (Continuous Integration / Continuous Delivery) building blocks:
 
 - CodePipeline → orchestrate stages
 - CodeBuild → managed build/test
-- CodeDeploy → deployment ไป EC2/on-prem, Lambda หรือ ECS ตาม deployment capability
+- CodeDeploy → deployment ไป EC2/on-prem, Lambda หรือ ECS (Elastic Container Service) ตาม deployment capability
 - CodeArtifact → managed package repository
-- ECR → container image registry
+- ECR (Elastic Container Registry) → container image registry
 - CloudFormation/CDK → provision infrastructure ที่ version/control/repeat ได้
 
 หลักข้อสอบคือ pipeline ต้องมี test, approval ตาม risk, immutable artifact, least-privilege role, observability และ automatic rollback จาก health/alarm
@@ -613,45 +621,45 @@ CI/CD building blocks:
 
 หลักออกแบบ:
 
-- stateless compute หลัง load balancer
-- Auto Scaling หลาย AZ
-- state อยู่ใน managed database/object/file service ที่รองรับ HA
-- queue/buffer รับ traffic spike
-- retry แบบ exponential backoff + jitter
-- idempotency ป้องกันงานซ้ำ
-- timeout/circuit breaker ป้องกัน cascading failure
-- DLQ เก็บ poison messages
+- ใช้ **stateless compute** หลัง load balancer: ไม่เก็บข้อมูล session สำคัญไว้ที่เครื่องใดเครื่องหนึ่ง
+- Auto Scaling หลาย AZ (Availability Zone)
+- เก็บ **state** ใน managed database หรือ storage ที่รองรับ high availability แทนการผูกไว้กับเครื่องเดียว
+- ใช้ **queue เป็น buffer** รองรับ traffic ที่พุ่งขึ้น ก่อนให้ worker ทยอยทำงาน
+- **retry แบบ exponential backoff + jitter**: ลองใหม่โดยเว้นช่วงนานขึ้นและสุ่มเวลา เพื่อไม่ให้ทุก client ยิงซ้ำพร้อมกัน
+- **idempotency**: รับคำสั่งเดิมซ้ำได้โดยไม่เกิดผลซ้ำ เช่น ไม่ตัดเงินรอบที่สอง
+- **timeout / circuit breaker**: หยุดรอหรือหยุดเรียกระบบที่ล่มชั่วคราว เพื่อไม่ให้ระบบอื่นล่มตาม
+- **DLQ (Dead-Letter Queue)** เก็บ message ที่ทำไม่สำเร็จซ้ำ ๆ แยกไว้ตรวจสาเหตุ ไม่ให้วนขวางงานอื่น
 - quota monitoring ก่อน launch
 
-เลือก integration ให้ตรง semantics:
+เลือก integration ให้ตรงกับวิธีรับส่งและประมวลผลงาน:
 
-- SQS → queue, pull, buffering, worker หลายตัว
-- SNS → push fan-out
-- EventBridge → event routing ตาม content ข้าม service/account
-- Kinesis → ordered streaming throughput สูง, replay ตาม retention
-- Amazon MQ → รักษา protocol ของ ActiveMQ/RabbitMQ เดิม
-- Step Functions → workflow/state/orchestration, retry, branching, human approval
+- **SQS (Simple Queue Service) → คิวพักงาน**; worker ดึงงานไปทำ ช่วยรับ traffic spike และแยกการ scale ของผู้ส่งกับผู้รับ
+- **SNS (Simple Notification Service) → ส่งข้อความเดียวไปหลายผู้รับ** แบบ push หรือ fan-out
+- **EventBridge → ส่ง event ตามเงื่อนไขในข้อความ** ข้าม service หรือ account
+- **Kinesis Data Streams → stream ข้อมูลต่อเนื่อง**; เรียงลำดับภายใน shard และอ่านย้อนหลังได้ภายใน retention
+- **Amazon MQ → ใช้ protocol ของ ActiveMQ/RabbitMQ เดิม** เพื่อลดการแก้ application
+- **Step Functions → คุม workflow หลายขั้น** เช่น retry, แยกเงื่อนไข, รอผล หรือรอคนอนุมัติ
 
 ### 5.4 Auto Scaling ให้ดู metric ที่สัมพันธ์กับ demand
 
 - workload แต่ละ request หนักไม่เท่ากัน → CPU อาจดีกว่า request count
 - CPU ไม่สัมพันธ์กับ traffic → `ALBRequestCountPerTarget`
-- queue worker → backlog per instance ไม่ใช่แค่ queue depth ดิบ
-- target tracking → รักษา metric ที่เป้าหมาย
-- step scaling → ตอบสนองตามระดับ alarm หลายขั้น เหมาะ spike ใหญ่
-- scheduled scaling → pattern เวลาคาดเดาได้
-- predictive scaling → pattern เป็นรอบและมีประวัติ
+- **queue worker → ดูงานค้างต่อ instance** (backlog per instance) ไม่ใช่จำนวนงานค้างรวมอย่างเดียว
+- **target tracking → เพิ่ม/ลดเครื่องเพื่อรักษา metric ให้ใกล้ค่าเป้าหมาย**
+- **step scaling → เพิ่ม/ลดเครื่องตามความรุนแรงของ alarm** กำหนดได้หลายระดับ เหมาะกับ spike ใหญ่
+- **scheduled scaling → เพิ่ม/ลดเครื่องตามเวลาที่รู้ล่วงหน้า**
+- **predictive scaling → ใช้ข้อมูลย้อนหลังคาดการณ์ load ที่เกิดเป็นรอบ**
 
 ### 5.5 Security by design
 
 - ใช้ role และ temporary credentials แทน access key ฝังใน code
 - Secrets Manager สำหรับ secret + rotation; Parameter Store สำหรับ configuration/secret ที่ไม่ต้องการ rotation workflow ขั้นสูง
-- KMS สำหรับ managed key integration; CloudHSM เมื่อจำเป็นต้องใช้ single-tenant HSM ที่ควบคุม user/algorithm/key operation โดยตรง หรือใช้ crypto interface เฉพาะ
-- ACM จัดการ public/private certificates ตาม use case
-- private subnet ไม่เท่ากับ “ออก internet ไม่ได้” ถ้ามี NAT route
-- VPC endpoint ลดการผ่าน public internet และ NAT cost
-- WAF ป้องกัน L7; Shield ป้องกัน DDoS; Network Firewall ตรวจ/กรอง VPC network traffic
-- encrypt at rest + in transit และกำหนด key policy/grant ให้ถูก
+- KMS (Key Management Service) สำหรับ managed key integration; CloudHSM เมื่อจำเป็นต้องใช้ single-tenant HSM (Hardware Security Module) ที่ควบคุม user/algorithm/key operation โดยตรง หรือใช้ crypto interface เฉพาะ
+- ACM (AWS Certificate Manager) จัดการ public/private certificates ตาม use case
+- private subnet ไม่เท่ากับ “ออก internet ไม่ได้” ถ้ามี NAT (Network Address Translation) route
+- VPC (Virtual Private Cloud) endpoint ลดการผ่าน public internet และ NAT cost
+- **WAF (Web Application Firewall) กรอง web request**, **Shield ป้องกัน DDoS** (Distributed Denial of Service), **Network Firewall ตรวจและกรอง traffic ในเครือข่าย VPC**
+- เข้ารหัสทั้ง **at rest** (ข้อมูลที่เก็บอยู่) และ **in transit** (ข้อมูลระหว่างส่ง) พร้อมกำหนด key policy/grant ให้ถูก
 
 ### 5.6 Performance — เลือกตาม access pattern
 
@@ -667,21 +675,21 @@ CI/CD building blocks:
 
 Patterns ที่ออกบ่อย:
 
-- hot read ซ้ำ → cache/DAX/read replica
-- static global content → CloudFront + TTL สูง
+- **อ่านข้อมูลเดิมซ้ำมาก → cache**; ถ้าเป็น DynamoDB ให้พิจารณา DAX (DynamoDB Accelerator) ถ้าเป็น relational database ให้พิจารณา read replica ตามเงื่อนไข
+- static global content → CloudFront + TTL (Time To Live) สูง
 - TCP/UDP global latency + static IP → Global Accelerator
-- tightly coupled HPC → EFA + cluster placement group + single AZ
-- shared POSIX file หลาย AZ → EFS
-- Windows SMB → FSx for Windows File Server
+- tightly coupled HPC (High Performance Computing) → EFA (Elastic Fabric Adapter) + cluster placement group + single AZ
+- shared POSIX (Portable Operating System Interface) file หลาย AZ → EFS (Elastic File System)
+- Windows SMB (Server Message Block) → FSx for Windows File Server
 - high-performance temporary scratch/HPC → FSx for Lustre
 
 ### 5.7 Cost — ถูกที่สุดที่ “ผ่าน requirement”
 
-- baseline สม่ำเสมอ → Savings Plans/RI
+- **ใช้งานพื้นฐานสม่ำเสมอ → Savings Plans / Reserved Instances**
 - burst ไม่แน่นอน → On-Demand + Auto Scaling
-- restartable/fault-tolerant → Spot
-- serverless sporadic → จ่ายตามใช้ ลด idle
-- S3 lifecycle ตาม access + retrieval SLA
+- **งานหยุดแล้วเริ่มใหม่ได้ → Spot**
+- **งานมาเป็นครั้งคราว → serverless** ช่วยลดค่าเครื่องที่เปิดรอเฉย ๆ
+- S3 (Simple Storage Service) lifecycle ตาม access + retrieval SLA
 - cache ช่วยทั้ง latency และ origin/data-transfer cost
 - NAT Gateway cost อาจลดได้ด้วย gateway/interface endpoints
 - cross-AZ และ cross-Region data transfer ต้องอยู่ใน cost model
@@ -696,7 +704,7 @@ Domain นี้ถามว่า “ระบบมีอยู่แล้ว
 
 วงจรที่ควรจำ:
 
-`instrument → establish baseline → detect → diagnose → automate remediation → verify → document/learn`
+**เก็บ metrics/logs → วัดค่าปกติ (baseline) → ตรวจพบปัญหา → หาสาเหตุ → แก้อัตโนมัติ → ตรวจผล → บันทึกบทเรียน**
 
 | ต้องการ | เครื่องมือหลัก |
 |---|---|
@@ -705,7 +713,7 @@ Domain นี้ถามว่า “ระบบมีอยู่แล้ว
 | resource configuration/compliance/history | AWS Config |
 | inventory, patch, run command, session, automation | Systems Manager |
 | trace distributed application | AWS X-Ray / application tracing |
-| event-driven remediation | EventBridge → Lambda/SSM Automation |
+| event-driven remediation | EventBridge → Lambda/Systems Manager Automation |
 
 กฎเลือก:
 
@@ -719,15 +727,15 @@ Domain นี้ถามว่า “ระบบมีอยู่แล้ว
 
 ลำดับงานที่ถูกต้อง:
 
-1. Discover/aggregate findings
-2. Prioritize ตาม severity และ business context
-3. Remediate อัตโนมัติเมื่อปลอดภัย
-4. Validate compliance
-5. เก็บ evidence และป้องกัน recurrence
+1. **รวบรวม findings** หรือผลตรวจจากเครื่องมือ security
+2. **จัดลำดับความสำคัญ** ตามความรุนแรงและผลต่อธุรกิจ
+3. **แก้ปัญหา (remediate)** อัตโนมัติเมื่อกำหนดวิธีที่ปลอดภัยได้
+4. **ตรวจซ้ำ** ว่ากลับมาตรงตามข้อกำหนดแล้ว
+5. **เก็บหลักฐานและป้องกันการเกิดซ้ำ**
 
 Patterns:
 
-- Config rule ตรวจ noncompliance → EventBridge → SSM Automation/Lambda แก้
+- Config rule ตรวจ noncompliance → EventBridge → Systems Manager Automation/Lambda แก้
 - Security Hub + Organizations → central delegated admin ข้าม accounts/Regions
 - Access Analyzer → external access และ policy validation
 - Inspector → vulnerability management
@@ -739,7 +747,7 @@ Patterns:
 
 อย่า scale โดยไม่มี evidence:
 
-- กำหนด KPI จาก business เช่น p95 latency, error rate, orders/minute
+- กำหนด **ตัวชี้วัดจากธุรกิจ** เช่น p95 latency (95% ของคำขอใช้เวลาไม่เกินค่านี้), error rate และ orders/minute
 - baseline ก่อนเปลี่ยน
 - หา bottleneck ด้วย metrics/tracing
 - เปลี่ยนทีละส่วนและวัดผล
@@ -749,45 +757,45 @@ Patterns:
 ตัวเลือกแก้ที่พบบ่อย:
 
 - read-heavy relational → read replicas/cache
-- repeated key-value reads → DAX
+- **DynamoDB อ่าน key เดิมซ้ำ ๆ → DAX** (DynamoDB Accelerator); ไม่ใช่ cache ทั่วไปสำหรับทุก database
 - static/HTTP global → CloudFront
 - dynamic TCP/UDP global → Global Accelerator
-- network-heavy HPC → EFA/cluster placement group
-- write burst → buffer ด้วย SQS/Kinesis
+- network-heavy HPC (High Performance Computing) → EFA (Elastic Fabric Adapter)/cluster placement group
+- **write burst → พักข้อมูลด้วย SQS (Simple Queue Service) หรือ Kinesis** ตามว่าต้องการคิวงานหรือ stream
 - database CPU สูงจาก query → index/query tuning ก่อนเพิ่ม instance โดยไม่วิเคราะห์
 
 ### 6.4 Improve reliability
 
-ตรวจ single points of failure ทีละชั้น:
+ตรวจ **single point of failure** หรือจุดเดียวที่พังแล้วทำให้ทั้งระบบใช้ไม่ได้ ทีละชั้น:
 
-- DNS/traffic entry
+- DNS (Domain Name System)/traffic entry
 - load balancer
-- compute AZ distribution
+- compute AZ (Availability Zone) distribution
 - state/database failover
 - shared file/storage
-- NAT/egress
+- NAT (Network Address Translation)/egress
 - on-prem link
 - secrets/config dependencies
 - quota/limit
 - deployment/control plane
 
-ข้อสอบชอบสิ่งที่ดูเหมือน SPOF แต่จริง ๆ managed อยู่แล้ว:
+บางองค์ประกอบดูเหมือนมีตัวเดียว แต่บริการจัดการความทนทานให้แล้ว ต้องดูขอบเขตของแต่ละบริการ:
 
-- Internet Gateway หนึ่งตัวต่อ VPC เป็น horizontally scaled/HA โดย service design
+- Internet Gateway หนึ่งตัวต่อ VPC (Virtual Private Cloud) เป็น horizontally scaled/high availability โดย service design
 - DynamoDB เป็น Regional service
-- ALB ข้ามหลาย AZ ได้
+- ALB (Application Load Balancer) ข้ามหลาย AZ ได้
 - แต่ NAT Gateway เป็น AZ-scoped จึงควรมีต่อ AZ พร้อม route ของแต่ละ subnet
 
 ### 6.5 Improve cost
 
 ทำตามลำดับ:
 
-1. **Eliminate** — ปิดของไม่ได้ใช้, orphaned EBS/EIP/snapshot/log
+1. **Eliminate** — ปิดของที่ไม่ได้ใช้ ลบ disk, Elastic IP, snapshot หรือ log ที่ไม่มีงานใช้งานแล้วตาม retention ที่ต้องเก็บ
 2. **Rightsize** — instance/database/storage/throughput
-3. **Elasticize** — scale in/out, serverless, schedule non-prod
-4. **Price** — Savings Plans/RI/Spot
+3. **Elasticize** — เพิ่ม/ลดตาม load, ใช้ serverless หรือปิดระบบทดสอบนอกเวลางาน
+4. **Price** — เลือก Savings Plans, Reserved Instances หรือ Spot ให้ตรงรูปแบบใช้งาน
 5. **Architect** — managed/purpose-built service, caching, lifecycle, endpoint ลด NAT
-6. **Govern** — budget, tags, CUR, anomaly detection, owner action
+6. **Govern** — ตั้งงบ, tag เจ้าของงาน, วิเคราะห์ Cost and Usage Report, ตรวจค่าใช้จ่ายผิดปกติ และให้เจ้าของงานดำเนินการ
 
 อย่าซื้อ commitment เพื่อแก้ resource ที่ควรถูกปิดหรือ rightsize ก่อน
 
@@ -797,18 +805,18 @@ Patterns:
 
 ### 7.1 Migration phases
 
-1. **Assess** — discover inventory/dependencies, business case, TCO, readiness
-2. **Mobilize** — landing zone, governance, skills, security, wave plan, tools
-3. **Migrate and Modernize** — ย้ายเป็น waves, validate, cut over, optimize
+1. **Assess** — สำรวจระบบและ dependencies, ประเมินความคุ้มค่า ต้นทุนรวม และความพร้อม
+2. **Mobilize** — เตรียม landing zone, governance, ทีม, security, เครื่องมือ และแบ่งแผนย้ายเป็นรอบ (waves)
+3. **Migrate and Modernize** — ย้ายทีละ wave, ตรวจผล, สลับระบบจริงไปปลายทาง (cutover) แล้วปรับปรุงต่อ
 
 เครื่องมือ:
 
 - AWS Application Discovery Service → เก็บข้อมูล server/dependency
-- Migration Evaluator → business case/TCO จาก utilization
+- Migration Evaluator → business case/total cost of ownership จาก utilization
 - AWS Migration Hub → track portfolio และ migration status
 - AWS Application Migration Service (MGN) → block-level replication/rehost servers
-- AWS DMS → ย้าย/replicate database data
-- AWS SCT → convert schema/code สำหรับ heterogeneous database migration
+- AWS DMS (Database Migration Service) → ย้าย/replicate database data
+- AWS SCT (Schema Conversion Tool) → convert schema/code สำหรับ heterogeneous database migration
 - AWS Control Tower → landing zone/governance
 
 ### 7.2 7 Rs
@@ -819,8 +827,8 @@ Patterns:
 | Retain | ยังไม่ย้าย | dependency/compliance/เวลาไม่พร้อม |
 | Rehost | lift and shift | deadline สั้น, source code ไม่มี, minimal change |
 | Relocate | ย้าย platform โดยไม่ redesign เช่น VMware | ต้องย้ายเร็วและรักษา environment |
-| Replatform | เปลี่ยนบางชั้น | ย้าย DB ไป RDS, containerize โดยแก้ app น้อย |
-| Repurchase | เปลี่ยนเป็น SaaS/product ใหม่ | COTS/SaaS ตอบโจทย์แทนระบบเดิม |
+| Replatform | เปลี่ยนบางชั้น | ย้าย database ไป RDS (Relational Database Service), containerize โดยแก้ app น้อย |
+| Repurchase | เปลี่ยนเป็น SaaS (Software as a Service)/product ใหม่ | ซอฟต์แวร์สำเร็จรูป/SaaS ตอบโจทย์แทนระบบเดิม |
 | Refactor/Re-architect | redesign cloud-native | ต้อง scale/innovate และยอมลงทุนพัฒนา |
 
 อย่าเลือก refactor เพียงเพราะ “ดีที่สุดในระยะยาว” หากโจทย์กำหนด 90 วันและ minimal application changes
@@ -829,41 +837,41 @@ Patterns:
 
 | เงื่อนไข | บริการ |
 |---|---|
-| online NFS/SMB transfer, recurring/scheduled | AWS DataSync |
-| SFTP/FTPS/FTP endpoint managed | AWS Transfer Family |
-| accelerate upload ผ่าน public internet ไป S3 | S3 Transfer Acceleration |
+| ย้ายไฟล์ผ่าน NFS (Network File System) หรือ SMB (Server Message Block) ทาง network ซ้ำหรือตามเวลา | AWS DataSync |
+| client ต้องส่งไฟล์ด้วย SFTP (SSH File Transfer Protocol), FTPS (File Transfer Protocol over TLS) หรือ FTP (File Transfer Protocol) | AWS Transfer Family |
+| accelerate upload ผ่าน public internet ไป S3 (Simple Storage Service) | S3 Transfer Acceleration |
 | petabyte/offline และ network ไม่พอ | AWS Snow Family |
 | hybrid file access เดิม + S3 backend | S3 File Gateway |
-| block/iSCSI hybrid | Volume Gateway |
+| block/iSCSI (Internet Small Computer Systems Interface) hybrid | Volume Gateway |
 | virtual tape | Tape Gateway |
-| database online migration/CDC | AWS DMS |
+| ย้าย database ระหว่างที่ต้นทางยังรับงาน โดยตามคัดลอกข้อมูลที่เปลี่ยน | AWS DMS |
 | server block replication/rehost | AWS MGN |
 
 คำนวณคร่าว ๆ ก่อนเลือก Snow: ถ้า internet transfer ใช้เวลาไม่กี่วัน แต่การส่งอุปกรณ์ไป-กลับนานกว่า online transfer อาจชนะ
 
 ### 7.4 Database migration
 
-- homogeneous: engine เดิม → engine เดิม; DMS/database-native tools
-- heterogeneous: engine ต่างกัน → **SCT convert schema/code + DMS move/replicate data**
-- minimal downtime → full load + CDC แล้ว cut over
-- ตรวจ datatype, unsupported objects, LOB, latency, network, validation และ rollback
+- **Homogeneous = engine เดิม → engine เดิม**: ใช้ DMS หรือเครื่องมือของ database นั้น
+- **Heterogeneous = เปลี่ยน engine**: ใช้ **Schema Conversion Tool แปลง schema/code + Database Migration Service ย้ายข้อมูล**
+- **ต้อง downtime ต่ำ → full load + CDC (Change Data Capture) แล้ว cutover**: ย้ายข้อมูลก้อนแรก ตามคัดลอกข้อมูลที่เปลี่ยน แล้วสลับ application ไปปลายทาง
+- ตรวจชนิดข้อมูล, object ที่ปลายทางไม่รองรับ, ข้อมูลขนาดใหญ่ (large objects), replication lag, network, ผลการย้าย และแผน rollback
 
-ตัวอย่าง: Oracle → Aurora PostgreSQL ต้องคิด SCT + DMS ไม่ใช่ DMS อย่างเดียว
+ตัวอย่าง: **Oracle → Aurora PostgreSQL ต้องแปลง schema/code และย้ายข้อมูล**; เครื่องมือย้ายข้อมูลอย่างเดียวทำไม่ครบ
 
 ### 7.5 Modernization
 
 ลำดับความเปลี่ยนแปลงจากน้อยไปมาก:
 
-`EC2 rehost → managed database/storage → containers → serverless/event-driven → purpose-built data services`
+**ย้าย server เดิมมา EC2 (Elastic Compute Cloud) → ใช้ managed database/storage → containers → serverless/event-driven → เลือก database เฉพาะทางตามงาน**
 
 เลือกตามข้อจำกัด:
 
-- custom OS/driver/legacy binary → EC2
-- container แต่ไม่อยากจัดการ server → ECS/EKS on Fargate
+- ต้องปรับ OS (Operating System), ใช้ driver เฉพาะ หรือรัน legacy binary → EC2
+- container แต่ไม่อยากจัดการ server → ECS (Elastic Container Service)/EKS (Elastic Kubernetes Service) on Fargate
 - short-lived event function → Lambda
 - orchestration หลายขั้น → Step Functions
-- decouple producer/consumer → SQS/EventBridge/SNS/Kinesis ตาม semantics
-- proprietary ActiveMQ/RabbitMQ protocol → Amazon MQ ลด rewrite
+- decouple producer/consumer → SQS (Simple Queue Service)/EventBridge/SNS (Simple Notification Service)/Kinesis ตาม semantics
+- ต้องรักษา protocol ของ ActiveMQ/RabbitMQ → Amazon MQ ลดการ rewrite
 - relational transaction/joins → RDS/Aurora
 - key-value scale → DynamoDB
 - search/log analytics → OpenSearch
@@ -886,12 +894,14 @@ Patterns:
 
 ## 8. Networking, Edge และ DNS
 
+**DNS (Domain Name System)** แปลงชื่อ domain เป็นปลายทาง; **edge** คือจุดบริการใกล้ผู้ใช้ ในบทนี้ HTTP/HTTPS คือ traffic เว็บ ส่วน TCP/UDP คือ protocol ระดับ network ที่ใช้แยกโจทย์ load balancer และ Global Accelerator
+
 ### 8.1 CloudFront vs Global Accelerator vs Route 53
 
 | คุณสมบัติ | CloudFront | Global Accelerator | Route 53 |
 |---|---|---|---|
-| ชั้นหลัก | L7 CDN | L4 network acceleration | DNS |
-| Protocol | HTTP/HTTPS | TCP/UDP | DNS response |
+| ชั้นหลัก | cache และกระจายเนื้อหาเว็บ | เร่งเส้นทาง network สำหรับ TCP/UDP | แปลงชื่อ domain และเลือกปลายทาง |
+| Protocol | HTTP/HTTPS | TCP/UDP | DNS (Domain Name System) response |
 | Cache | มี | ไม่มี | ไม่มี |
 | Static anycast IP | ไม่ใช่จุดเด่น | มี 2 IP | ไม่มี |
 | Edge compute | CloudFront Functions/Lambda@Edge | ไม่มี | ไม่มี |
@@ -904,7 +914,7 @@ Patterns:
 - “สอง static IPs” → Global Accelerator
 - “cache image/video/static site” → CloudFront
 - “A/B ต่อ session/cookie” → Lambda@Edge หรือ CloudFront Functions ตาม capability
-- “apex domain” → Route 53 alias ไม่ใช่ CNAME
+- “apex domain” → Route 53 alias ไม่ใช่ CNAME (Canonical Name)
 
 ### 8.2 Route 53 routing policies
 
@@ -922,35 +932,37 @@ Patterns:
 
 | Load balancer | Layer/protocol | ใช้เมื่อ |
 |---|---|---|
-| ALB | L7 HTTP/HTTPS/gRPC | host/path/header routing, web/microservices |
-| NLB | L4 TCP/UDP/TLS | very high performance, static IP/EIP per AZ, source IP preservation |
-| GWLB | L3 IP | transparent insertion/scaling ของ firewalls/appliances |
-| CLB | legacy | workload เก่า; ระบบใหม่ควรเลือก ALB/NLB ตาม protocol |
+| ALB (Application Load Balancer) | HTTP/HTTPS/gRPC (gRPC Remote Procedure Calls) | route ตาม host/path/header เหมาะกับ web และ microservices |
+| NLB (Network Load Balancer) | TCP/UDP/TLS (Transport Layer Security) | throughput สูง, static IP ต่อ Availability Zone และรองรับการคง source IP |
+| GWLB (Gateway Load Balancer) | network traffic ระดับ IP | แทรกและ scale firewall/appliance ในเส้นทาง traffic |
+| CLB (Classic Load Balancer) | legacy | workload เก่า; ระบบใหม่เลือก ALB หรือ NLB ตาม protocol |
 
 ALB target health ไม่เหมือน Route 53 health check: ALB ตรวจ targets ภายใน target group ส่วน Route 53 ใช้ DNS-level endpoint routing/failover
 
 ### 8.4 VPC endpoints
 
-- Gateway endpoint → S3 และ DynamoDB, route table, ไม่มี hourly charge แบบ interface endpoint
-- Interface endpoint → AWS PrivateLink/ENI/private IP, หลาย AWS services, security group, มีค่าใช้จ่าย
+- Gateway endpoint → S3 (Simple Storage Service) และ DynamoDB, route table, ไม่มี hourly charge แบบ interface endpoint
+- Interface endpoint → AWS PrivateLink/ENI (Elastic Network Interface)/private IP, หลาย AWS services, security group, มีค่าใช้จ่าย
 - Gateway Load Balancer endpoint → ส่ง traffic ไป security virtual appliances
-- endpoint policy จำกัดสิทธิ์ผ่าน endpoint แต่ไม่แทน IAM/resource policy ทั้งหมด
+- endpoint policy จำกัดสิทธิ์ผ่าน endpoint แต่ไม่แทน IAM (Identity and Access Management)/resource policy ทั้งหมด
 
 ### 8.5 Stateful vs stateless
 
+**Stateful = จำ connection; stateless = ตรวจแต่ละ packet แยกกัน**
+
 - Security Group = stateful; allow ขาไปแล้ว return traffic ได้อัตโนมัติ
-- NACL = stateless; ต้อง allow ทั้งสองทิศและ ephemeral ports
-- Flow Logs ขึ้น `ACCEPT` outbound แต่ `REJECT` return ที่ ENI → สงสัย NACL ก่อน SG
-- Route table ตัดสินเส้นทางด้วย longest-prefix match
+- **NACL (Network Access Control List) = stateless**: ต้อง allow ทั้งขาไปและขากลับ รวม ephemeral ports (port ชั่วคราวที่ client ใช้รับคำตอบ)
+- Flow Logs ขึ้น `ACCEPT` outbound แต่ `REJECT` return ที่ ENI → สงสัย NACL ก่อน Security Group
+- Route table ใช้ **longest-prefix match**: route ที่ระบุช่วง IP แคบและเจาะจงกว่าชนะ
 
 ### 8.6 Network security
 
 | Service | หน้าที่ |
 |---|---|
-| AWS WAF | L7 HTTP(S), SQLi/XSS/rate/geo/custom rules |
-| Shield Standard | DDoS protection พื้นฐานอัตโนมัติ |
-| Shield Advanced | DDoS ระดับสูง, visibility, DRT และ cost protection ตามเงื่อนไข |
-| AWS Network Firewall | managed stateful VPC firewall/inspection |
+| AWS WAF (Web Application Firewall) | Layer 7 (application layer) HTTP(S), SQL injection / cross-site scripting/rate/geo/custom rules |
+| Shield Standard | DDoS (Distributed Denial of Service) protection พื้นฐานอัตโนมัติ |
+| Shield Advanced | DDoS ระดับสูง, visibility, ทีมตอบสนองเหตุ DDoS ของ AWS และ cost protection ตามเงื่อนไข |
+| AWS Network Firewall | managed stateful VPC (Virtual Private Cloud) firewall/inspection |
 | Firewall Manager | central policy หลาย account |
 | Gateway Load Balancer | deploy/scale third-party virtual appliances |
 | Traffic Mirroring | copy packet traffic เพื่อวิเคราะห์ payload |
@@ -965,22 +977,22 @@ ALB target health ไม่เหมือน Route 53 health check: ALB ตร�
 |---|---|---|
 | Standard | frequent access | แพงกว่าระยะยาว |
 | Intelligent-Tiering | access เดาไม่ได้ | มี monitoring fee; archive tiers ต้องเปิดใช้ |
-| Standard-IA | infrequent, ต้อง multi-AZ | retrieval/minimum duration charge |
-| One Zone-IA | re-creatable หรือ secondary copy | AZ เดียว ไม่เหมาะข้อมูลสำคัญสำเนาเดียว |
+| Standard-IA (Infrequent Access) | infrequent, ต้อง multi-AZ (Availability Zone) | retrieval/minimum duration charge |
+| One Zone-IA (Infrequent Access) | re-creatable หรือ secondary copy | AZ เดียว ไม่เหมาะข้อมูลสำคัญสำเนาเดียว |
 | Glacier Instant Retrieval | archive แต่ต้อง milliseconds | retrieval cost สูงกว่า archive ลึก |
 | Glacier Flexible Retrieval | minutes–hours | standard retrieval โดยทั่วไปราว 3–5 ชม. |
 | Glacier Deep Archive | ถูกสุด, ยอมรอนาน | standard retrieval โดยทั่วไปราว 12 ชม. |
 
-เลือก archive tier จาก **retrieval SLA** ก่อนราคา
+เลือก archive tier จาก **retrieval SLA** (Service Level Agreement) ก่อนราคา
 
 ### 9.2 S3 high-yield features
 
-- existing objects + future replication → S3 Batch Replication สำหรับของเก่า + replication rule สำหรับของใหม่
+- existing objects + future replication → S3 (Simple Storage Service) Batch Replication สำหรับของเก่า + replication rule สำหรับของใหม่
 - billions of objects → S3 Inventory + Batch Operations
 - access pattern หลายทีม/prefix → S3 Access Points
 - immutable retention → S3 Object Lock
 - privileged user ก็ห้ามลบ → compliance mode
-- Object Lock ต้องวางแผนตอนสร้าง bucket ตามเงื่อนไขของโจทย์; อย่าเชื่อ distractor ที่บอกเปิดย้อนหลังกับ bucket ที่ไม่รองรับ
+- **Object Lock เปิดกับ bucket เดิมได้** แต่ต้องใช้ Versioning; เปิดแล้วปิด Object Lock หรือ suspend Versioning ไม่ได้ ([AWS: Object Lock](https://docs.aws.amazon.com/AmazonS3/latest/userguide/object-lock-configure.html))
 - sensitive data discovery → Macie
 - cost/usage visibility หลาย bucket/account → S3 Storage Lens
 
@@ -988,14 +1000,14 @@ ALB target health ไม่เหมือน Route 53 health check: ALB ตร�
 
 | Need | Service |
 |---|---|
-| block disk ของ EC2 ใน AZ | EBS |
-| shared NFS/POSIX หลาย AZ | EFS |
-| managed Windows SMB/AD | FSx for Windows File Server |
-| high-performance parallel Linux/HPC | FSx for Lustre |
-| ONTAP features/NFS/SMB/iSCSI | FSx for NetApp ONTAP |
+| block disk ของ EC2 (Elastic Compute Cloud) ใน AZ | EBS (Elastic Block Store) |
+| shared NFS (Network File System)/POSIX (Portable Operating System Interface) หลาย AZ | EFS (Elastic File System) |
+| managed Windows SMB (Server Message Block)/AD (Active Directory) | FSx for Windows File Server |
+| high-performance parallel Linux/HPC (High Performance Computing) | FSx for Lustre |
+| ONTAP features/NFS/SMB/iSCSI (Internet Small Computer Systems Interface) | FSx for NetApp ONTAP |
 | object, web-scale, API access | S3 |
 
-EBS Multi-Attach ยังอยู่ใน AZ เดียวและต้องใช้ cluster-aware filesystem จึงไม่ใช่คำตอบทั่วไปสำหรับ shared file HA
+EBS Multi-Attach ยังอยู่ใน AZ เดียวและต้องใช้ cluster-aware filesystem จึงไม่ใช่คำตอบทั่วไปสำหรับ shared file high availability
 
 ---
 
@@ -1003,11 +1015,11 @@ EBS Multi-Attach ยังอยู่ใน AZ เดียวและต้�
 
 | Requirement | ตัวเลือกที่เด่น |
 |---|---|
-| relational managed | RDS |
+| relational managed | RDS (Relational Database Service) |
 | cloud-native relational, faster failover/read scale | Aurora |
-| global relational reads/DR | Aurora Global Database |
+| global relational reads/disaster recovery | Aurora Global Database |
 | key-value/document, massive scale | DynamoDB |
-| microsecond DynamoDB read cache | DAX |
+| microsecond DynamoDB read cache | DAX (DynamoDB Accelerator) |
 | in-memory cache/session | ElastiCache Redis/Valkey |
 | simple distributed cache, no replication/failover | Memcached |
 | durable Redis-compatible primary database | MemoryDB |
@@ -1018,28 +1030,28 @@ EBS Multi-Attach ยังอยู่ใน AZ เดียวและต้�
 
 ### Redis/Memcached/MemoryDB
 
-- Redis/Valkey → replication, persistence options, Multi-AZ automatic failover
+- Redis/Valkey → replication, persistence options, Multi-AZ (Availability Zone) automatic failover
 - Memcached → simple multithreaded cache; client ต้องรู้ node ใหม่; ไม่มี replication/Multi-AZ failover แบบ Redis
 - MemoryDB → durable Multi-AZ transaction log เหมาะใช้เป็น primary database ที่ต้อง Redis-compatible และความทนทาน
 
 ### RDS/Aurora resilience
 
-- RDS Multi-AZ → HA/failover ไม่ใช่ read scaling เป็นหลัก
-- read replica → read scaling/DR และ promote ได้
+- **RDS Multi-AZ DB instance → failover**; standby ไม่รับงานอ่าน ส่วน **Multi-AZ DB cluster มี reader ที่รับงานอ่านได้** อย่าเหมารวมสองแบบนี้ ([AWS: DB instance](https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/Concepts.MultiAZSingleStandby.html), [DB cluster](https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/multi-az-db-clusters-concepts.html))
+- read replica → read scaling/disaster recovery และ promote ได้
 - Aurora reader endpoint → กระจาย read
-- Aurora Global Database → cross-Region, low-latency global reads/DR
+- Aurora Global Database → cross-Region, low-latency global reads/disaster recovery
 - planned managed failover เหมาะทดสอบ/switchover โดยลด data loss risk
 
 ### Analytics และ data lake
 
 | Need | Service/แนวทาง |
 |---|---|
-| query S3 ด้วย SQL แบบ serverless | Athena |
-| metadata catalog/ETL | AWS Glue + Data Catalog |
+| query S3 (Simple Storage Service) ด้วย SQL แบบ serverless | Athena |
+| metadata catalog/ETL (Extract, Transform, Load) | AWS Glue + Data Catalog |
 | สร้างและ govern data lake | Lake Formation |
-| managed Hadoop/Spark ecosystem | EMR |
+| managed Hadoop/Spark ecosystem | Amazon EMR (แพลตฟอร์ม managed Spark/Hadoop) |
 | enterprise data warehouse | Redshift |
-| BI dashboard | QuickSight |
+| business intelligence dashboard | QuickSight |
 | real-time delivery เข้า S3/Redshift/OpenSearch | Kinesis Data Firehose |
 
 Data lake มักใช้ schema-on-read และ S3 เป็น storage layer; data warehouse ใช้ curated/schema-on-write เพื่อ analytics ที่มีโครงสร้างกว่า Lake Formation ช่วย permissions/governance และสร้าง ingestion workflows ผ่าน Glue ไม่ได้แทน S3 หรือ query engine ทั้งหมด
@@ -1050,11 +1062,11 @@ Data lake มักใช้ schema-on-read และ S3 เป็น storage la
 
 | Requirement | เลือก |
 |---|---|
-| OS/control/custom driver เต็ม | EC2 |
+| ต้องควบคุม OS (Operating System) หรือใช้ driver เฉพาะ | EC2 (Elastic Compute Cloud) |
 | web app deploy ง่าย ยังอยากให้ AWS จัด infra | Elastic Beanstalk |
-| simple VPS/predictable bundle price | Lightsail |
-| container orchestration AWS-native | ECS |
-| Kubernetes ecosystem/API | EKS |
+| simple virtual private server/predictable bundle price | Lightsail |
+| container orchestration AWS-native | ECS (Elastic Container Service) |
+| Kubernetes ecosystem/API | EKS (Elastic Kubernetes Service) |
 | container โดยไม่จัดการ host | Fargate |
 | short event-driven execution | Lambda |
 | managed batch scheduling/queues | AWS Batch |
@@ -1062,10 +1074,12 @@ Data lake มักใช้ schema-on-read และ S3 เป็น storage la
 
 ### Placement groups และ HPC
 
-- Cluster → instance อยู่ใกล้กันใน AZ เดียว, latency ต่ำ/throughput สูง
+**HPC (High Performance Computing)** คืองานคำนวณประสิทธิภาพสูง ซึ่งมักใช้หลายเครื่องร่วมกัน ต้องดูว่าเน้นสื่อสารเร็วหรือแยกความเสี่ยงเครื่องพัง
+
+- Cluster → instance อยู่ใกล้กันใน AZ (Availability Zone) เดียว, latency ต่ำ/throughput สูง
 - Partition → แยกกลุ่ม instance คนละ rack ลด correlated failure, เหมาะ distributed systems ใหญ่
 - Spread → แยก instance จำนวนน้อยแต่ละเครื่องคนละ hardware
-- EFA → low-latency/high-throughput HPC/ML communication
+- EFA (Elastic Fabric Adapter) → low-latency/high-throughput HPC (High Performance Computing)/machine learning communication
 - tightly coupled HPC มักต้อง single AZ + cluster placement group + EFA; multi-AZ เพิ่ม latency
 
 ### EC2 purchasing
@@ -1079,7 +1093,7 @@ Data lake มักใช้ schema-on-read และ S3 เป็น storage la
 
 ### Hibernation trap
 
-EC2 hibernation ต้องรองรับ instance/AMI, root EBS encrypted และเปิดตอน launch อย่าเลือกคำตอบที่พยายามเปิด hibernation ให้ instance เดิมย้อนหลังถ้า requirement ไม่รองรับ
+EC2 hibernation ต้องรองรับ instance/AMI (Amazon Machine Image), root EBS (Elastic Block Store) encrypted และเปิดตอน launch อย่าเลือกคำตอบที่พยายามเปิด hibernation ให้ instance เดิมย้อนหลังถ้า requirement ไม่รองรับ
 
 ---
 
@@ -1087,20 +1101,20 @@ EC2 hibernation ต้องรองรับ instance/AMI, root EBS encrypted 
 
 | Service | Model | Ordering/Replay | ใช้เมื่อ |
 |---|---|---|---|
-| SQS Standard | queue/pull | at-least-once, best-effort order | decouple, buffer, throughput สูง |
-| SQS FIFO | queue/pull | order + dedup ภายในข้อกำหนด | transaction/order ต้องเรียงและลด duplicate |
-| SNS | pub/sub push | ไม่ใช่ stream replay | fan-out notification |
-| EventBridge | event bus/rules | event routing/archive/replay capability | content-based routing, SaaS/AWS/account integration |
-| Kinesis Data Streams | partitioned stream | ordered ต่อ shard + retention/replay | real-time streaming หลาย consumer |
+| SQS (Simple Queue Service) Standard | worker ดึงงานจากคิว | ส่งอย่างน้อยหนึ่งครั้ง; อาจซ้ำและสลับลำดับ | คั่นระบบ, พักงาน, throughput สูง |
+| SQS FIFO (First In, First Out) | worker ดึงงานจากคิว | เรียงตาม message group และลดการส่งซ้ำตามข้อกำหนด | งานต้องเรียงลำดับ; application ยังควรป้องกันผลซ้ำ |
+| SNS (Simple Notification Service) | ผู้ส่ง publish แล้วบริการ push ไปผู้รับ | ไม่ใช่ stream สำหรับ replay | กระจายข้อความเดียวไปหลายผู้รับ |
+| EventBridge | event bus/rules | event routing/archive/replay capability | content-based routing, SaaS (Software as a Service)/AWS/account integration |
+| Kinesis Data Streams | stream แบ่งเป็น shard | เรียงภายใน shard; อ่านย้อนหลังได้ตาม retention | ข้อมูลต่อเนื่องที่มีหลาย consumer |
 | Amazon MQ | managed broker | ตาม ActiveMQ/RabbitMQ | legacy protocol ลด app rewrite |
-| Step Functions | state machine | workflow history | orchestration, retry, wait, parallel, approval |
+| Step Functions | workflow หลายขั้น | บันทึกประวัติตามชนิด workflow | คุมลำดับ, retry, รอ, ทำขนาน และอนุมัติ |
 
 กับดักสำคัญ:
 
 - เปลี่ยน SQS Standard queue เดิมเป็น FIFO ไม่ได้ ต้องสร้าง FIFO queue ใหม่
-- Visibility timeout ต้องยาวกว่าการประมวลผลหรือ extend ระหว่างทำ
-- DLQ ไม่แก้สาเหตุ แต่แยก poison messages เพื่อวิเคราะห์/reprocess
-- SQS service integration/API Gateway service proxy ลด Lambda/EC2 ที่ไม่จำเป็น
+- **Visibility timeout = เวลาซ่อน message หลัง worker รับไปทำ** ควรนานพอสำหรับประมวลผล หรือขยายระหว่างทำ ไม่เช่นนั้น worker อื่นอาจรับงานเดียวกันซ้ำ
+- **DLQ (Dead-Letter Queue)** แยก message ที่ทำไม่สำเร็จซ้ำ ๆ ไว้วิเคราะห์และส่งกลับไปทำใหม่; ไม่ได้แก้สาเหตุให้อัตโนมัติ
+- SQS service integration/API Gateway service proxy ลด Lambda/EC2 (Elastic Compute Cloud) ที่ไม่จำเป็น
 - SNS + SQS fan-out ให้ subscriber แต่ละราย retry/scale แยกกัน
 
 ---
@@ -1109,58 +1123,60 @@ EC2 hibernation ต้องรองรับ instance/AMI, root EBS encrypted 
 
 ### 13.1 IAM evaluation mental model
 
-1. ต้องมี applicable Allow
-2. Explicit Deny จากที่ใดก็ตามชนะ
-3. ตรวจ SCP
+**IAM (Identity and Access Management)** ตัดสินสิทธิ์ของแต่ละ request โดยต้องดู policy ทุกชั้นที่เกี่ยวข้อง
+
+1. ต้องมี **Allow ที่ใช้กับ request นี้ได้จริง**
+2. **Explicit Deny ชนะ Allow** เสมอ
+3. ตรวจ SCP (Service Control Policy) ว่าจำกัดสิทธิ์ระดับองค์กรหรือไม่
 4. ตรวจ resource policy/trust policy
-5. ตรวจ permission boundary/session policy
-6. ตรวจ condition keys, principal, Region, tags และ KMS key policy
+5. ตรวจ **permissions boundary** (เพดานสิทธิ์ของ user/role) และ **session policy** (จำกัดสิทธิ์ session ที่รับมา)
+6. ตรวจ condition keys, principal, Region, tags และ KMS (Key Management Service) key policy
 
 ### 13.2 Identity services
 
 | Need | Service |
 |---|---|
-| workforce SSO หลาย AWS accounts/apps | IAM Identity Center |
+| workforce SSO (Single Sign-On) หลาย AWS accounts/apps | IAM Identity Center |
 | app user authentication | Cognito user pool |
 | ให้ app user รับ temporary AWS credentials | Cognito identity pool |
-| Microsoft AD managed | AWS Managed Microsoft AD |
+| Microsoft AD (Active Directory) managed | AWS Managed Microsoft AD |
 | proxy ไป on-prem AD ไม่เก็บ credential ใน AWS | AD Connector |
-| simple directory need น้อย | Simple AD แต่ตรวจ feature เช่น MFA ก่อน |
+| simple directory need น้อย | Simple AD แต่ตรวจ feature เช่น MFA (Multi-Factor Authentication) ก่อน |
 
 Cognito:
 
 - User pool = authentication/user directory/tokens
 - Identity pool = federation แล้วออก temporary AWS credentials
-- custom identity ที่ไม่ใช่ SAML/OIDC และมี developer backend → developer-authenticated identity กับ identity pool
+- custom identity ที่ไม่ใช่ SAML (Security Assertion Markup Language)/OIDC (OpenID Connect) และมี developer backend → developer-authenticated identity กับ identity pool
 
 ### 13.3 Encryption and secrets
 
 | Need | เลือก |
 |---|---|
 | managed integration/envelope encryption | KMS |
-| single-tenant HSM, direct user/algorithm/key control, standard crypto APIs | CloudHSM หรือ KMS custom key store ตาม integration requirement |
+| single-tenant HSM (Hardware Security Module), direct user/algorithm/key control, standard crypto APIs | CloudHSM หรือ KMS custom key store ตาม integration requirement |
 | application secret + automatic rotation | Secrets Manager |
 | config/parameter, SecureString ได้ | Systems Manager Parameter Store |
-| TLS certificate lifecycle | ACM |
+| TLS (Transport Layer Security) certificate lifecycle | ACM (AWS Certificate Manager) |
 
 KMS high-yield:
 
-- ปัจจุบัน AWS KMS standard key store ใช้ HSM ที่ validated ระดับ FIPS 140-3 Security Level 3 เช่นกัน ดังนั้นคำว่า “FIPS Level 3” เพียงอย่างเดียวไม่พอให้สรุปว่าเป็น CloudHSM; ให้ดู requirement เรื่อง single tenancy, direct control, algorithm/API และ operational responsibility
-- key policy สำคัญเสมอ; IAM Allow อย่างเดียวอาจไม่พอ
+- ปัจจุบัน AWS KMS standard key store ใช้ HSM ที่ validated ระดับ FIPS (Federal Information Processing Standards) 140-3 Security Level 3 เช่นกัน ดังนั้นคำว่า “FIPS Level 3” เพียงอย่างเดียวไม่พอให้สรุปว่าเป็น CloudHSM; ให้ดู requirement เรื่อง single tenancy, direct control, algorithm/API และ operational responsibility
+- key policy สำคัญเสมอ; IAM (Identity and Access Management) Allow อย่างเดียวอาจไม่พอ
 - multi-Region keys ช่วย client-side/application use cases แต่ไม่ได้ replicate encrypted data ให้เอง
 - automatic rotation ตาม key type/capability; imported key material มีข้อจำกัดต่างกัน
 - deletion มี waiting period; EventBridge แจ้ง admin ได้
-- envelope encryption ใช้ data key เข้ารหัสข้อมูล และ KMS key เข้ารหัส data key
+- **Envelope encryption**: ใช้ data key เข้ารหัสข้อมูล แล้วใช้ KMS key เข้ารหัส data key อีกชั้น
 
 ### 13.4 Logging and evidence
 
 | คำถาม | คำตอบ |
 |---|---|
-| API call จาก console/SDK | CloudTrail trail เดียวครอบคลุมทั้งสองประเภท |
+| ใครเรียก API จาก console หรือ SDK (Software Development Kit) | CloudTrail trail เดียวครอบคลุมทั้งสองประเภท |
 | ตรวจว่า CloudTrail log ถูกแก้หรือไม่ | log file integrity validation |
-| central immutable logs | Organization trail → dedicated Log Archive S3 + restrictive bucket/KMS policy/Object Lock ตาม requirement |
-| network metadata | VPC Flow Logs |
-| DNS query | Route 53 Resolver query logging |
+| central immutable logs | Organization trail → dedicated Log Archive S3 (Simple Storage Service) + restrictive bucket/KMS policy/Object Lock ตาม requirement |
+| network metadata | VPC (Virtual Private Cloud) Flow Logs |
+| DNS (Domain Name System) query | Route 53 Resolver query logging |
 | S3 object-level/API data events | CloudTrail data events |
 
 ---
@@ -1169,13 +1185,13 @@ KMS high-yield:
 
 | Scenario | คำตอบที่ควรนึกถึงก่อน |
 |---|---|
-| บังคับ guardrail ทุก current/future account | Organizations policy/SCP + trusted access |
+| บังคับ guardrail ทุก current/future account | Organizations policy/SCP (Service Control Policy) + trusted access |
 | central security findings | Security Hub delegated admin |
 | central GuardDuty | GuardDuty delegated admin + auto-enable members |
 | central backup | Organizations backup policy + AWS Backup |
 | Config rules หลาย account ยกเว้นบาง account | organization conformance pack + exclusion list |
 | deploy infrastructure หลาย account/Region | StackSets |
-| distribute approved AMI + template | Service Catalog portfolio/product หรือ StackSets ตามผู้ deploy/ownership |
+| distribute approved AMI (Amazon Machine Image) + template | Service Catalog portfolio/product หรือ StackSets ตามผู้ deploy/ownership |
 | self-service ได้แค่ approved patterns | Service Catalog + launch constraints |
 | central event from member accounts | EventBridge central event bus + per-account forwarding rules |
 | standardized tags | tag policy; ถ้าต้องบังคับตอนสร้างเพิ่ม SCP condition |
@@ -1183,9 +1199,9 @@ KMS high-yield:
 
 ### Control Tower controls
 
-- Preventive → ห้าม action มักใช้ SCP
-- Detective → ตรวจหลังเกิด มักใช้ Config
-- Proactive → ตรวจ CloudFormation resource ก่อน provision
+- **Preventive = ป้องกันก่อนเกิด** เช่น ใช้ Service Control Policy ห้าม action
+- **Detective = ตรวจพบหลังเกิด** เช่น ใช้ Config ตรวจ resource ที่ตั้งค่าผิด
+- **Proactive = ตรวจ resource ใน CloudFormation ก่อนสร้าง**
 
 ### Delegated administration rule
 
@@ -1197,16 +1213,16 @@ KMS high-yield:
 
 ## 15. เห็นคำนี้ ให้คิดถึงสิ่งนี้
 
-1. **all current and future accounts** → Organizations integration/auto-enrollment
-2. **least operational overhead** → managed service/native integration/delegated admin
+1. **all current and future accounts** → ต้องครอบคลุมทั้ง account เดิมและใหม่: ใช้ Organizations integration และ auto-enrollment
+2. **least operational overhead** → ลดงานดูแล: มองหา managed service, native integration หรือ delegated admin
 3. **cross-account infrastructure deployment** → StackSets
 4. **approved self-service configurations** → Service Catalog
-5. **SCP** → permission ceiling, ไม่ grant
-6. **external principal access** → IAM Access Analyzer; zone of trust ต้องเป็น Organization หาก account ใน org ไม่ควรถูกนับว่า external
+5. **SCP** (Service Control Policy) → กำหนดเพดานสิทธิ์; ไม่ได้ให้สิทธิ์ใช้งานเอง
+6. **external principal access** → IAM (Identity and Access Management) Access Analyzer; zone of trust ต้องเป็น Organization หาก account ใน org ไม่ควรถูกนับว่า external
 7. **central security findings** → Security Hub
 8. **packet payload** → Traffic Mirroring; Flow Logs ไม่เห็น payload
-9. **return traffic REJECT** → NACL/ephemeral ports เพราะ SG stateful
-10. **segment prod/dev บน TGW** → separate TGW route tables/association/propagation
+9. **ขาไปผ่าน แต่ขากลับ REJECT** → ตรวจ NACL (Network Access Control List) และ ephemeral ports; Security Group จำ connection และอนุญาตขากลับอัตโนมัติ
+10. **แยก prod/dev บน Transit Gateway** → แยก route tables; ตรวจว่า attachment ผูกตารางไหน (association) และส่ง route ไปตารางไหน (propagation)
 11. **two static global IPs** → Global Accelerator
 12. **UDP global** → Global Accelerator
 13. **HTTP cache/edge logic** → CloudFront
@@ -1214,59 +1230,59 @@ KMS high-yield:
 15. **on-prem resolves private AWS name** → Resolver inbound endpoint
 16. **AWS resolves on-prem name** → Resolver outbound endpoint + rule
 17. **no inbound SSH + audit + port forwarding** → Session Manager
-18. **CloudFront-only S3 origin** → Origin Access Control + bucket policy
-19. **CloudFront-only ALB origin** → secret custom header + WAF validation หรือ architecture ที่ปิด direct access ตาม requirement
-20. **custom AMI batch + restartable** → AWS Batch EC2 managed compute + Spot
-21. **tightly coupled HPC** → EFA + cluster placement group + single AZ
+18. **CloudFront-only S3 (Simple Storage Service) origin** → Origin Access Control + bucket policy
+19. **CloudFront-only ALB (Application Load Balancer) origin** → secret custom header + WAF (Web Application Firewall) validation หรือ architecture ที่ปิด direct access ตาม requirement
+20. **custom AMI (Amazon Machine Image) batch + restartable** → AWS Batch EC2 (Elastic Compute Cloud) managed compute + Spot
+21. **tightly coupled HPC (High Performance Computing)** — งานคำนวณที่แต่ละเครื่องต้องคุยกันเร็วมาก → EFA (Elastic Fabric Adapter) + cluster placement group ใน Availability Zone เดียว
 22. **requests หนักไม่เท่ากัน** → scale ด้วย metric ที่สะท้อน work เช่น CPU
 23. **CPU ไม่สัมพันธ์ traffic** → RequestCountPerTarget/custom business metric
-24. **queue workers** → backlog-per-instance target tracking
-25. **shared file multi-AZ** → EFS
-26. **Windows SMB** → FSx for Windows
+24. **queue workers** → target tracking จากจำนวนงานค้างต่อ instance
+25. **แชร์ไฟล์ข้ามหลาย Availability Zones** → EFS (Elastic File System)
+26. **แชร์ไฟล์ Windows ผ่าน SMB (Server Message Block)** → FSx for Windows
 27. **unpredictable S3 access** → Intelligent-Tiering
 28. **retrieve within 3–5 hours** → Glacier Flexible Retrieval
 29. **12 hours acceptable/cheapest archive** → Deep Archive
-30. **re-creatable infrequent data** → One Zone-IA อาจเหมาะ
-31. **immutable 5 years no privileged deletion** → Object Lock compliance mode
-32. **millions existing S3 objects bulk change** → Inventory + Batch Operations
-33. **existing + future S3 replication** → Batch Replication + replication rule
+30. **re-creatable infrequent data** → One Zone-IA (Infrequent Access) อาจเหมาะ
+31. **ห้ามแก้/ลบ 5 ปี แม้เป็น admin** → Object Lock แบบ compliance mode
+32. **แก้ object เดิมหลายล้านรายการใน S3** → Inventory สร้างรายการ + Batch Operations ทำงานเป็นชุด
+33. **replicate S3 ทั้งของเก่าและใหม่** → Batch Replication สำหรับของเก่า + replication rule สำหรับของใหม่
 34. **prefix/access pattern scale** → S3 Access Points
 35. **repetitive cross-Region reads** → replication อาจคุ้มกว่า transfer ซ้ำ
 36. **rare low-volume private cross-Region access** → private connectivity อาจคุ้มกว่า replicate dataset ทั้งก้อน
-37. **hybrid NFS/SMB to S3 objects** → S3 File Gateway
+37. **hybrid NFS (Network File System)/SMB to S3 objects** → S3 File Gateway
 38. **automated backup many resource types** → AWS Backup
-39. **DynamoDB repeated hot-key reads** → DAX
-40. **durable Redis-compatible DB** → MemoryDB
-41. **RDS credential rotation** → Secrets Manager
-42. **RDS HA** → Multi-AZ
-43. **RDS read scale** → read replica
+39. **DynamoDB อ่าน key เดิมซ้ำมาก** → DAX (DynamoDB Accelerator) ลดการอ่านซ้ำจาก table
+40. **durable Redis-compatible database** → MemoryDB
+41. **RDS (Relational Database Service) credential rotation** → Secrets Manager
+42. **RDS ต้อง failover อัตโนมัติ** → Multi-AZ; ตรวจว่าเป็น database instance หรือ database cluster
+43. **RDS ต้องรองรับการอ่านเพิ่ม** → read replica; standby ของ Multi-AZ database instance ไม่รับงานอ่าน
 44. **global Aurora relational** → Aurora Global Database
-45. **90-second backend but client timeout 10 seconds** → async API → SQS → worker
-46. **duplicate/order strict queue** → SQS FIFO ใหม่ ไม่ใช่แก้ Standard เดิม
+45. **backend ทำงาน 90 วินาที แต่ client รอได้ 10 วินาที** → รับงานแบบ asynchronous, ใส่ SQS (Simple Queue Service) แล้วให้ worker ทำ; client มาตรวจผลทีหลัง
+46. **คิวต้องเรียงลำดับและลด message ซ้ำ** → สร้าง SQS FIFO (First In, First Out) ใหม่; เปลี่ยนชนิด Standard เดิมตรง ๆ ไม่ได้
 47. **legacy broker protocol** → Amazon MQ
-48. **workflow retry/branch/wait/approval** → Step Functions
+48. **workflow ต้อง retry, แยกเงื่อนไข, รอ หรือขออนุมัติ** → Step Functions
 49. **server-rendered web app** → S3 static hosting ไม่ได้; container/compute
-50. **eliminate OS administration for containers** → Fargate
-51. **simple LAMP predictable price** → Lightsail
-52. **runbook install + infrastructure** → CloudFormation + user data/SSM
-53. **custom IdP neither SAML nor OIDC** → Cognito developer-authenticated identity pattern
+50. **รัน container โดยไม่ดูแล host** → Fargate
+51. **เว็บ stack ง่าย ๆ เช่น Linux + Apache + MySQL + PHP และต้องการราคาคาดเดาได้** → Lightsail
+52. **runbook install + infrastructure** → CloudFormation + user data/Systems Manager
+53. **ระบบยืนยันตัวตนเดิม (Identity Provider) ไม่ใช้มาตรฐาน SAML (Security Assertion Markup Language) หรือ OIDC (OpenID Connect)** → Cognito developer-authenticated identity pattern
 54. **contact center intents** → Connect + Lex + Lambda
-55. **90-day migration/no source** → MGN rehost
-56. **heterogeneous database** → SCT + DMS
+55. **ต้องย้ายใน 90 วัน และไม่มี source code** → Application Migration Service เพื่อ rehost server
+56. **ย้าย database ข้าม engine** (heterogeneous) → Schema Conversion Tool แปลง schema/code + Database Migration Service ย้ายข้อมูล
 57. **online recurring file transfer** → DataSync
 58. **offline huge data/network too slow** → Snow Family
-59. **SFTP managed endpoint** → Transfer Family
-60. **console and SDK audit + tamper detection** → CloudTrail + integrity validation
-61. **single-tenant/direct HSM control + flexible crypto interface** → CloudHSM; FIPS Level 3 อย่างเดียวไม่ใช่ตัวแยกจาก KMS ปัจจุบัน
+59. **SFTP (SSH File Transfer Protocol) managed endpoint** → Transfer Family
+60. **console and SDK (Software Development Kit) audit + tamper detection** → CloudTrail + integrity validation
+61. **single-tenant/direct HSM (Hardware Security Module) control + flexible crypto interface** → CloudHSM; FIPS (Federal Information Processing Standards) Level 3 อย่างเดียวไม่ใช่ตัวแยกจาก KMS (Key Management Service) ปัจจุบัน
 62. **forecast budget before threshold + action** → AWS Budgets forecasted alert/action
-63. **baseline compute** → Savings Plans/RI
+63. **baseline compute** → Savings Plans/Reserved Instances
 64. **fault-tolerant batch** → Spot
-65. **central event remediation** → EventBridge + Lambda/SSM Automation
+65. **แก้ resource จาก event แบบรวมศูนย์** → EventBridge ส่ง event ให้ Lambda หรือ Systems Manager Automation แก้
 66. **who changed resource** → CloudTrail
 67. **resource compliance/history** → Config
 68. **application metric/log/alarm** → CloudWatch
 69. **sensitive S3 data** → Macie
-70. **EC2/package vulnerabilities** → Inspector
+70. **ช่องโหว่ของ EC2 หรือ package** → Inspector
 
 ---
 
@@ -1274,18 +1290,18 @@ KMS high-yield:
 
 ข้อสอบชอบ distractor ประเภท “แก้ของเดิมง่าย ๆ” ทั้งที่ service ไม่รองรับ:
 
-- SQS Standard เปลี่ยนเป็น FIFO ไม่ได้
-- EC2 hibernation ต้องเปิดและรองรับตั้งแต่ launch
-- S3 Object Lock ต้องตรวจเงื่อนไขการเปิดตอนสร้าง bucket/เวอร์ชันของบริการตามโจทย์
-- EBS volume เป็น AZ-scoped
+- SQS (Simple Queue Service) Standard เปลี่ยนเป็น FIFO (First In, First Out) ไม่ได้
+- EC2 (Elastic Compute Cloud) hibernation ต้องเปิดและรองรับตั้งแต่ launch
+- **S3 (Simple Storage Service) Object Lock เปิดกับ bucket เดิมได้**; สิ่งที่ย้อนกลับไม่ได้คือปิด Object Lock หรือ suspend Versioning หลังเปิดใช้ ([AWS: Object Lock](https://docs.aws.amazon.com/AmazonS3/latest/userguide/object-lock-configure.html))
+- EBS (Elastic Block Store) volume ใช้ได้ภายใน AZ (Availability Zone) เดียว
 - EBS Multi-Attach ไม่ใช่ shared filesystem หลาย AZ
-- VPC Peering ไม่ transitive
-- Security Group stateful; NACL stateless
-- NAT Gateway เป็น AZ-scoped
-- RDS Multi-AZ ไม่ใช่ read scaling endpoint โดยอัตโนมัติ
+- VPC (Virtual Private Cloud) Peering ไม่ transitive
+- Security Group stateful; NACL (Network Access Control List) stateless
+- NAT (Network Address Translation) Gateway ผูกกับ Availability Zone
+- **RDS (Relational Database Service) Multi-AZ ต้องแยกชนิด**: DB instance มี standby ที่ไม่รับงานอ่าน; DB cluster มี reader ที่รับงานอ่านได้
 - replication rule ใหม่ไม่จัดการ S3 objects เก่าเองหากไม่ใช้ Batch Replication
 - Memcached เพิ่ม node แล้ว client อาจต้อง discover/configure node ใหม่
-- Simple AD ไม่มี feature เทียบเท่า AWS Managed Microsoft AD ทุกอย่าง เช่น MFA-related requirements บางรูปแบบ
+- Simple AD (Active Directory) ไม่มี feature เทียบเท่า AWS Managed Microsoft AD ทุกอย่าง เช่น MFA (Multi-Factor Authentication)-related requirements บางรูปแบบ
 - CloudFront/Route 53/Global Accelerator ทำคนละ layer แทนกันไม่ได้ทุก use case
 
 ---
@@ -1300,7 +1316,7 @@ KMS high-yield:
 
 - ต้อง enforce ข้ามองค์กร
 - member account แก้ไม่ได้
-- เลือก Organizations-native preventive control/SCP ที่เหมาะกับ policy condition ไม่ใช่ Config อย่างเดียว เพราะ Config เป็น detective
+- เลือก Organizations-native preventive control/SCP (Service Control Policy) ที่เหมาะกับ policy condition ไม่ใช่ Config อย่างเดียว เพราะ Config เป็น detective
 
 กฎจำ: **“ห้ามก่อนเกิด” = preventive; “เจอหลังเกิด” = detective**
 
@@ -1312,7 +1328,7 @@ KMS high-yield:
 2. Resource Groups/Tag Editor หรือ automation แก้ของเดิม
 3. SCP condition บังคับ request ใหม่ให้มี tag/ค่าตามต้องการ เมื่อ requirement ต้อง hard enforcement
 
-กฎจำ: **Tag policy standardizes; SCP enforces presence/action boundary; remediation fixes existing resources.**
+กฎจำ: **Tag policy กำหนดมาตรฐาน → Service Control Policy บังคับ request ที่รองรับ → remediation แก้ resource เดิม**
 
 ### 17.3 แจก custom AMI + CloudFormation template หลาย account/Region
 
@@ -1335,14 +1351,16 @@ KMS high-yield:
 
 ## 18. แผนเตรียมสอบ 21 วัน
 
+> **ถ้าสอบพรุ่งนี้ ข้ามแผน 21 วันนี้ได้เลย** อ่านต่อจากจุดเดิม แล้วทวนข้อ 16 (กับดัก), 17 (ข้อที่เคยผิด), 21 (ภาพรวม) และ 19 (จัดเวลาสอบ) ใช้ข้อ 15 ค้นเฉพาะเรื่องที่ยังสับสน
+
 ### สัปดาห์ 1 — สร้าง decision framework
 
 | วัน | เนื้อหา | ผลลัพธ์ที่ต้องทำได้ |
 |---|---|---|
-| 1 | Exam algorithm + D1 Organizations | อธิบาย SCP/IAM/Control Tower/delegated admin ได้ |
-| 2 | Network/TGW/DX/VPN/DNS | วาด hybrid data path และ segmentation ได้ |
-| 3 | Security/KMS/central findings | เลือก detector/aggregator/remediator ถูก |
-| 4 | DR/RTO/RPO | เลือก 4 DR patterns จาก SLA ได้ |
+| 1 | Exam algorithm + D1 Organizations | อธิบาย SCP (Service Control Policy)/IAM (Identity and Access Management)/Control Tower/delegated admin ได้ |
+| 2 | Network/Transit Gateway/Direct Connect/VPN (Virtual Private Network)/DNS (Domain Name System) | วาด hybrid data path และ segmentation ได้ |
+| 3 | Security/KMS (Key Management Service)/central findings | เลือก detector/aggregator/remediator ถูก |
+| 4 | disaster recovery/RTO (Recovery Time Objective — เวลาหยุดระบบสูงสุดที่ยอมได้)/RPO (Recovery Point Objective — ช่วงข้อมูลย้อนหลังที่ยอมเสียได้) | เลือก 4 disaster recovery patterns จาก SLA (Service Level Agreement) ได้ |
 | 5 | D2 deployment/reliability | เลือก deployment และ decoupling pattern ได้ |
 | 6 | Storage/database/cache | เลือกจาก access pattern/retrieval SLA ได้ |
 | 7 | ทำ Study mode 50 ข้อ | จดกฎทุกข้อที่ผิด ไม่ดูแค่คะแนน |
@@ -1351,10 +1369,10 @@ KMS high-yield:
 
 | วัน | เนื้อหา | ผลลัพธ์ที่ต้องทำได้ |
 |---|---|---|
-| 8 | D3 observability/automation | แยก CloudTrail/Config/CloudWatch/SSM ได้ |
+| 8 | D3 observability/automation | แยก CloudTrail/Config/CloudWatch/Systems Manager ได้ |
 | 9 | Cost/performance | เลือก metric, scaling, pricing, lifecycle ได้ |
-| 10 | D4 7Rs + migration tools | จับคู่ MGN/DMS/SCT/DataSync/Snow ได้ |
-| 11 | Modernization/integration | เลือก SQS/SNS/EventBridge/Kinesis/MQ/Step Functions ได้ |
+| 10 | D4 7Rs + migration tools | จับคู่ MGN (Application Migration Service)/DMS (Database Migration Service)/SCT (Schema Conversion Tool)/DataSync/Snow ได้ |
+| 11 | Modernization/integration | เลือก SQS (Simple Queue Service)/SNS (Simple Notification Service)/EventBridge/Kinesis/MQ/Step Functions ได้ |
 | 12 | Study mode เฉพาะ weak topics 50 ข้อ | weak topic ไม่มีหัวข้อใดต่ำกว่า 75% |
 | 13 | Full mock 75 ข้อ | ทำให้จบใน 180 นาทีแบบไม่หยุดค้น |
 | 14 | วิเคราะห์ full mock | อธิบายเหตุผลของทุกข้อผิดและทุกข้อที่เดา |
@@ -1392,7 +1410,7 @@ KMS high-yield:
 
 - ตอบข้อที่ตัดสินได้
 - ข้อที่อ่านเกิน 2–3 นาทีแล้วยังไม่ชัด ให้เลือก best current answer + flag
-- ขีดคำว่า least, most, all, existing, future, RTO/RPO, protocol, Region/account scope
+- ขีดคำว่า least, most, all, existing, future, RTO (Recovery Time Objective — เวลาหยุดระบบสูงสุดที่ยอมได้)/RPO (Recovery Point Objective — ช่วงข้อมูลย้อนหลังที่ยอมเสียได้), protocol, Region/account scope
 - multiple response ตรวจจำนวนที่โจทย์บอก
 
 ### Pass 2 — 100–155 นาที
@@ -1427,7 +1445,7 @@ KMS high-yield:
 ให้ถาม 7 ข้อนี้กับแต่ละตัวเลือก:
 
 1. ทำ requirement ครบทุกข้อหรือไม่?
-2. scope ถูก account/AZ/Region/protocol หรือไม่?
+2. scope ถูก account/AZ (Availability Zone)/Region/protocol หรือไม่?
 3. มี hidden operational work อะไร?
 4. รองรับ existing resources และ future resources ครบหรือไม่?
 5. มีข้อจำกัดเปลี่ยนย้อนหลังไม่ได้หรือไม่?
@@ -1436,59 +1454,75 @@ KMS high-yield:
 
 ### Distractor patterns
 
-- **ถูก service แต่ผิด feature** เช่น RDS Multi-AZ แทน read replica
+- **ถูก service แต่ผิด feature** เช่น RDS (Relational Database Service) Multi-AZ แทน read replica
 - **ถูกเฉพาะ happy path** แต่ไม่มี failover/return route
 - **แก้เพียงของใหม่** ทั้งที่โจทย์ถาม existing + future
 - **scale ไม่ได้** เช่น Lambda per account แทน delegated admin
-- **ละเมิด protocol** เช่น SQS แทน proprietary ActiveMQ โดยไม่ยอมแก้ app
-- **แพงเกิน requirement** เช่น active-active เมื่อ RTO ยอม 24 ชั่วโมง
-- **ราคาถูกแต่ผิด SLA** เช่น Deep Archive เมื่อ retrieval ต้องภายใน 5 ชั่วโมง
+- **ละเมิด protocol** เช่น SQS (Simple Queue Service) แทน proprietary ActiveMQ โดยไม่ยอมแก้ app
+- **แพงเกิน requirement** เช่น active-active เมื่อ RTO (Recovery Time Objective — เวลาหยุดระบบสูงสุดที่ยอมได้) ยอม 24 ชั่วโมง
+- **ราคาถูกแต่ผิด SLA** (Service Level Agreement) เช่น Deep Archive เมื่อ retrieval ต้องภายใน 5 ชั่วโมง
 - **monitor แต่ไม่ enforce** เช่น Config rule เมื่อต้องป้องกันไม่ให้สร้าง
-- **enforce แต่ไม่ remediate ของเดิม** เช่น SCP เมื่อโจทย์ต้องแก้ resource เก่า
+- **enforce แต่ไม่ remediate ของเดิม** เช่น SCP (Service Control Policy) เมื่อโจทย์ต้องแก้ resource เก่า
 
 ---
 
 ## 21. One-page mental model ก่อนเข้าห้องสอบ
 
+อ่านเป็นคู่ **“เงื่อนไข → ตัวเลือก”** ถ้าบอกเหตุผลได้แล้วให้ผ่าน ไม่ต้องย้อนอ่านทั้งบท
+
 ### Organization
 
-`Organizations/OUs → SCP ceiling → Control Tower landing zone → IAM Identity Center → delegated admins → StackSets/Service Catalog/Config/Backup policies`
+**โครงสร้างหลาย account → Organizations**; จัดกลุ่มด้วย Organizational Unit; จำกัดเพดานสิทธิ์ด้วย Service Control Policy; สร้าง baseline ด้วย Control Tower; พนักงานเข้าใช้ผ่าน IAM Identity Center; ให้ account ผู้เชี่ยวชาญเป็น delegated admin
+
+**ส่วนกลาง deploy เอง → StackSets**; ให้ทีมเลือกของที่อนุมัติแล้วไป deploy → Service Catalog
 
 ### Network
 
-`few VPCs = peering | many = TGW | private service = PrivateLink | global enterprise = Cloud WAN | hybrid private = DX | encrypted backup = VPN | hybrid DNS = Resolver endpoints`
+**เชื่อม VPC (Virtual Private Cloud) ไม่กี่วง → Peering**; หลายวงต้องมี hub → Transit Gateway; เปิดเฉพาะ service ให้เข้าผ่าน private network → PrivateLink
+
+**เชื่อม data center แบบ private → Direct Connect**; tunnel เข้ารหัสผ่าน internet → VPN (Virtual Private Network); แปลงชื่อข้าม AWS กับ data center → Resolver inbound/outbound endpoints
 
 ### Edge
 
-`HTTP cache = CloudFront | TCP/UDP + static anycast IP = Global Accelerator | DNS routing = Route 53`
+**cache เว็บ → CloudFront**; TCP/UDP จากทั่วโลกและต้อง static IP → Global Accelerator; เลือกปลายทางผ่าน DNS (Domain Name System) → Route 53
 
 ### Security
 
-`identity = IAM | organization boundary = SCP | L7 = WAF | DDoS = Shield | VPC inspection = Network Firewall | threat = GuardDuty | vulnerability = Inspector | sensitive S3 = Macie | external access = Access Analyzer | aggregate = Security Hub`
+**สิทธิ์ผู้ใช้/role → IAM** (Identity and Access Management); เพดานสิทธิ์ทั้งองค์กร → Service Control Policy; กรอง web request → WAF (Web Application Firewall); ป้องกัน DDoS (Distributed Denial of Service) → Shield
+
+**พฤติกรรมน่าสงสัย → GuardDuty**; ช่องโหว่ → Inspector; ข้อมูลอ่อนไหวใน S3 (Simple Storage Service) → Macie; สิทธิ์เปิดออกนอกองค์กร → Access Analyzer; รวม findings → Security Hub
 
 ### Observability
 
-`API = CloudTrail | configuration/compliance = Config | metric/log/alarm = CloudWatch | network metadata = Flow Logs | interactive fleet ops = SSM`
+**ใครแก้อะไร → CloudTrail**; resource ตั้งค่าตรงข้อกำหนดไหม → Config; metric/log/alarm → CloudWatch; network metadata → Flow Logs; patch/run command/เข้า session → Systems Manager
 
 ### Data
 
-`object = S3 | block = EBS | NFS = EFS | Windows SMB = FSx Windows | HPC file = FSx Lustre | relational = RDS/Aurora | key-value = DynamoDB | cache = ElastiCache/DAX | durable Redis = MemoryDB`
+**เก็บ object → S3**; disk ต่อเครื่อง → EBS (Elastic Block Store); Linux แชร์ไฟล์ → EFS (Elastic File System); Windows แชร์ไฟล์ → FSx for Windows; parallel file สำหรับงานคำนวณหนัก → FSx for Lustre
+
+**relational database → RDS (Relational Database Service)/Aurora**; key-value → DynamoDB; cache ทั่วไป → ElastiCache; cache สำหรับ DynamoDB → DAX (DynamoDB Accelerator); Redis-compatible primary database ที่ต้อง durable → MemoryDB
 
 ### Integration
 
-`queue = SQS | fan-out = SNS | event routing = EventBridge | streaming/replay = Kinesis | legacy broker = MQ | workflow = Step Functions`
+**พักงานในคิว → SQS** (Simple Queue Service); กระจายข้อความเดียวไปหลายผู้รับ → SNS (Simple Notification Service); route ตาม event → EventBridge; stream และอ่านย้อนหลัง → Kinesis Data Streams; ใช้ broker protocol เดิม → Amazon MQ; คุม workflow หลายขั้น → Step Functions
 
 ### Migration
 
-`discover/track = Discovery Service/Migration Hub | server rehost = MGN | DB data = DMS | DB schema = SCT | files online = DataSync | offline huge = Snow | SFTP = Transfer Family`
+**ย้าย server โดยแก้ให้น้อย → Application Migration Service**; ย้ายข้อมูล database → Database Migration Service; แปลง schema ข้าม engine → Schema Conversion Tool
+
+**ย้ายไฟล์ผ่าน network → DataSync**; client ต้องใช้ SFTP (SSH File Transfer Protocol) เดิม → Transfer Family; ข้อมูลใหญ่มากและ network ไม่ไหว → ตรวจทางเลือก offline ตามบริการที่เปิดให้ใช้งาน
 
 ### DR
 
-`RPO/RTO decides → backup/restore → pilot light → warm standby → active-active`
+**DR (Disaster Recovery)** = การกู้ระบบหลังเหตุร้าย
+
+**RPO (Recovery Point Objective)** = ยอมเสียข้อมูลย้อนหลังเท่าไร; **RTO (Recovery Time Objective)** = ยอมหยุดนานเท่าไร
+
+จากประหยัดแต่กู้ช้า → แพงแต่กู้เร็ว: **backup/restore → pilot light → warm standby → active-active** ต้องตรวจว่าแต่ละแบบทำเวลาตามโจทย์ได้จริง
 
 ### Cost
 
-`remove → rightsize → elasticize → price model → storage lifecycle/data transfer → govern`
+**ปิดของไม่ใช้ → rightsize → scale ตาม load → เลือกรูปแบบราคา → ปรับ storage lifecycle/ค่า transfer → ตั้งงบและเจ้าของค่าใช้จ่าย**
 
 ---
 
@@ -1496,25 +1530,25 @@ KMS high-yield:
 
 ตอบ “ได้และอธิบายเหตุผลได้” ให้ครบ:
 
-- [ ] SCP, IAM, trust policy และ resource policy ต่างกันอย่างไร
+- [ ] SCP (Service Control Policy), IAM (Identity and Access Management), trust policy และ resource policy ต่างกันอย่างไร
 - [ ] Control Tower, Account Factory, Service Catalog และ StackSets ใช้เมื่อไร
-- [ ] VPC Peering, TGW, PrivateLink, DX, VPN และ Cloud WAN ต่างกันอย่างไร
+- [ ] VPC (Virtual Private Cloud) Peering, Transit Gateway, PrivateLink, Direct Connect, VPN (Virtual Private Network) และ Cloud WAN ต่างกันอย่างไร
 - [ ] Resolver inbound/outbound endpoint ใช้ทิศไหน
-- [ ] SG stateful/NACL stateless และ ephemeral ports
+- [ ] Security Group stateful/NACL (Network Access Control List) stateless และ ephemeral ports
 - [ ] CloudFront/Global Accelerator/Route 53 ต่างกันอย่างไร
-- [ ] WAF/Shield/Network Firewall/Firewall Manager ต่างกันอย่างไร
+- [ ] WAF (Web Application Firewall)/Shield/Network Firewall/Firewall Manager ต่างกันอย่างไร
 - [ ] GuardDuty/Inspector/Macie/Access Analyzer/Security Hub ต่างกันอย่างไร
 - [ ] CloudTrail/Config/CloudWatch/Flow Logs ต่างกันอย่างไร
-- [ ] KMS/CloudHSM/Secrets Manager/Parameter Store ต่างกันอย่างไร
-- [ ] เลือก DR strategy จาก RTO/RPO ได้
-- [ ] Multi-AZ/read replica/Aurora Global Database ต่างกันอย่างไร
-- [ ] S3 storage class จาก access/retrieval SLA ได้
-- [ ] EBS/EFS/FSx/S3 ใช้ตาม access protocol ได้
-- [ ] SQS/SNS/EventBridge/Kinesis/MQ/Step Functions ต่างกันอย่างไร
+- [ ] KMS (Key Management Service)/CloudHSM/Secrets Manager/Parameter Store ต่างกันอย่างไร
+- [ ] เลือก disaster recovery strategy จาก RTO (Recovery Time Objective — เวลาหยุดระบบสูงสุดที่ยอมได้)/RPO (Recovery Point Objective — ช่วงข้อมูลย้อนหลังที่ยอมเสียได้) ได้
+- [ ] Multi-AZ (Availability Zone)/read replica/Aurora Global Database ต่างกันอย่างไร
+- [ ] S3 (Simple Storage Service) storage class จาก access/retrieval SLA (Service Level Agreement) ได้
+- [ ] EBS (Elastic Block Store)/EFS (Elastic File System)/FSx/S3 ใช้ตาม access protocol ได้
+- [ ] SQS (Simple Queue Service)/SNS (Simple Notification Service)/EventBridge/Kinesis/MQ/Step Functions ต่างกันอย่างไร
 - [ ] เลือก Auto Scaling metric ที่สัมพันธ์กับงานได้
 - [ ] เลือก purchase model จาก workload ได้
 - [ ] อธิบาย 7Rs และ migration phases ได้
-- [ ] เลือก MGN/DMS/SCT/DataSync/Snow/Transfer Family ได้
+- [ ] เลือก MGN (Application Migration Service)/DMS (Database Migration Service)/SCT (Schema Conversion Tool)/DataSync/Snow/Transfer Family ได้
 - [ ] รู้สิ่งที่เปลี่ยนย้อนหลังไม่ได้และหลีกเลี่ยง distractor ได้
 - [ ] ทำ full mock ผ่านเกณฑ์ readiness ต่อเนื่อง
 
@@ -1524,11 +1558,11 @@ KMS high-yield:
 
 - ราคาตัวเลขละเอียดที่เปลี่ยนได้ — จำ cost model และ trade-off
 - quota ตัวเลขทุกบริการ — จำว่าต้องตรวจ quota และขอเพิ่มล่วงหน้า
-- CLI syntax ทั้งหมด — ข้อสอบวัด architecture มากกว่า command syntax
+- CLI (Command Line Interface) syntax ทั้งหมด — ข้อสอบวัด architecture มากกว่า command syntax
 - feature ย่อยนอก scope ที่ไม่ช่วยตัดสิน requirement
 - คำตอบแบบ “บริการ X ดีที่สุดเสมอ” — ไม่มีจริง ต้องผูกกับ constraint
 
-สิ่งที่ควรจำแม่นกว่าคือ service boundary, scope, protocol, consistency, durability, RTO/RPO, operational ownership และข้อจำกัดที่แก้ย้อนหลังไม่ได้
+สิ่งที่ควรจำแม่นกว่าคือ service boundary, scope, protocol, consistency, durability, RTO (Recovery Time Objective — เวลาหยุดระบบสูงสุดที่ยอมได้)/RPO (Recovery Point Objective — ช่วงข้อมูลย้อนหลังที่ยอมเสียได้), operational ownership และข้อจำกัดที่แก้ย้อนหลังไม่ได้
 
 ---
 
@@ -1565,7 +1599,7 @@ KMS high-yield:
 - [Domain 4 — Migration and Modernization](https://docs.aws.amazon.com/aws-certification/latest/solutions-architect-professional-02/solutions-architect-professional-02-domain4.html)
 - [AWS Certified Solutions Architect – Professional overview](https://aws.amazon.com/certification/certified-solutions-architect-professional/)
 - [AWS Well-Architected Framework](https://docs.aws.amazon.com/wellarchitected/latest/framework/welcome.html)
-- [AWS KMS data protection and current HSM validation](https://docs.aws.amazon.com/kms/latest/developerguide/data-protection.html)
+- [AWS KMS (Key Management Service) data protection and current HSM (Hardware Security Module) validation](https://docs.aws.amazon.com/kms/latest/developerguide/data-protection.html)
 - [AWS CloudHSM capabilities and control model](https://docs.aws.amazon.com/cloudhsm/latest/userguide/introduction.html)
 
 AWS services และ Exam Guide เปลี่ยนได้ ให้ตรวจ Exam Guide อีกครั้งในสัปดาห์ก่อนสอบ
