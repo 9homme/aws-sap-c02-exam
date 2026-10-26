@@ -1046,13 +1046,20 @@ EBS Multi-Attach ยังอยู่ใน AZ เดียวและต้�
 
 | Need | Service/แนวทาง |
 |---|---|
-| query S3 (Simple Storage Service) ด้วย SQL แบบ serverless | Athena |
+| query S3 (Simple Storage Service) ด้วย SQL แบบ serverless โดยไม่ดูแล cluster | Athena — ค่า query แบบ on-demand ขึ้นกับปริมาณข้อมูลที่สแกน |
 | metadata catalog/ETL (Extract, Transform, Load) | AWS Glue + Data Catalog |
 | สร้างและ govern data lake | Lake Formation |
 | managed Hadoop/Spark ecosystem | Amazon EMR (แพลตฟอร์ม managed Spark/Hadoop) |
 | enterprise data warehouse | Redshift |
 | business intelligence dashboard | QuickSight |
 | real-time delivery เข้า S3/Redshift/OpenSearch | Kinesis Data Firehose |
+
+**Athena: งานดูแลน้อย ≠ ค่าใช้งานต่ำเสมอ** — บริบทเพิ่มเติมจาก AWS docs
+
+- **ค่า query แบบ on-demand คิดจาก data scanned** ไม่ใช่จำนวนไฟล์อย่างเดียว; ยังมีค่า S3 requests, storage และ Data Catalog ตามการใช้งาน ตัวอย่างราคาในหน้า AWS คือ $5 ต่อข้อมูลที่สแกน 1 TB ดังนั้นสแกน 1 TB ซ้ำ 100 ครั้ง = $500 เฉพาะค่า query ([AWS pricing](https://aws.amazon.com/athena/pricing/))
+- **ไฟล์เล็กเป็นล้าน ๆ ไฟล์** เพิ่ม overhead ในการ list/open/read และจำนวน requests; รวมไฟล์เล็ก (compaction) ให้ขนาดเหมาะสม แทนการเปิดอ่านไฟล์จิ๋วจำนวนมาก
+- **ลดการสแกน:** partition เช่นตามวันที่ แล้ว query โดยกรอง partition key; ใช้ Parquet + compression และเลือกเฉพาะ column ที่ต้องใช้ การมี `WHERE` อย่างเดียวไม่ได้แปลว่าจะสแกนน้อยเสมอ ([AWS: Optimize data](https://docs.aws.amazon.com/athena/latest/ug/performance-tuning-data-optimization-techniques.html))
+- **จำไปสอบ:** query logs/data lake เป็นครั้งคราว + ไม่อยากดูแล cluster → Athena; ถ้า query ชุดใหญ่ซ้ำถี่ ๆ ให้ประเมิน data layout, cache/result reuse, summary tables และเปรียบเทียบ data warehouse เช่น Redshift ตาม workload ไม่ใช่ตัดสินจากจำนวนไฟล์อย่างเดียว
 
 Data lake มักใช้ schema-on-read และ S3 เป็น storage layer; data warehouse ใช้ curated/schema-on-write เพื่อ analytics ที่มีโครงสร้างกว่า Lake Formation ช่วย permissions/governance และสร้าง ingestion workflows ผ่าน Glue ไม่ได้แทน S3 หรือ query engine ทั้งหมด
 
