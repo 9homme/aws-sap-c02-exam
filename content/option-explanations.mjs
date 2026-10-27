@@ -30,8 +30,8 @@ export const studyCaveats = {
     studyReferences: ["https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/private-content-restricting-access-to-s3.html"],
   },
   "w8-26": {
-    studyNote: "Historical compliance comparison: current AWS KMS documentation describes FIPS 140-3 Level 3 validated HSMs. Do not memorize 'only CloudHSM meets Level 3' from this older question. Validate the required standard, key-custody model, availability window, and recovery timing for a real design.",
-    studyReferences: ["https://docs.aws.amazon.com/kms/latest/developerguide/key-store-overview.html"],
+    studyNote: "Recorded answer: B. The saved AWS Skill Builder Official Practice Exam capture is dated August 7, 2026; the question's authoring date is unknown. AWS announced KMS FIPS 140-2 Level 3 validation on May 24, 2023. The saved rationale explains the CloudHSM design and Parameter Store cost, but does not establish why A is excluded. AWS's original option-specific explanation for A was not preserved here. Do not infer that KMS lacks Level 3 validation.",
+    studyReferences: ["https://aws.amazon.com/about-aws/whats-new/2023/05/aws-kms-hsm-fips-security-level-3/", "https://docs.aws.amazon.com/kms/latest/developerguide/enabling-keys.html", "https://docs.aws.amazon.com/kms/latest/developerguide/data-protection.html"],
   },
   "w8-31": {
     acceptedAnswerSets: [["B"]],
@@ -608,9 +608,9 @@ export const optionExplanations = {
     D: "EBS Multi-Attach is restricted to supported volumes/instances within one AZ. It does not share a volume across the two Availability Zones required here.",
   },
   "w8-26": {
-    A: "Disabling a KMS key schedules access to a managed key, but the captured question selects the dedicated CloudHSM design under its original compliance assumptions. Check the current-compliance caveat below before applying that historical comparison today.",
-    C: "Editing access policies changes authorization rather than provisioning dedicated HSM capacity. It also creates recurring policy-management work; do not infer from this old key that current KMS lacks Level 3 validation.",
-    D: "The multi-AZ CloudHSM approach matches the captured architecture, but a DynamoDB table adds storage/request cost for simple configuration metadata that fits standard Parameter Store parameters.",
+    A: "The saved AWS practice-exam answer is B. Customer managed KMS keys do support disable and enable operations. The captured rationale does not explain why A is excluded, and AWS has documented KMS Level 3 validation since May 2023. The app cannot establish that A is wrong solely because of the stated FIPS requirement.",
+    C: "The saved answer is B. This option changes key access policies on a schedule instead of disabling the key. AWS's original option-specific explanation for C was not preserved in the local capture; the stated requirement alone does not establish that dedicated HSM capacity is mandatory.",
+    D: "The saved rationale favors B over D because standard Parameter Store parameters can hold the configuration metadata without parameter storage charges. This explains the metadata-store comparison, but does not by itself explain why the KMS options were rejected.",
   },
   "w8-27": {
     A: "S3 folders are key prefixes, not independent policy-bearing resources. Put access rules in bucket/access-point policies rather than attaching resource policies to folders.",
