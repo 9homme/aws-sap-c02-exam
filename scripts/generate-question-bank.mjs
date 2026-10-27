@@ -1,6 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { answerCorrections, courseDistractorExplanations, optionExplanations, studyCaveats } from "../content/option-explanations.mjs";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const siteRoot = path.resolve(here, "..");
@@ -327,7 +328,19 @@ function parseOriginals() {
   });
 }
 
-const bank = [...parseWeek8(), ...parseCsvBank(), ...parseCourseDerived(), ...parseOriginals()];
+const bank = [...parseWeek8(), ...parseCsvBank(), ...parseCourseDerived(), ...parseOriginals()].map((entry) => {
+  const correction = answerCorrections[entry.id];
+  const updated = { ...entry, ...studyCaveats[entry.id], ...correction };
+  if (correction) updated.recordedCorrectIds = entry.correctIds;
+  updated.options = entry.options.map((option) => {
+    const explanation = optionExplanations[entry.id]?.[option.id]
+      ?? (updated.correctIds.includes(option.id) ? updated.rationale : undefined)
+      ?? (entry.sourceCategory === "course-derived" ? courseDistractorExplanations[option.text] : undefined);
+    if (!explanation) throw new Error(`Missing option explanation: ${entry.id}/${option.id}`);
+    return { ...option, explanation };
+  });
+  return updated;
+});
 const ids = new Set(bank.map((entry) => entry.id));
 const sourceCounts = bank.reduce((counts, entry) => ({ ...counts, [entry.sourceCategory]: (counts[entry.sourceCategory] ?? 0) + 1 }), {});
 if (bank.length !== 225 || ids.size !== 225 || sourceCounts.captured !== 75 || sourceCounts.csv !== 61 || sourceCounts["course-derived"] !== 69 || sourceCounts.original !== 15 || sourceCounts.emerging !== 5) {

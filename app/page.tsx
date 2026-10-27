@@ -2,6 +2,9 @@
 
 import { type CSSProperties, useEffect, useMemo, useState } from "react";
 import BibleReader from "./BibleReader";
+import AnswerExplanations from "./AnswerExplanations";
+import { acceptedOptionIds, isCorrectAnswer } from "../src/answer-grading";
+import { filterStudyQuestions, selectStudyQuestions, shuffle, STUDY_SIZES } from "../src/question-selection";
 
 type SourceCategory = "captured" | "csv" | "course-derived" | "original" | "emerging";
 type Mode = "study" | "exam";
@@ -21,8 +24,12 @@ type Question = {
   type: "multiple-choice" | "multiple-response";
   selectCount: number;
   prompt: string;
-  options: { id: string; text: string }[];
+  options: { id: string; text: string; explanation: string }[];
   correctIds: string[];
+  acceptedAnswerSets?: string[][];
+  recordedCorrectIds?: string[];
+  studyNote?: string;
+  studyReferences?: string[];
   rationale: string;
   wrongAnswerHelp: string;
   references: string[];
@@ -69,25 +76,12 @@ const sourceNames: Record<SourceCategory, string> = {
   captured: "Week 8 captured",
   csv: "Assessment CSV",
   "course-derived": "Course-derived",
-  original: "Original mock",
+  original: "Original scenarios",
   emerging: "Emerging AI",
 };
 
 function viewFromPath(pathname: string): WorkspaceView {
   return pathname.replace(/\/$/, "") === VIEW_PATHS.bible ? "bible" : "practice";
-}
-
-function shuffle<T>(values: T[]) {
-  const copy = [...values];
-  for (let index = copy.length - 1; index > 0; index -= 1) {
-    const randomIndex = Math.floor(Math.random() * (index + 1));
-    [copy[index], copy[randomIndex]] = [copy[randomIndex], copy[index]];
-  }
-  return copy;
-}
-
-function sameAnswers(left: string[] = [], right: string[] = []) {
-  return left.length === right.length && [...left].sort().every((value, index) => value === [...right].sort()[index]);
 }
 
 function formatDuration(seconds: number) {
@@ -105,7 +99,7 @@ function formatDate(timestamp: number) {
 
 function questionOutcome(question: Question, answers: Record<string, string[]>) {
   const selected = answers[question.id] ?? [];
-  return { selected, answered: selected.length > 0, correct: sameAnswers(selected, question.correctIds) };
+  return { selected, answered: selected.length > 0, correct: isCorrectAnswer(question, selected) };
 }
 
 function getResult(item: HistoryItem, questionsById: Map<string, Question>) {
@@ -209,6 +203,19 @@ export default function Home() {
     () => (activeAttempt ? activeAttempt.questionIds.map((id) => questionsById.get(id)).filter((question): question is Question => Boolean(question)) : []),
     [activeAttempt, questionsById],
   );
+  const studyPool = useMemo(
+    () => filterStudyQuestions(bank, { domain: domainFilter, source: sourceFilter, includeEmerging }),
+    [bank, domainFilter, sourceFilter, includeEmerging],
+  );
+  const missedStudyPool = useMemo(() => {
+    const missedIds = new Set(history.flatMap((item) => item.questionIds.filter((id) => {
+      const question = questionsById.get(id);
+      return question && !questionOutcome(question, item.answers).correct;
+    })));
+    return studyPool.filter((question) => missedIds.has(question.id));
+  }, [history, questionsById, studyPool]);
+  const missedStudySize = Math.min(25, missedStudyPool.length);
+  const hasStudyFilters = domainFilter !== "all" || sourceFilter !== "all" || includeEmerging;
 
   useEffect(() => {
     if (!activeAttempt?.deadline) return;
@@ -278,21 +285,15 @@ export default function Home() {
   }
 
   function startStudy(size: number, weakOnly = false) {
-    const missedIds = new Set(
-      history.flatMap((item) => item.questionIds.filter((id) => {
-        const question = questionsById.get(id);
-        return question && !questionOutcome(question, item.answers).correct;
-      })),
-    );
-    const filtered = bank.filter((question) => {
-      if (!includeEmerging && question.emerging) return false;
-      if (domainFilter !== "all" && question.domain !== domainFilter) return false;
-      if (sourceFilter !== "all" && question.sourceCategory !== sourceFilter) return false;
-      return !weakOnly || missedIds.has(question.id);
-    });
-    const chosen = shuffle(filtered).slice(0, Math.min(size, filtered.length)).map((question) => question.id);
-    if (chosen.length === 0) return;
-    startAttempt("study", chosen);
+    const pool = weakOnly ? missedStudyPool : studyPool;
+    if (size < 1 || size > pool.length) return;
+    startAttempt("study", selectStudyQuestions(pool, size));
+  }
+
+  function resetStudyFilters() {
+    setDomainFilter("all");
+    setSourceFilter("all");
+    setIncludeEmerging(false);
   }
 
   function resumeAttempt() {
@@ -443,7 +444,7 @@ export default function Home() {
                 <legend className="sr-only">Answer options</legend>
                 {question.options.map((option) => {
                   const isSelected = selected.includes(option.id);
-                  const correctOption = question.correctIds.includes(option.id);
+                  const correctOption = acceptedOptionIds(question).includes(option.id);
                   const optionState = checked ? (correctOption ? "is-correct" : isSelected ? "is-wrong" : "") : isSelected ? "is-selected" : "";
                   return (
                     <label key={option.id} className={`option ${optionState}`}>
@@ -455,12 +456,13 @@ export default function Home() {
               </fieldset>
               {checked && (
                 <div className={`feedback ${outcome.correct ? "good" : "bad"}`} role="status">
-                  <strong>{outcome.correct ? "Correct — strong reasoning." : "Not quite — here is the decision rule."}</strong>
-                  {!outcome.correct && <p><b>Correct answer{question.correctIds.length > 1 ? "s" : ""}:</b> {question.correctIds.join(", ")}. {question.wrongAnswerHelp}</p>}
+                  <strong>{outcome.correct ? "Correct — review the reasoning below." : "Not quite — compare your choice with the correct answer below."}</strong>
+                  {!outcome.correct && <p><b>{question.acceptedAnswerSets?.length ? "Accepted answers" : `Correct answer${question.correctIds.length > 1 ? "s" : ""}`}:</b> {[question.correctIds, ...(question.acceptedAnswerSets ?? [])].map((ids) => ids.join(", ")).join(" or ")}</p>}
                   <p>{question.rationale}</p>
                   <a href={question.references[0]} target="_blank" rel="noreferrer">Open SAP-C02 guide ↗</a>
                 </div>
               )}
+              {checked && <AnswerExplanations question={question} selected={selected} />}
               {activeAttempt.mode === "study" && !checked && <button className="button primary check-answer" disabled={selected.length === 0} onClick={() => checkStudyAnswer(question.id)}>Check answer</button>}
             </article>
             <div className="question-actions">
@@ -497,9 +499,9 @@ export default function Home() {
           </div>
           <section className="result-section"><div className="section-heading"><div><span className="eyebrow">Domain performance</span><h2>See where to focus next</h2></div></div><div className="domain-results">{result.byDomain.map((domain) => <article key={domain.domain} className="domain-result"><div><span>D{domain.domain}</span><strong>{domain.accuracy}%</strong></div><h3>{DOMAIN_NAMES[domain.domain]}</h3><p>{domain.correct} of {domain.total} correct</p><div className="progress"><i style={{ width: `${domain.accuracy}%` }} /></div></article>)}</div></section>
           <section className="result-section"><div className="review-heading"><div><span className="eyebrow">Answer review</span><h2>Turn misses into rules you remember</h2></div><div className="review-filters">{(["incorrect", "unanswered", "flagged", "all"] as const).map((filter) => <button key={filter} className={reviewFilter === filter ? "selected" : ""} onClick={() => setReviewFilter(filter)}>{filter}</button>)}</div></div><div className="review-list">{filteredOutcomes.length ? filteredOutcomes.map((outcome, index) => {
-            const correctText = outcome.question.correctIds.map((id) => outcome.question.options.find((option) => option.id === id)?.text).join(" · ");
+            const correctText = [outcome.question.correctIds, ...(outcome.question.acceptedAnswerSets ?? [])].map((ids) => ids.map((id) => `${id}. ${outcome.question.options.find((option) => option.id === id)?.text}`).join(" · ")).join(" OR ");
             const selectedText = outcome.selected.length ? outcome.selected.map((id) => `${id}. ${outcome.question.options.find((option) => option.id === id)?.text}`).join(" · ") : "No answer";
-            return <details key={outcome.question.id} className={`review-item ${outcome.correct ? "review-correct" : "review-missed"}`} open={index === 0}><summary><span className="review-status">{outcome.correct ? "✓" : "!"}</span><span><b>Question {resultState.item.questionIds.indexOf(outcome.question.id) + 1}</b> · {outcome.question.topic}<small>{outcome.question.sourceLabel}</small></span><span>{outcome.correct ? "Correct" : "Review"}</span></summary><div className="review-body"><p className="review-prompt">{outcome.question.prompt}</p><p><b>Your answer:</b> {selectedText}</p>{!outcome.correct && <p><b>Correct answer:</b> {correctText}</p>}<div className="rationale"><b>Why:</b> {outcome.question.rationale}</div><a href={outcome.question.references[0]} target="_blank" rel="noreferrer">Study the AWS guide ↗</a></div></details>;
+            return <details key={outcome.question.id} className={`review-item ${outcome.correct ? "review-correct" : "review-missed"}`} open={index === 0}><summary><span className="review-status">{outcome.correct ? "✓" : "!"}</span><span><b>Question {resultState.item.questionIds.indexOf(outcome.question.id) + 1}</b> · {outcome.question.topic}<small>{outcome.question.sourceLabel}</small></span><span>{outcome.correct ? "Correct" : "Review"}</span></summary><div className="review-body"><p className="review-prompt">{outcome.question.prompt}</p><p><b>Your answer:</b> {selectedText}</p>{!outcome.correct && <p><b>Correct answer:</b> {correctText}</p>}<div className="rationale"><b>Why:</b> {outcome.question.rationale}</div><AnswerExplanations question={outcome.question} selected={outcome.selected} /><a href={outcome.question.references[0]} target="_blank" rel="noreferrer">Study the AWS guide ↗</a></div></details>;
           }) : <p className="empty-review">No questions match this filter.</p>}</div></section>
         </section>
       </main>
@@ -517,10 +519,30 @@ export default function Home() {
         <div className="main-column">
           {activeAttempt && <article className="resume-card"><div><span className="eyebrow">Saved session</span><h2>{activeAttempt.mode === "exam" ? "Your full mock is ready to resume" : "Your study set is ready to resume"}</h2><p>{Object.values(activeAttempt.answers).filter((answer) => answer.length > 0).length} of {activeAttempt.questionIds.length} answered · saved automatically in this browser</p></div><button className="button primary" onClick={resumeAttempt}>Resume →</button></article>}
           <section className="mode-section"><div className="section-heading"><div><span className="eyebrow">Exam simulation</span><h2>Build real exam stamina</h2></div><span className="mode-kicker">Professional-style questions only</span></div><article className="exam-card"><div className="exam-card-number">75</div><div><h3>Full SAP-C02 mock</h3><p>Three-hour timer · 19 / 22 / 19 / 15 domain mix · answer review after submission</p><div className="mini-tags"><span>Timed</span><span>Autosaves</span><span>No hints</span></div></div><button className="button primary" onClick={startFullExam}>Start exam</button></article></section>
-          <section className="mode-section"><div className="section-heading"><div><span className="eyebrow">Study mode</span><h2>Get immediate feedback</h2></div><span className="mode-kicker">Foundation and advanced topics</span></div><article className="study-card"><div className="filters"><label>Domain<select value={domainFilter} onChange={(event) => setDomainFilter(event.target.value)}><option value="all">All domains</option>{Object.entries(DOMAIN_NAMES).map(([value, label]) => <option key={value} value={value}>D{value} · {label}</option>)}</select></label><label>Source<select value={sourceFilter} onChange={(event) => setSourceFilter(event.target.value as "all" | SourceCategory)}><option value="all">All sources</option>{Object.entries(sourceNames).map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></label><label className="checkbox-label"><input type="checkbox" checked={includeEmerging} onChange={(event) => setIncludeEmerging(event.target.checked)} /> Include optional emerging-AI practice</label></div><div className="study-actions"><div><h3>Choose your set length</h3><p>Answers are checked immediately, with a concise explanation and source link.</p></div><div className="set-buttons">{[10, 25, 50].map((size) => <button key={size} className="button secondary" onClick={() => startStudy(size)}>{size} questions</button>)}</div></div></article></section>
+          <section className="mode-section">
+            <div className="section-heading"><div><span className="eyebrow">Study mode</span><h2>Get immediate feedback</h2></div><span className="mode-kicker">Foundation and advanced topics</span></div>
+            <article className="study-card">
+              <div className="filters">
+                <label>Domain<select value={domainFilter} onChange={(event) => setDomainFilter(event.target.value)}><option value="all">All domains</option>{Object.entries(DOMAIN_NAMES).map(([value, label]) => <option key={value} value={value}>D{value} · {label}</option>)}</select></label>
+                <label>Source<select value={sourceFilter} onChange={(event) => setSourceFilter(event.target.value as "all" | SourceCategory)}><option value="all">All sources</option>{Object.entries(sourceNames).map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></label>
+                <label className="checkbox-label"><input type="checkbox" checked={includeEmerging} onChange={(event) => setIncludeEmerging(event.target.checked)} /> Include optional emerging-AI practice</label>
+              </div>
+              <div className="study-availability">
+                <p id="study-availability" role="status"><strong>{studyPool.length} questions available</strong>{hasStudyFilters ? " with your current filters." : " across all domains and sources."}{studyPool.length < 75 && " Larger sets need more questions; broaden or reset your filters."}</p>
+                {hasStudyFilters && <button className="button secondary" onClick={resetStudyFilters}>Reset filters</button>}
+              </div>
+              <div className="study-actions">
+                <div><h3>Choose your set length</h3><p>Untimed, with an explanation after each answer. Each set contains exactly the number you choose.</p></div>
+                <div className="set-buttons" aria-describedby="study-availability">
+                  {STUDY_SIZES.map((size) => <button key={size} className="button secondary" disabled={studyPool.length < size} title={studyPool.length < size ? `Only ${studyPool.length} questions match. Reset or broaden your filters for ${size}.` : `Start ${size} study questions`} onClick={() => startStudy(size)}>{size} questions</button>)}
+                  {studyPool.length > 0 && studyPool.length < 75 && !STUDY_SIZES.some((size) => size === studyPool.length) && <button className="button secondary" onClick={() => startStudy(studyPool.length)}>All {studyPool.length} questions</button>}
+                </div>
+              </div>
+            </article>
+          </section>
           {history.length > 0 && <section className="mode-section history-section"><div className="section-heading"><div><span className="eyebrow">Attempt history</span><h2>Track the trend, not one score</h2></div></div><div className="history-list">{history.slice(0, 6).map((item) => { const result = getResult(item, questionsById); return <article key={item.id}><div className="history-score"><strong>{result.score}%</strong><span>{item.mode === "exam" ? "Mock exam" : "Study"}</span></div><div><h3>{item.questionIds.length} questions · {result.correct} correct</h3><p>{formatDate(item.finishedAt)} · {formatDuration(item.elapsedSeconds)}</p></div><button className="button-text" onClick={() => { setResultState({ item, autoSubmitted: false }); setScreen("result"); }}>Review →</button></article>; })}</div></section>}
         </div>
-        <aside className="side-column"><section className="side-card"><span className="eyebrow">Your study signal</span><h2>Weak topics</h2>{weakTopics.length ? <ul className="weak-list">{weakTopics.map((topic) => <li key={topic.topic}><div><b>{topic.topic}</b><span>{topic.total} answered</span></div><strong>{topic.accuracy}%</strong></li>)}</ul> : <p>Complete at least two questions in a topic to see a dependable signal here.</p>}<button className="button secondary full-width" disabled={history.length === 0} onClick={() => startStudy(25, true)}>Practice missed questions</button></section><section className="side-card library-card"><span className="eyebrow">Question library</span><h2>Know what you are practicing</h2><ul>{(Object.keys(sourceNames) as SourceCategory[]).map((source) => <li key={source}><span className={`source-dot ${source}`} /> <span>{sourceNames[source]}</span><b>{sourceCounts[source]}</b></li>)}</ul><p className="library-note">Only Week 8 is a captured official-practice-exam record. Other source labels keep course-derived and original scenarios distinct.</p></section></aside>
+        <aside className="side-column"><section className="side-card"><span className="eyebrow">Your study signal</span><h2>Weak topics</h2>{weakTopics.length ? <ul className="weak-list">{weakTopics.map((topic) => <li key={topic.topic}><div><b>{topic.topic}</b><span>{topic.total} answered</span></div><strong>{topic.accuracy}%</strong></li>)}</ul> : <p>Complete at least two questions in a topic to see a dependable signal here.</p>}<button className="button secondary full-width" disabled={missedStudySize === 0} onClick={() => startStudy(missedStudySize, true)}>{missedStudySize ? `Practice ${missedStudySize} missed questions` : "Practice missed questions"}</button>{history.length > 0 && missedStudySize === 0 && <p>No missed questions match your study filters.</p>}</section><section className="side-card library-card"><span className="eyebrow">Question library</span><h2>Know what you are practicing</h2><ul>{(Object.keys(sourceNames) as SourceCategory[]).map((source) => <li key={source}><span className={`source-dot ${source}`} /> <span>{sourceNames[source]}</span><b>{sourceCounts[source]}</b></li>)}</ul><p className="library-note">Only Week 8 is a captured official-practice-exam record. Original scenarios are 15 extra app-written questions, not a full mock. Full mocks draw 75 questions across eligible sources.</p></section></aside>
       </section>
     </main>
   );
