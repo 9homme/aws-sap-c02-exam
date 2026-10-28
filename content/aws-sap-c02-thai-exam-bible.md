@@ -1475,6 +1475,30 @@ KMS high-yield:
 - **monitor แต่ไม่ enforce** เช่น Config rule เมื่อต้องป้องกันไม่ให้สร้าง
 - **enforce แต่ไม่ remediate ของเดิม** เช่น SCP (Service Control Policy) เมื่อโจทย์ต้องแก้ resource เก่า
 
+### เทคนิคเทียบตัวเลือกที่ข้อความเกือบเหมือนกัน
+
+**เทคนิคจากประสบการณ์ผู้สอบ:** ถ้าสองตัวเลือกใช้ประโยคยาว ๆ เหมือนกันเกือบทั้งหมด อาจช่วยให้หาจุดที่โจทย์กำลังทดสอบได้เร็วขึ้น ให้เทียบคำที่ต่างกันก่อน แล้วใช้ requirement ตัดสิน อย่าถือว่าสองข้อนี้ต้องมีคำตอบที่ถูกอยู่เสมอ
+
+วิธีใช้:
+
+1. **อ่านเงื่อนไขบังคับก่อน** — ต้องทำอะไร ห้ามอะไร และต้องเลือกกี่คำตอบ เช่น ห้ามแก้ application, ต้องใช้ private network หรือเลือก TWO
+2. **จับคู่ข้อความที่คล้ายกัน แล้วอ่านส่วนที่เหมือนกันครั้งเดียว** — โฟกัสจุดต่าง เช่น scheduled กับ target tracking, read กับ write, ของเดิมกับของใหม่ หรือ account เดียวกับทั้งองค์กร
+3. **เทียบจุดต่างกับ requirement** — ถามว่า “เงื่อนไขข้อไหนทำให้เลือกแบบนี้ได้ และตัดอีกแบบออก?” ไม่ใช่เลือกเพราะถ้อยคำดูน่าเชื่อกว่า
+4. **ตรวจส่วนที่เหมือนกันและตัวเลือกอื่นด้วย** — สองข้อที่คล้ายกันอาจใช้ architecture ผิดเหมือนกันทั้งหมด ก่อนตอบต้องยืนยันว่าตัวเลือกสุดท้ายทำ requirement ครบ และตรงเป้าหมายด้าน cost, latency หรืองานดูแล
+
+**ตัวอย่างฝึก:** เว็บมี traffic ขึ้นลงโดยคาดเวลาไม่ได้ และต้องเพิ่ม/ลดเครื่องตามภาระงานจริง
+
+| ตัวเลือก | ข้อความที่เห็น |
+|---|---|
+| A | ใช้ ALB (Application Load Balancer) หน้าเครื่องที่อยู่ใน Auto Scaling group กระจายหลาย Availability Zones แล้วใช้ **scheduled scaling เพิ่ม/ลดเครื่องตามเวลาที่ตั้งไว้** |
+| B | ใช้ ALB หน้าเครื่องที่อยู่ใน Auto Scaling group กระจายหลาย Availability Zones แล้วใช้ **target tracking เพิ่ม/ลดเครื่องเพื่อรักษา metric ที่สัมพันธ์กับ load ให้อยู่ใกล้ค่าเป้าหมาย** |
+
+จุดต่างที่ต้องเทียบคือ **วิธี scaling** ไม่ใช่ส่วน ALB หรือการกระจายหลายโซน ในตัวอย่างนี้ **B ตรงเงื่อนไขกว่า** เพราะปรับตามภาระจริง ส่วน scheduled scaling เหมาะกับเวลาที่คาดเดาได้ ถ้าโจทย์เปลี่ยนเป็น “เพิ่มเครื่องไว้ก่อนเปิดร้าน 08:00 น.” เหตุผลในการเลือกก็เปลี่ยนได้ ([AWS: Scheduled scaling](https://docs.aws.amazon.com/autoscaling/ec2/userguide/ec2-auto-scaling-scheduled-scaling.html), [Target tracking](https://docs.aws.amazon.com/autoscaling/ec2/userguide/as-scaling-target-tracking.html))
+
+**ตัวอย่างที่สองข้อคล้ายกันแต่ผิดทั้งคู่:** ถ้าโจทย์บังคับให้รับ UDP (User Datagram Protocol) โดยตรง แต่ A และ B ต่างก็ใช้ ALB ต่อให้วิธี scaling ต่างกันก็ยังไม่ผ่าน เพราะ ALB ไม่รับ UDP จึงต้องอ่านตัวเลือกอื่นต่อ ([AWS: Load balancer protocols](https://docs.aws.amazon.com/elasticloadbalancing/latest/userguide/how-elastic-load-balancing-works.html))
+
+**ขอบเขตของเทคนิค:** ใช้ความคล้ายของข้อความเป็นตัวช่วยเลือกจุดที่ควรอ่านก่อน ไม่ใช่หลักฐานว่าเฉลยต้องอยู่ในคู่นั้น เราไม่มีข้อมูลสถิติยืนยันความแม่นยำของ pattern นี้ ส่วน AWS ระบุว่ามีทั้งข้อเลือกหนึ่งคำตอบและหลายคำตอบ จึงห้ามตัดจนเหลือข้อเดียวโดยไม่ดูจำนวนที่โจทย์กำหนด ([AWS Exam Guide](https://docs.aws.amazon.com/aws-certification/latest/solutions-architect-professional-02/solutions-architect-professional-02.html))
+
 ---
 
 ## 21. One-page mental model ก่อนเข้าห้องสอบ
