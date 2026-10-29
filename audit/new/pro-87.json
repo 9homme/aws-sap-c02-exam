@@ -1,0 +1,83 @@
+{
+  "id": "pro-87",
+  "sourceCategory": "professional",
+  "sourceLabel": "AI-authored · Professional multi-requirement",
+  "sourceDetail": "Original multi-constraint scenario — ย้ายแอป .NET Framework ออกจาก data center ให้เร็วที่สุด",
+  "coreEligible": true,
+  "emerging": false,
+  "domain": "4",
+  "task": "Migration and modernization",
+  "topic": "ย้ายแอป .NET Framework ออกจาก data center ให้เร็วที่สุด",
+  "type": "multiple-choice",
+  "selectCount": 1,
+  "prompt": "An insurance company must exit a colocation data center in 8 weeks because the contract cannot be extended. The facility hosts 40 Windows Server 2016 virtual machines that run line-of-business applications built on .NET Framework 4.8, IIS, and Windows services, several of which use COM components and write to local disks. The source code for some applications is maintained by a vendor that requires 6 months' notice for any change, so no application code can change before the exit. The company already used AWS Migration Hub and AWS Application Discovery Service agents on these servers during a previous assessment, and the discovery data shows server dependencies and utilization. Leadership wants to containerize the applications eventually, but only after the data center is closed. The cutover for each application group must be tested before production traffic moves, and the downtime for each group must be limited to a short maintenance window. The migration team has experience with Windows administration but not with Windows containers. Which approach will complete the migration in the LEAST amount of time?",
+  "options": [
+    {
+      "id": "A",
+      "text": "Use AWS App2Container to analyze each application, generate Windows container images and Amazon ECS task definitions, push the images to Amazon ECR, and run the applications on an ECS cluster of Windows container instances before the data center exit.",
+      "explanation": "ไม่ผ่านด้านเวลา: App2Container ช่วยสร้าง container ได้ แต่แอปที่ใช้ COM components, Windows services และเขียน local disk มักต้องปรับแก้และทดสอบ Windows containers ทีละแอป ซึ่งทีมไม่มีประสบการณ์ การทำครบ 40 servers ใน 8 สัปดาห์จึงเสี่ยงไม่ทัน ควรทำหลังปิด data center"
+    },
+    {
+      "id": "B",
+      "text": "Use the existing discovery data to group the servers into migration waves, rehost them with AWS Transform MGN by installing the replication agent on each server, launch test instances for each wave to validate the applications, and then perform a cutover during each maintenance window. Plan containerization as a later project.",
+      "explanation": "ถูก: rehost คัดลอก server ทั้งเครื่องรวม COM, services และ local disk โดยไม่แตะ code จึงเหมาะกับข้อจำกัดของ vendor ข้อมูล discovery เดิมช่วยจัด waves ตาม dependencies ได้ทันที MGN ทำ continuous block-level replication และ launch test instances ก่อน cutover ทำให้ downtime เหลือแค่ช่วง cutover แต่ละ wave การ containerize ทำต่อภายหลังได้จาก instances บน EC2"
+    },
+    {
+      "id": "C",
+      "text": "Port the applications from .NET Framework to .NET 8 so that they can run in Linux containers on AWS Fargate, use AWS CodeBuild to build the images, and deploy each application to an Amazon ECS service behind an Application Load Balancer. Use the existing discovery data to decide the order in which the applications are ported. Define the resources in AWS CloudFormation templates for repeatable deployment.",
+      "explanation": "ไม่ผ่าน: การ port ไป .NET 8 ต้องแก้ code ซึ่ง vendor ต้องแจ้งล่วงหน้า 6 เดือน และ COM components ไม่รองรับบน Linux จึงทำไม่ได้ก่อนกำหนด เป็นแนวทาง modernization ระยะยาวที่ดีแต่ไม่ใช่สำหรับการย้ายครั้งนี้"
+    },
+    {
+      "id": "D",
+      "text": "Export each virtual machine disk image from the hypervisor, upload the images to Amazon S3, import them as AMIs with VM Import/Export, and launch Amazon EC2 instances from the AMIs after stopping the source servers. Use the existing discovery data to schedule the servers into weekend batches.",
+      "explanation": "ทำได้แต่ช้าและ downtime สูง: VM Import/Export เป็นการแปลง image ครั้งเดียว ต้องหยุด server ระหว่าง export/upload/import ซึ่งอาจใช้หลายชั่วโมงต่อเครื่อง ไม่มี continuous replication หรือ test launch ทำให้การทดสอบก่อน cutover และการจำกัด downtime ให้สั้นทำได้ยาก"
+    }
+  ],
+  "correctIds": [
+    "B"
+  ],
+  "rationale": "1) ห้ามแก้ code ตัดการ port ไป .NET 8 (C) 2) containerize ตอนนี้ (A) ทำได้บางแอปแต่ต้องปรับและทดสอบมาก ทีมไม่มีประสบการณ์ Windows containers จึงเสี่ยงไม่ทัน 3) ทางที่เหลือคือ rehost: VM Import/Export (D) ต้องหยุดเครื่องและไม่มี test launch 4) MGN ใช้ continuous replication, test instances และ cutover ตาม waves ที่จัดจาก discovery data เดิม จึงเร็วที่สุดและ downtime ต่ำ B",
+  "wrongAnswerHelp": "Start with the explicit business constraint, then eliminate choices that solve a different layer of the architecture or add unnecessary operational work.",
+  "references": [
+    "https://docs.aws.amazon.com/mgn/latest/ug/what-is-mgn.html",
+    "https://docs.aws.amazon.com/app2container/latest/UserGuide/what-is-a2c.html",
+    "https://docs.aws.amazon.com/vm-import/latest/userguide/what-is-vmimport.html"
+  ],
+  "products": [
+    "Application Migration Service (MGN)",
+    "ECS (Elastic Container Service)",
+    "EC2",
+    "Migration Hub",
+    "Application Discovery Service"
+  ],
+  "requirements": [
+    "Exit the data center in 8 weeks",
+    "Apps are .NET Framework on Windows Server with no code changes",
+    "Containerization may follow later"
+  ],
+  "review": {
+    "decisiveClue": "เหลือ 8 สัปดาห์, 40 Windows VMs ที่ใช้ COM/local disk, ห้ามแก้ code, มี discovery data เดิม, ต้องทดสอบก่อน cutover และ downtime สั้น",
+    "reasoning": "1) ห้ามแก้ code ตัดการ port ไป .NET 8 (C) 2) containerize ตอนนี้ (A) ทำได้บางแอปแต่ต้องปรับและทดสอบมาก ทีมไม่มีประสบการณ์ Windows containers จึงเสี่ยงไม่ทัน 3) ทางที่เหลือคือ rehost: VM Import/Export (D) ต้องหยุดเครื่องและไม่มี test launch 4) MGN ใช้ continuous replication, test instances และ cutover ตาม waves ที่จัดจาก discovery data เดิม จึงเร็วที่สุดและ downtime ต่ำ B",
+    "options": {
+      "A": "ไม่ผ่านด้านเวลา: App2Container ช่วยสร้าง container ได้ แต่แอปที่ใช้ COM components, Windows services และเขียน local disk มักต้องปรับแก้และทดสอบ Windows containers ทีละแอป ซึ่งทีมไม่มีประสบการณ์ การทำครบ 40 servers ใน 8 สัปดาห์จึงเสี่ยงไม่ทัน ควรทำหลังปิด data center",
+      "B": "ถูก: rehost คัดลอก server ทั้งเครื่องรวม COM, services และ local disk โดยไม่แตะ code จึงเหมาะกับข้อจำกัดของ vendor ข้อมูล discovery เดิมช่วยจัด waves ตาม dependencies ได้ทันที MGN ทำ continuous block-level replication และ launch test instances ก่อน cutover ทำให้ downtime เหลือแค่ช่วง cutover แต่ละ wave การ containerize ทำต่อภายหลังได้จาก instances บน EC2",
+      "C": "ไม่ผ่าน: การ port ไป .NET 8 ต้องแก้ code ซึ่ง vendor ต้องแจ้งล่วงหน้า 6 เดือน และ COM components ไม่รองรับบน Linux จึงทำไม่ได้ก่อนกำหนด เป็นแนวทาง modernization ระยะยาวที่ดีแต่ไม่ใช่สำหรับการย้ายครั้งนี้",
+      "D": "ทำได้แต่ช้าและ downtime สูง: VM Import/Export เป็นการแปลง image ครั้งเดียว ต้องหยุด server ระหว่าง export/upload/import ซึ่งอาจใช้หลายชั่วโมงต่อเครื่อง ไม่มี continuous replication หรือ test launch ทำให้การทดสอบก่อน cutover และการจำกัด downtime ให้สั้นทำได้ยาก"
+    },
+    "references": [
+      {
+        "title": "What is AWS Transform MGN?",
+        "url": "https://docs.aws.amazon.com/mgn/latest/ug/what-is-mgn.html"
+      },
+      {
+        "title": "What is AWS App2Container?",
+        "url": "https://docs.aws.amazon.com/app2container/latest/UserGuide/what-is-a2c.html"
+      },
+      {
+        "title": "VM Import/Export",
+        "url": "https://docs.aws.amazon.com/vm-import/latest/userguide/what-is-vmimport.html"
+      }
+    ],
+    "reviewedAt": "2026-10-29"
+  }
+}

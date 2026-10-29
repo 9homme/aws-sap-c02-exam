@@ -1,0 +1,61 @@
+{
+  "id": "pro-63",
+  "scope": "full",
+  "verdict": "FIX",
+  "originalCorrectIds": [
+    "B"
+  ],
+  "verifiedCorrectIds": [
+    "B"
+  ],
+  "issues": [
+    "options: ตัวลวงเดิมผิดอย่างชัดเจน (อ้างความสามารถที่บริการไม่มี) ทำให้ตอบได้จากการจำชื่อบริการ ไม่ใช่ระดับ SAP-C02 Professional; เขียนใหม่ให้แต่ละตัวลวงทำงานได้จริงบางส่วนแต่ตกเงื่อนไขหนึ่งข้อ",
+    "prompt: ลบประโยค boilerplate (architecture review board / workable for the stated environment)",
+    "review.reasoning: เดิมคัดลอก requirement ภาษาอังกฤษมาต่อกัน ไม่ได้อธิบายการตัดตัวเลือก",
+    "prompt: 'commercial JMS broker' ทำให้คำตอบ Amazon MQ ไม่แน่นอน (Amazon MQ รองรับเฉพาะ ActiveMQ และ RabbitMQ) จึงระบุว่าเป็น ActiveMQ Classic"
+  ],
+  "changes": {
+    "prompt": "A retail group must integrate a recently acquired Java order system with cloud-native services. The acquired system has a stable set of JMS producers and consumers connected to an Apache ActiveMQ Classic broker over OpenWire with client-acknowledge mode; the company has contractually committed not to change these binaries during the first migration wave. The modern order-routing team wants rules that deliver newly created business events to different targets based on attributes, while analytics wants a separate replayable stream of point-of-sale telemetry consumed by two independent processors. The reporting team then needs telemetry automatically batched into S3 for low-cost archival analysis. Engineers are wary of adopting a single messaging product because message queues, event routing, replay streams and delivery pipelines have different delivery semantics. The solution must meet all of the following requirements: (1) Retain broker/JMS compatibility for the initial legacy migration; (2) Route cloud-native business events declaratively and independently support replayable telemetry consumers; (3) Perform managed, buffered archival of streaming telemetry into S3. Which solution meets these requirements with the LEAST operational overhead?",
+    "options": {
+      "A": {
+        "text": "Use Amazon MQ for the legacy JMS clients and also publish the cloud business events and the point-of-sale telemetry to Amazon MQ topics, with consumer applications writing the telemetry to S3.",
+        "explanation": "ตกข้อ (2)(3): Amazon MQ ตอบเรื่อง JMS ได้ แต่ broker ไม่ได้ทำ declarative event routing ตาม attributes แบบ EventBridge ข้อความใน queue ถูกลบเมื่อ consume แล้วจึง replay ไม่ได้ และยังต้องเขียน consumer ที่เขียน S3 เอง ใช้ผลิตภัณฑ์เดียวกับ semantics ที่ต่างกันตามที่วิศวกรเตือน"
+      },
+      "B": {
+        "text": "Use Amazon MQ for legacy compatible JMS clients, EventBridge for cloud business event rules, Kinesis Data Streams for replayable POS telemetry and Data Firehose for S3 delivery.",
+        "explanation": "ถูก: Amazon MQ for ActiveMQ รองรับ JMS producers/consumers และ acknowledgement modes เดิมโดยไม่แก้ binaries EventBridge rules ส่ง business events ไปยัง target ตาม attributes Kinesis Data Streams ให้สอง processors อ่านและ replay telemetry ได้อิสระ และ Firehose อ่านจาก stream แล้ว batch เข้า S3 แบบ managed แต่ละบริการตรงกับ delivery semantics ของตัวเอง"
+      },
+      "C": {
+        "text": "Use Amazon MQ for the legacy JMS clients and EventBridge rules for the business events, and send the point-of-sale telemetry directly to Amazon Data Firehose for S3 delivery, with both analytics processors reading the delivered S3 objects.",
+        "explanation": "ตกข้อ (2): JMS, routing และ S3 delivery ถูกต้อง แต่ Firehose ไม่ใช่ stream ที่ consumer หลายตัวอ่านและ replay ตามตำแหน่งได้ processors ต้องรอข้อมูลถูก buffer เป็น object และไม่ได้ checkpoint ของตัวเองแบบ Kinesis Data Streams"
+      },
+      "D": {
+        "text": "Rewrite the acquired system's messaging to Amazon SQS with the Amazon SQS Java Messaging Library, use EventBridge rules for business events, Kinesis Data Streams for telemetry, and Amazon Data Firehose for S3 delivery.",
+        "explanation": "ตกข้อ (1): ฝั่ง cloud-native ถูกต้อง แต่บริษัทตกลงไว้ว่าจะไม่เปลี่ยน binaries ใน wave แรก และ JMS library ของ SQS ก็ไม่รองรับ semantics ของ broker ทั้งหมด จึงต้องคง broker ที่เข้ากันได้อย่าง Amazon MQ ไว้ก่อน"
+      }
+    },
+    "review": {
+      "decisiveClue": "JMS binaries ห้ามเปลี่ยนใน wave แรก, business events ต้อง route ตาม rules, telemetry ต้อง replay ได้สอง processors, archive เข้า S3 แบบ managed",
+      "reasoning": "1) แยก semantics: message queue/JMS (Amazon MQ), event routing (EventBridge), replayable stream (Kinesis Data Streams), delivery pipeline (Firehose) 2) A ใช้ MQ กับทุกอย่าง 3) C ไม่มี stream ที่ replay ได้ 4) D เปลี่ยน JMS binaries ซึ่งขัดสัญญา 5) B ใช้บริการตรงกับแต่ละ semantics ครบทั้งสามข้อ",
+      "references": [
+        {
+          "title": "What is Amazon MQ?",
+          "url": "https://docs.aws.amazon.com/amazon-mq/latest/developer-guide/welcome.html"
+        },
+        {
+          "title": "What is Amazon EventBridge?",
+          "url": "https://docs.aws.amazon.com/eventbridge/latest/userguide/eb-what-is.html"
+        },
+        {
+          "title": "Send data to Firehose from Kinesis Data Streams",
+          "url": "https://docs.aws.amazon.com/firehose/latest/dev/writing-with-kinesis-streams.html"
+        }
+      ]
+    }
+  },
+  "sources": [
+    "https://docs.aws.amazon.com/amazon-mq/latest/developer-guide/welcome.html",
+    "https://docs.aws.amazon.com/eventbridge/latest/userguide/eb-what-is.html",
+    "https://docs.aws.amazon.com/firehose/latest/dev/writing-with-kinesis-streams.html"
+  ]
+}

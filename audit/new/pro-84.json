@@ -1,0 +1,82 @@
+{
+  "id": "pro-84",
+  "sourceCategory": "professional",
+  "sourceLabel": "AI-authored · Professional multi-requirement",
+  "sourceDetail": "Original multi-constraint scenario — API สำหรับ partner ที่ยืนยันตัวตนด้วย certificate",
+  "coreEligible": true,
+  "emerging": false,
+  "domain": "2",
+  "task": "New solution design",
+  "topic": "API สำหรับ partner ที่ยืนยันตัวตนด้วย certificate",
+  "type": "multiple-choice",
+  "selectCount": 1,
+  "prompt": "A logistics company exposes a shipment-booking API to 40 partner companies by using an Amazon API Gateway Regional REST API with a custom domain name. Partners call the API from their own data centers and clouds, so their source IP addresses change frequently. A security review requires that every partner authenticate with an X.509 client certificate issued by the company's private certificate authority, that each partner be rate limited independently so that one partner cannot starve the others, and that common web exploits such as SQL injection be blocked before requests reach the backend. No unauthenticated public access to the API is allowed, including through the default execute-api endpoint. The company wants to revoke a single partner's access quickly without affecting other partners. Partner traffic volumes differ widely, and the commercial contracts define a request quota per partner per day. All partners have agreed to present certificates from the company's CA, and the company's private CA can revoke an individual certificate. Which solution will meet these requirements in the MOST secure way?",
+  "options": [
+    {
+      "id": "A",
+      "text": "Create an API key for each partner, associate the keys with usage plans that define per-partner throttling and quotas, require the API key on every method, and rotate the keys every 90 days. Distribute the keys to the partners through an encrypted email channel and monitor usage with CloudWatch metrics per key. Tag all new resources with the owning team and cost center.",
+      "explanation": "ไม่ผ่าน: usage plans ให้ throttling และ quota ต่อ partner ได้ แต่ API key ไม่ใช่กลไกการยืนยันตัวตน เป็นเพียงตัวระบุที่ส่งมาใน header และขโมยไปใช้ได้ ไม่มีการตรวจ client certificate และไม่มีการบล็อก SQL injection"
+    },
+    {
+      "id": "B",
+      "text": "Attach a resource policy that allows only the partners' current IP address ranges, attach an AWS WAF web ACL with the AWS managed core rule set and SQL database rule set, and keep the default execute-api endpoint enabled for testing. Ask partners to notify the company before their IP addresses change.",
+      "explanation": "ไม่ผ่าน: IP ของ partner เปลี่ยนบ่อย การ allow-list จึงดูแลยากและไม่ใช่การยืนยันตัวตนด้วย certificate ตามข้อกำหนด และการเปิด default execute-api endpoint ทิ้งไว้ทำให้มีทางเข้าที่ข้าม custom domain ได้"
+    },
+    {
+      "id": "C",
+      "text": "Enable mutual TLS on the custom domain name with a truststore that contains the private CA certificate chain, disable the default execute-api endpoint, attach an AWS WAF web ACL with the AWS managed core and SQL database rule sets, and give each partner an API key in a usage plan with its own throttling and daily quota.",
+      "explanation": "ถูก: mutual TLS บังคับให้ทุก client แสดง certificate จาก private CA ก่อนเชื่อมต่อ การปิด default endpoint บังคับให้ทุกคนต้องผ่าน custom domain ที่ตรวจ certificate WAF บล็อก SQL injection และ exploit ทั่วไปก่อนถึง backend usage plan ต่อ partner ให้ throttling และ quota แยกกัน และการลบ API key หรือเพิกถอน certificate ตัดสิทธิ์ partner รายเดียวได้ทันที Shield Standard ปกป้อง DDoS พื้นฐานอยู่แล้ว"
+    },
+    {
+      "id": "D",
+      "text": "Convert the API to a private REST API that is reachable only through interface VPC endpoints, and ask each partner to connect to the endpoint over the internet by using its public DNS name with an API key. Attach a resource policy that allows access only through the interface endpoint.",
+      "explanation": "ไม่ผ่าน: private API เข้าถึงได้เฉพาะจาก VPC ผ่าน interface endpoint และ DNS ของ endpoint ไม่ได้เปิดให้เรียกจาก internet โดยตรง partner ที่อยู่ภายนอกจึงเชื่อมไม่ได้หากไม่ทำ network connectivity เพิ่ม อีกทั้งยังไม่มีการยืนยันตัวตนด้วย certificate"
+    }
+  ],
+  "correctIds": [
+    "C"
+  ],
+  "rationale": "1) ต้องยืนยันตัวตนด้วย X.509 จึงต้องใช้ mutual TLS ซึ่ง API key อย่างเดียว (A) และ IP allow-list (B) ไม่ใช่ 2) private API (D) ใช้กับ partner ภายนอกไม่ได้ 3) ต้องปิด default execute-api endpoint ไม่ให้ข้าม mTLS 4) C รวม mTLS, WAF managed rules และ usage plans ต่อ partner ครบทุกชั้นการป้องกัน จึงปลอดภัยที่สุด",
+  "wrongAnswerHelp": "Start with the explicit business constraint, then eliminate choices that solve a different layer of the architecture or add unnecessary operational work.",
+  "references": [
+    "https://docs.aws.amazon.com/apigateway/latest/developerguide/rest-api-mutual-tls.html",
+    "https://docs.aws.amazon.com/apigateway/latest/developerguide/api-gateway-api-usage-plans.html",
+    "https://docs.aws.amazon.com/apigateway/latest/developerguide/apigateway-control-access-aws-waf.html"
+  ],
+  "products": [
+    "WAF (Web Application Firewall)",
+    "ACM (AWS Certificate Manager)",
+    "Shield",
+    "API Gateway"
+  ],
+  "requirements": [
+    "Authenticate partners by client certificate",
+    "Throttle per partner and block common web exploits",
+    "No public unauthenticated access"
+  ],
+  "review": {
+    "decisiveClue": "partner ต้องยืนยันตัวตนด้วย client certificate, throttling/quota ต่อ partner, บล็อก exploit, ห้ามเข้า default endpoint, IP ของ partner เปลี่ยนบ่อย",
+    "reasoning": "1) ต้องยืนยันตัวตนด้วย X.509 จึงต้องใช้ mutual TLS ซึ่ง API key อย่างเดียว (A) และ IP allow-list (B) ไม่ใช่ 2) private API (D) ใช้กับ partner ภายนอกไม่ได้ 3) ต้องปิด default execute-api endpoint ไม่ให้ข้าม mTLS 4) C รวม mTLS, WAF managed rules และ usage plans ต่อ partner ครบทุกชั้นการป้องกัน จึงปลอดภัยที่สุด",
+    "options": {
+      "A": "ไม่ผ่าน: usage plans ให้ throttling และ quota ต่อ partner ได้ แต่ API key ไม่ใช่กลไกการยืนยันตัวตน เป็นเพียงตัวระบุที่ส่งมาใน header และขโมยไปใช้ได้ ไม่มีการตรวจ client certificate และไม่มีการบล็อก SQL injection",
+      "B": "ไม่ผ่าน: IP ของ partner เปลี่ยนบ่อย การ allow-list จึงดูแลยากและไม่ใช่การยืนยันตัวตนด้วย certificate ตามข้อกำหนด และการเปิด default execute-api endpoint ทิ้งไว้ทำให้มีทางเข้าที่ข้าม custom domain ได้",
+      "C": "ถูก: mutual TLS บังคับให้ทุก client แสดง certificate จาก private CA ก่อนเชื่อมต่อ การปิด default endpoint บังคับให้ทุกคนต้องผ่าน custom domain ที่ตรวจ certificate WAF บล็อก SQL injection และ exploit ทั่วไปก่อนถึง backend usage plan ต่อ partner ให้ throttling และ quota แยกกัน และการลบ API key หรือเพิกถอน certificate ตัดสิทธิ์ partner รายเดียวได้ทันที Shield Standard ปกป้อง DDoS พื้นฐานอยู่แล้ว",
+      "D": "ไม่ผ่าน: private API เข้าถึงได้เฉพาะจาก VPC ผ่าน interface endpoint และ DNS ของ endpoint ไม่ได้เปิดให้เรียกจาก internet โดยตรง partner ที่อยู่ภายนอกจึงเชื่อมไม่ได้หากไม่ทำ network connectivity เพิ่ม อีกทั้งยังไม่มีการยืนยันตัวตนด้วย certificate"
+    },
+    "references": [
+      {
+        "title": "Configuring mutual TLS authentication for a REST API",
+        "url": "https://docs.aws.amazon.com/apigateway/latest/developerguide/rest-api-mutual-tls.html"
+      },
+      {
+        "title": "Usage plans and API keys for REST APIs",
+        "url": "https://docs.aws.amazon.com/apigateway/latest/developerguide/api-gateway-api-usage-plans.html"
+      },
+      {
+        "title": "Use AWS WAF to protect your REST APIs",
+        "url": "https://docs.aws.amazon.com/apigateway/latest/developerguide/apigateway-control-access-aws-waf.html"
+      }
+    ],
+    "reviewedAt": "2026-10-29"
+  }
+}

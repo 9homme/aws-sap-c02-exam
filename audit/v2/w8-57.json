@@ -1,0 +1,27 @@
+{
+  "id": "w8-57",
+  "scope": "explanations",
+  "verdict": "FIX",
+  "verifiedCorrectIds": [
+    "B"
+  ],
+  "issues": [
+    "options.B.explanation: ไม่เตือนว่า IoT objects ขนาดเล็ก (<128 KB) จะไม่ถูก transition โดย default ของ Lifecycle และมี overhead 40 KB ต่อ object ตอนเก็บ Glacier",
+    "options.D.explanation: ไม่ระบุว่า Intelligent-Tiering archive configuration ใช้กับ objects ที่อยู่ใน class Intelligent-Tiering เท่านั้น ไม่ย้าย objects Standard เดิมให้"
+  ],
+  "changes": {
+    "options": {
+      "B": {
+        "explanation": "ข้อมูล 6 เดือนแรกอยู่ S3 Standard ที่อ่านบ่อย แล้ว Lifecycle ย้ายไป Glacier Deep Archive ที่ถูกสุดสำหรับเก็บตามกฎหมายและไม่ต้องดึงเร็ว ไม่ต้องย้าย bucket (ข้อควรระวัง object <128 KB ไม่ transition โดย default และ restore ใช้เวลาเป็นชั่วโมง)"
+      },
+      "D": {
+        "explanation": "Intelligent-Tiering archive configuration มีผลกับ objects ที่อยู่ในคลาส Intelligent-Tiering เท่านั้น ไม่ย้าย objects Standard เดิมให้ และเสีย monitoring fee ต่อ object ทั้งที่โจทย์รู้ช่วง 180 วันชัด Lifecycle ย้ายตรงไป Deep Archive ถูกกว่า"
+      }
+    }
+  },
+  "sources": [
+    "https://docs.aws.amazon.com/AmazonS3/latest/userguide/lifecycle-transition-general-considerations.html",
+    "https://docs.aws.amazon.com/AmazonS3/latest/userguide/intelligent-tiering-overview.html",
+    "https://docs.aws.amazon.com/AmazonS3/latest/userguide/glacier-storage-classes.html"
+  ]
+}

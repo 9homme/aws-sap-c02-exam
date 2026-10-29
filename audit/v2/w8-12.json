@@ -1,0 +1,27 @@
+{
+  "id": "w8-12",
+  "scope": "explanations",
+  "verdict": "FIX",
+  "verifiedCorrectIds": [
+    "A"
+  ],
+  "issues": [
+    "options.C.explanation: 'ต้องเพิ่มการควบคุมเอง' คลุมเครือ ไม่ได้บอกเหตุผลจริงว่าทำไม C ไม่ปลอดภัยเท่า A",
+    "options.D.explanation: ไม่บอกชัดว่า IAM ควบคุมระดับ action/resource ไม่ใช่ configuration ทั้งชุด"
+  ],
+  "changes": {
+    "options": {
+      "C": {
+        "explanation": "CloudFormation ทำ provisioning ซ้ำได้ แต่เมื่อไม่ใช้ service role/launch role stack จะสร้างทรัพยากรด้วยสิทธิ์ของ developer เอง ดังนั้น developer ต้องมีสิทธิ์สร้างทรัพยากรโดยตรง ซึ่งเลี่ยงไปสร้างนอก template ที่อนุมัติได้ ส่วน Service Catalog ใช้ launch role แยกสิทธิ์นี้ออกจากผู้ใช้"
+      },
+      "D": {
+        "explanation": "IAM policy จำกัดได้ในระดับ action/resource และบาง condition แต่ไม่ได้กำหนด 'configuration ชุดเดียว' เช่น network + DB + instance ครบเป็นแบบอนุมัติ และ developer ยังสร้างทรัพยากรแบบกระจายเองได้ จึงดูแลยากและเสี่ยงหลุดมาตรฐานกว่า catalog ที่มี product ที่อนุมัติแล้ว"
+      }
+    }
+  },
+  "sources": [
+    "https://docs.aws.amazon.com/servicecatalog/latest/adminguide/constraints-launch.html",
+    "https://docs.aws.amazon.com/servicecatalog/latest/adminguide/what-is_concepts.html",
+    "https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/control-access-with-iam.html"
+  ]
+}

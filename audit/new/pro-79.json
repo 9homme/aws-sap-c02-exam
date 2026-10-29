@@ -1,0 +1,83 @@
+{
+  "id": "pro-79",
+  "sourceCategory": "professional",
+  "sourceLabel": "AI-authored · Professional multi-requirement",
+  "sourceDetail": "Original multi-constraint scenario — AD ที่ทำงานต่อได้เมื่อ WAN ไป data center ล้ม",
+  "coreEligible": true,
+  "emerging": false,
+  "domain": "1",
+  "task": "Organizational complexity",
+  "topic": "AD ที่ทำงานต่อได้เมื่อ WAN ไป data center ล้ม",
+  "type": "multiple-choice",
+  "selectCount": 1,
+  "prompt": "A manufacturing company runs Windows workloads on Amazon EC2 in two Availability Zones in eu-central-1. The servers are joined to the company's existing on-premises Active Directory forest, and all employee and service accounts live in that forest. The servers authenticate through an AD Connector that proxies requests to the domain controllers in the data center over a single AWS Site-to-Site VPN connection. Last quarter, a 3-hour WAN outage caused every Kerberos authentication on the AWS servers to fail, which stopped production scheduling. The business requires that AWS workloads continue to authenticate users and service accounts during future WAN outages. The identity team will not move accounts out of the existing forest or create a second forest, and it wants the AWS side of the directory to survive the loss of one Availability Zone. The company has staff who already operate Windows domain controllers on premises and can manage additional domain controllers by using standard tools. The company also plans to add a second VPN connection, but it knows that a site-wide data center outage could still isolate AWS. Which solution will MINIMIZE authentication downtime during a WAN outage?",
+  "options": [
+    {
+      "id": "A",
+      "text": "Promote two additional domain controllers for the existing forest on Amazon EC2 instances in two Availability Zones, configure them as a separate AD site with its own subnets so that the AWS servers authenticate locally, replicate with the on-premises domain controllers over the VPN, and use AWS Systems Manager to patch and monitor them.",
+      "explanation": "ถูก: domain controllers ใน AWS ถือสำเนาของ forest เดิม เมื่อ WAN ล้ม servers ใน AWS ยังยืนยันตัวตนกับ DC ในพื้นที่ได้ AD site ทำให้ client ใช้ DC ใกล้ตัวเป็นหลัก การวางสอง AZ ทนต่อการเสีย AZ บัญชียังอยู่ใน forest เดิม และ replication จะตามทันเมื่อ WAN กลับมา ทีมคุ้นเคยกับการดูแล DC อยู่แล้ว"
+    },
+    {
+      "id": "B",
+      "text": "Create an AWS Managed Microsoft AD directory in two Availability Zones, establish a two-way forest trust with the on-premises forest, and join the AWS servers to the managed directory. Configure conditional forwarders so that each forest can resolve the other's domain names.",
+      "explanation": "ไม่ผ่าน: เมื่อบัญชีผู้ใช้และ service accounts ยังอยู่ใน forest on premises การยืนยันตัวตนผ่าน trust ยังต้องติดต่อ DC ของ forest นั้น เมื่อ WAN ล้มก็ยังล้มเหมือนเดิม และการ join servers เข้า forest ที่สองขัดกับนโยบายที่ห้ามสร้าง forest ใหม่"
+    },
+    {
+      "id": "C",
+      "text": "Keep the AD Connector, add a second Site-to-Site VPN connection over a different internet provider to the data center, and configure the AD Connector with the IP addresses of additional on-premises domain controllers. Monitor both VPN tunnels with Amazon CloudWatch alarms so that the team is alerted when either path fails. Document the new configuration in the operations runbook.",
+      "explanation": "ช่วยลดโอกาสแต่ไม่แก้ต้นเหตุ: AD Connector ไม่เก็บข้อมูล directory จึงยังต้องติดต่อ DC on premises ทุกครั้ง หากเหตุขัดข้องเกิดที่ data center หรือ WAN ทั้งหมด การยืนยันตัวตนยังล้ม การมีเส้นทางสำรองเพิ่มความทนทานแต่ไม่ได้ทำให้ AWS ทำงานต่ออิสระ"
+    },
+    {
+      "id": "D",
+      "text": "Create an AWS Managed Microsoft AD directory, migrate the employee and service accounts into it with the Active Directory Migration Tool, and join the AWS servers to the managed directory. Keep a one-way trust so that on-premises resources can still be accessed by the migrated accounts.",
+      "explanation": "ไม่ผ่าน: การย้ายบัญชีไป Managed AD ทำให้ทำงานได้ระหว่าง WAN ล้มก็จริง แต่ขัดกับข้อกำหนดที่ห้ามย้ายบัญชีออกจาก forest เดิมหรือสร้าง forest ที่สอง และการ migrate บัญชีทั้งหมดเพิ่มความเสี่ยงต่อระบบที่ใช้อยู่"
+    }
+  ],
+  "correctIds": [
+    "A"
+  ],
+  "rationale": "1) สาเหตุคือ AWS ไม่มีสำเนา directory ในพื้นที่ AD Connector (C) เป็น proxy จึงพึ่ง WAN เสมอ 2) Managed AD + trust (B) ยังต้องติดต่อ DC ของ forest ที่บัญชีอยู่ จึงล้มเช่นเดิม 3) การย้ายบัญชีไป Managed AD (D) ใช้ได้แต่ผิดนโยบาย 4) การเพิ่ม DC ของ forest เดิมบน EC2 สอง AZ เป็น AD site ใน AWS ทำให้ยืนยันตัวตนในพื้นที่ได้ระหว่าง WAN ล้ม A จึงลด downtime ได้มากที่สุด",
+  "wrongAnswerHelp": "Start with the explicit business constraint, then eliminate choices that solve a different layer of the architecture or add unnecessary operational work.",
+  "references": [
+    "https://docs.aws.amazon.com/whitepapers/latest/active-directory-domain-services/active-directory-domain-services.html",
+    "https://docs.aws.amazon.com/directoryservice/latest/admin-guide/directory_ad_connector.html",
+    "https://docs.aws.amazon.com/directoryservice/latest/admin-guide/ms_ad_setup_trust.html"
+  ],
+  "products": [
+    "EC2",
+    "Systems Manager",
+    "Site-to-Site VPN",
+    "AWS Managed Microsoft AD",
+    "AD Connector"
+  ],
+  "requirements": [
+    "AWS workloads keep authenticating during a WAN outage to the data center",
+    "Users remain in the existing on-prem forest",
+    "Highly available across AZs"
+  ],
+  "review": {
+    "decisiveClue": "WAN ล้ม 3 ชั่วโมงทำให้ auth ใน AWS ล้มเพราะ AD Connector ต้องพึ่ง DC on premises, บัญชีต้องอยู่ใน forest เดิม, ทน AZ ล้ม",
+    "reasoning": "1) สาเหตุคือ AWS ไม่มีสำเนา directory ในพื้นที่ AD Connector (C) เป็น proxy จึงพึ่ง WAN เสมอ 2) Managed AD + trust (B) ยังต้องติดต่อ DC ของ forest ที่บัญชีอยู่ จึงล้มเช่นเดิม 3) การย้ายบัญชีไป Managed AD (D) ใช้ได้แต่ผิดนโยบาย 4) การเพิ่ม DC ของ forest เดิมบน EC2 สอง AZ เป็น AD site ใน AWS ทำให้ยืนยันตัวตนในพื้นที่ได้ระหว่าง WAN ล้ม A จึงลด downtime ได้มากที่สุด",
+    "options": {
+      "A": "ถูก: domain controllers ใน AWS ถือสำเนาของ forest เดิม เมื่อ WAN ล้ม servers ใน AWS ยังยืนยันตัวตนกับ DC ในพื้นที่ได้ AD site ทำให้ client ใช้ DC ใกล้ตัวเป็นหลัก การวางสอง AZ ทนต่อการเสีย AZ บัญชียังอยู่ใน forest เดิม และ replication จะตามทันเมื่อ WAN กลับมา ทีมคุ้นเคยกับการดูแล DC อยู่แล้ว",
+      "B": "ไม่ผ่าน: เมื่อบัญชีผู้ใช้และ service accounts ยังอยู่ใน forest on premises การยืนยันตัวตนผ่าน trust ยังต้องติดต่อ DC ของ forest นั้น เมื่อ WAN ล้มก็ยังล้มเหมือนเดิม และการ join servers เข้า forest ที่สองขัดกับนโยบายที่ห้ามสร้าง forest ใหม่",
+      "C": "ช่วยลดโอกาสแต่ไม่แก้ต้นเหตุ: AD Connector ไม่เก็บข้อมูล directory จึงยังต้องติดต่อ DC on premises ทุกครั้ง หากเหตุขัดข้องเกิดที่ data center หรือ WAN ทั้งหมด การยืนยันตัวตนยังล้ม การมีเส้นทางสำรองเพิ่มความทนทานแต่ไม่ได้ทำให้ AWS ทำงานต่ออิสระ",
+      "D": "ไม่ผ่าน: การย้ายบัญชีไป Managed AD ทำให้ทำงานได้ระหว่าง WAN ล้มก็จริง แต่ขัดกับข้อกำหนดที่ห้ามย้ายบัญชีออกจาก forest เดิมหรือสร้าง forest ที่สอง และการ migrate บัญชีทั้งหมดเพิ่มความเสี่ยงต่อระบบที่ใช้อยู่"
+    },
+    "references": [
+      {
+        "title": "Extend your on-premises AD into AWS (Active Directory Domain Services on AWS)",
+        "url": "https://docs.aws.amazon.com/whitepapers/latest/active-directory-domain-services/active-directory-domain-services.html"
+      },
+      {
+        "title": "AD Connector",
+        "url": "https://docs.aws.amazon.com/directoryservice/latest/admin-guide/directory_ad_connector.html"
+      },
+      {
+        "title": "Creating a trust relationship for AWS Managed Microsoft AD",
+        "url": "https://docs.aws.amazon.com/directoryservice/latest/admin-guide/ms_ad_setup_trust.html"
+      }
+    ],
+    "reviewedAt": "2026-10-29"
+  }
+}

@@ -1,0 +1,81 @@
+{
+  "id": "pro-65",
+  "sourceCategory": "professional",
+  "sourceLabel": "AI-authored · Professional multi-requirement",
+  "sourceDetail": "Original multi-constraint scenario — เข้ารหัส replication 20 Gbps แบบ private",
+  "coreEligible": true,
+  "emerging": false,
+  "domain": "1",
+  "task": "Organizational complexity",
+  "topic": "เข้ารหัส replication 20 Gbps แบบ private",
+  "type": "multiple-choice",
+  "selectCount": 1,
+  "prompt": "A media company replicates storage snapshots and database logs from its primary data center to AWS. The replication software opens four long-lived TCP streams and must sustain an aggregate of 20 Gbps during the nightly window, with individual streams regularly exceeding 4 Gbps. Compliance requires encryption in transit for this traffic, and the traffic must never traverse the public internet. The company already has a colocation presence at two Direct Connect locations in the same metro area, and its routers support 100 Gbps interfaces and IEEE 802.1AE. The network team requires that replication continue at full speed if one Direct Connect location fails. The current design uses a single 10 Gbps Direct Connect connection with a private virtual interface to a virtual private gateway, and replication already falls behind every night. The company accepts the cost of new dedicated connections if they solve the throughput problem. The data center team wants to keep the replication software unchanged, and the security team requires that the link encryption keys can be rotated without taking the links out of service. Which solution will provide the BEST performance while meeting these requirements?",
+  "options": [
+    {
+      "id": "A",
+      "text": "Keep the existing 10 Gbps connection, add a transit virtual interface and a transit gateway, and create 16 private IP Site-to-Site VPN tunnels over Direct Connect with equal-cost multi-path (ECMP) routing enabled on the transit gateway to aggregate the throughput.",
+      "explanation": "ไม่ผ่านด้าน performance: ECMP รวม bandwidth ข้ามหลาย tunnel ได้ แต่แต่ละ flow ถูก hash ไปอยู่ tunnel เดียวซึ่งรับได้ราว 1.25 Gbps stream ที่เกิน 4 Gbps จึงช้าลงมาก อีกทั้งวงจรเดิม 10 Gbps ยังน้อยกว่า 20 Gbps และไม่ทนต่อการเสีย location"
+    },
+    {
+      "id": "B",
+      "text": "Create AWS Site-to-Site VPN connections with acceleration enabled over the data center's internet links, and use multiple tunnels with ECMP on a transit gateway to reach the required throughput. Keep the existing 10 Gbps Direct Connect connection for other traffic and add more tunnels as the replication window grows.",
+      "explanation": "ไม่ผ่าน: Accelerated VPN ใช้ AWS global network หลังจากเข้า edge แต่ช่วงแรกยังผ่าน internet ซึ่งโจทย์ห้าม และยังติดเพดานประมาณ 1.25 Gbps ต่อ tunnel สำหรับแต่ละ flow เช่นเดียวกัน"
+    },
+    {
+      "id": "C",
+      "text": "Order 100 Gbps MACsec-capable dedicated connections at both Direct Connect locations, enable MACsec with a connectivity association key on each connection, and create virtual interfaces on both connections so that either connection can carry the full replication load.",
+      "explanation": "ถูก: MACsec เข้ารหัสที่ layer 2 ระหว่าง router กับ Direct Connect device ที่ line rate จึงไม่มีเพดานต่อ tunnel แบบ IPsec และ stream ใหญ่วิ่งได้เต็มความเร็ว traffic อยู่บน Direct Connect ไม่ผ่าน internet การมี 100 Gbps ที่สอง location ทำให้แต่ละเส้นรับ 20 Gbps ได้เต็มเมื่ออีก location ล้ม"
+    },
+    {
+      "id": "D",
+      "text": "Order one 100 Gbps MACsec-capable dedicated connection at one Direct Connect location, enable MACsec, and keep an internet-based Site-to-Site VPN connection as the backup path for replication. Size the backup tunnels with ECMP across several VPN connections so that replication can continue at reduced speed during a failure.",
+      "explanation": "ไม่ผ่าน: เส้นหลักให้ performance ดี แต่ถ้า location นั้นล้ม replication ต้องย้ายไป VPN ผ่าน internet ซึ่งทั้งขัดข้อห้าม internet และช้ากว่ามาก จึงไม่ตอบ 'full speed if one location fails'"
+    }
+  ],
+  "correctIds": [
+    "C"
+  ],
+  "rationale": "1) ตัดทางผ่าน internet (B) และทางที่ backup ไม่เต็มความเร็ว/ใช้ internet (D) 2) เทียบ IPsec กับ MACsec: IPsec VPN ของ AWS จำกัดราว 1.25 Gbps ต่อ tunnel และ ECMP กระจายตาม flow จึงไม่ช่วย stream เดี่ยวที่ใหญ่ (A) 3) MACsec เข้ารหัสที่ line rate บน dedicated connection 100 Gbps จึงให้ performance สูงสุด 4) วางสอง location เพื่อให้แต่ละเส้นรับโหลดทั้งหมดได้ C จึงถูก",
+  "wrongAnswerHelp": "Start with the explicit business constraint, then eliminate choices that solve a different layer of the architecture or add unnecessary operational work.",
+  "references": [
+    "https://docs.aws.amazon.com/directconnect/latest/UserGuide/MACsec.html",
+    "https://docs.aws.amazon.com/vpn/latest/s2svpn/vpn-limits.html",
+    "https://docs.aws.amazon.com/directconnect/latest/UserGuide/resiliency_toolkit.html"
+  ],
+  "products": [
+    "Direct Connect",
+    "Site-to-Site VPN",
+    "Amazon VPC"
+  ],
+  "requirements": [
+    "Sustain 20 Gbps of encrypted replication",
+    "Traffic must never traverse the public internet",
+    "Survive the loss of one Direct Connect location"
+  ],
+  "review": {
+    "decisiveClue": "ต้องการ 20 Gbps โดย stream เดี่ยวเกิน 4 Gbps, เข้ารหัสแต่ห้ามผ่าน internet, ทนต่อการเสีย location ที่ความเร็วเต็ม",
+    "reasoning": "1) ตัดทางผ่าน internet (B) และทางที่ backup ไม่เต็มความเร็ว/ใช้ internet (D) 2) เทียบ IPsec กับ MACsec: IPsec VPN ของ AWS จำกัดราว 1.25 Gbps ต่อ tunnel และ ECMP กระจายตาม flow จึงไม่ช่วย stream เดี่ยวที่ใหญ่ (A) 3) MACsec เข้ารหัสที่ line rate บน dedicated connection 100 Gbps จึงให้ performance สูงสุด 4) วางสอง location เพื่อให้แต่ละเส้นรับโหลดทั้งหมดได้ C จึงถูก",
+    "options": {
+      "A": "ไม่ผ่านด้าน performance: ECMP รวม bandwidth ข้ามหลาย tunnel ได้ แต่แต่ละ flow ถูก hash ไปอยู่ tunnel เดียวซึ่งรับได้ราว 1.25 Gbps stream ที่เกิน 4 Gbps จึงช้าลงมาก อีกทั้งวงจรเดิม 10 Gbps ยังน้อยกว่า 20 Gbps และไม่ทนต่อการเสีย location",
+      "B": "ไม่ผ่าน: Accelerated VPN ใช้ AWS global network หลังจากเข้า edge แต่ช่วงแรกยังผ่าน internet ซึ่งโจทย์ห้าม และยังติดเพดานประมาณ 1.25 Gbps ต่อ tunnel สำหรับแต่ละ flow เช่นเดียวกัน",
+      "C": "ถูก: MACsec เข้ารหัสที่ layer 2 ระหว่าง router กับ Direct Connect device ที่ line rate จึงไม่มีเพดานต่อ tunnel แบบ IPsec และ stream ใหญ่วิ่งได้เต็มความเร็ว traffic อยู่บน Direct Connect ไม่ผ่าน internet การมี 100 Gbps ที่สอง location ทำให้แต่ละเส้นรับ 20 Gbps ได้เต็มเมื่ออีก location ล้ม",
+      "D": "ไม่ผ่าน: เส้นหลักให้ performance ดี แต่ถ้า location นั้นล้ม replication ต้องย้ายไป VPN ผ่าน internet ซึ่งทั้งขัดข้อห้าม internet และช้ากว่ามาก จึงไม่ตอบ 'full speed if one location fails'"
+    },
+    "references": [
+      {
+        "title": "MACsec in AWS Direct Connect",
+        "url": "https://docs.aws.amazon.com/directconnect/latest/UserGuide/MACsec.html"
+      },
+      {
+        "title": "Site-to-Site VPN quotas (tunnel bandwidth)",
+        "url": "https://docs.aws.amazon.com/vpn/latest/s2svpn/vpn-limits.html"
+      },
+      {
+        "title": "Direct Connect resiliency recommendations",
+        "url": "https://docs.aws.amazon.com/directconnect/latest/UserGuide/resiliency_toolkit.html"
+      }
+    ],
+    "reviewedAt": "2026-10-29"
+  }
+}

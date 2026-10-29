@@ -1,0 +1,19 @@
+{
+  "id": "course-60",
+  "scope": "explanations",
+  "verdict": "FIX",
+  "verifiedCorrectIds": [
+    "D"
+  ],
+  "issues": [
+    "review.reasoning: ไม่ได้บอกว่า recommendation มาจากข้อมูล performance/utilization ที่เก็บไว้ และเลือก instance ที่ถูกที่สุดที่รองรับ workload นั้น (หัวใจของเฉลย)"
+  ],
+  "changes": {
+    "review": {
+      "reasoning": "Instance recommendation วิเคราะห์ข้อมูล performance/utilization ที่เก็บจากเซิร์ฟเวอร์เดิม (CPU, memory ฯลฯ) แล้วเลือก EC2 instance type ที่ถูกที่สุดที่ยังรองรับ workload นั้นได้ พร้อมแสดงราคา per-hour ของ instance จึงตรงกับ D ข้อ A, C ผิดเพราะเกินจริง (รับประกันบิลต่ำสุด/ไม่ต้อง validate) ข้อ B ผิดเพราะ route table ไม่เกี่ยวกับ sizing ข้อควรระวัง: เป็นราคา instance เท่านั้น ยังไม่รวม EBS, network, licensing, HA และต้องทดสอบ compatibility/performance หลังย้ายเสมอ"
+    }
+  },
+  "sources": [
+    "https://docs.aws.amazon.com/migrationhub/latest/ug/whatishub.html"
+  ]
+}

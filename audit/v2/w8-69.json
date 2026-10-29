@@ -1,0 +1,14 @@
+{
+  "id": "w8-69",
+  "scope": "explanations",
+  "verdict": "PASS",
+  "verifiedCorrectIds": [
+    "D"
+  ],
+  "issues": [],
+  "changes": {},
+  "sources": [
+    "https://docs.aws.amazon.com/eventbridge/latest/userguide/eb-cross-account.html",
+    "https://docs.aws.amazon.com/autoscaling/ec2/userguide/ec2-auto-scaling-event-reference.html"
+  ]
+}

@@ -1,0 +1,21 @@
+{
+  "id": "csv-59",
+  "scope": "explanations",
+  "verdict": "FIX",
+  "verifiedCorrectIds": [
+    "D"
+  ],
+  "issues": [
+    "options.C.explanation: vague 'not a standard option'; EKS has no 'Managed Pod Groups' data plane"
+  ],
+  "changes": {
+    "options": {
+      "C": {
+        "explanation": "EKS ไม่มี data plane ชื่อ \"Managed Pod Groups\" (เป็น distractor). ตัวเลือกจริงคือ self-managed nodes, managed node groups, Fargate (และ Auto Mode) จึงตัดข้อนี้ได้ทันที."
+      }
+    }
+  },
+  "sources": [
+    "https://docs.aws.amazon.com/eks/latest/userguide/fargate.html"
+  ]
+}

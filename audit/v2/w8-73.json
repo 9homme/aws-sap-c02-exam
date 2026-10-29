@@ -1,0 +1,26 @@
+{
+  "id": "w8-73",
+  "scope": "explanations",
+  "verdict": "FIX",
+  "verifiedCorrectIds": [
+    "C"
+  ],
+  "issues": [
+    "options.C.explanation: ไม่บอกว่า vault ปลายทางเก็บ recovery points และ plan มี copy rule",
+    "options.D.explanation: วลี immutable point-in-time backup ไม่ถูกต้อง (read replica เป็น async replication)"
+  ],
+  "changes": {
+    "options": {
+      "C": {
+        "explanation": "สร้าง backup vault ปลายทางใน Region อื่น แล้วทำ backup plan ใน AWS Backup ที่มี copy rule ไป vault นั้น โดย assign S3, EBS, EFS, RDS และ Storage Gateway volumes ใน plan เดียว schedule, retention และการ copy ข้าม Region ทำอัตโนมัติ จึง overhead ต่ำสุด ข้อควรระวัง: vault เก็บ recovery points ไม่ใช่ข้อมูลสด และ S3 ต้องเปิด versioning"
+      },
+      "D": {
+        "explanation": "RDS cross-Region read replica เป็น asynchronous replication เพื่อ DR/read scaling ไม่ใช่ backup ที่มี retention หรือ recovery points และข้อมูลเสียหรือถูกลบจะถูก replicate ตามไปด้วย อีกทั้งต้องดูแล replica แยกจาก AWS Backup ซึ่งครอบคลุม RDS อยู่แล้ว จึงเพิ่ม operational overhead โดยไม่จำเป็น"
+      }
+    }
+  },
+  "sources": [
+    "https://docs.aws.amazon.com/aws-backup/latest/devguide/cross-region-backup.html",
+    "https://docs.aws.amazon.com/aws-backup/latest/devguide/whatisbackup.html"
+  ]
+}

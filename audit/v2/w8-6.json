@@ -1,0 +1,26 @@
+{
+  "id": "w8-6",
+  "scope": "explanations",
+  "verdict": "FIX",
+  "verifiedCorrectIds": [
+    "D"
+  ],
+  "issues": [
+    "options.C.explanation: ไม่ชี้ว่า latency routing ไม่มี health check จะส่งผู้ใช้ไป Region สำรองที่ ASG = 0 ได้",
+    "options.D.explanation: 'ต้องตั้ง health ให้ฝั่งสำรองรับงานเมื่อพร้อมจริง' คลุมเครือ และไม่บอกว่าแอปต้องใช้ DB endpoint ใหม่หลัง promote"
+  ],
+  "changes": {
+    "options": {
+      "C": {
+        "explanation": "Latency routing ส่งผู้ใช้ไป Region ที่ใกล้กว่า ไม่ใช่ primary/backup และไม่มี health check ในตัวเลือกนี้ จึงอาจส่ง traffic ไป ALB สำรองที่ ASG = 0 ทั้งที่ยังไม่มี instance trigger จาก HTTPCode_Target_5XX_Count ก็ไม่จับกรณี Region ล่มจนไม่มี response จึงไม่ใช่ automatic failover ที่เชื่อถือได้"
+      },
+      "D": {
+        "explanation": "Route 53 health check ตรวจแอปจากภายนอก แล้ว alarm/SNS เรียก Lambda ใน Region สำรองเพื่อ promote read replica และเพิ่ม ASG ขณะที่ failover record สลับ DNS ไป ALB สำรอง จึงตรงรูปแบบ pilot light ที่ใช้งบน้อย ต้องให้แอปชี้ไป DB endpoint ที่ promote แล้ว และซ้อมจับเวลาเพื่อยืนยัน RTO < 15 นาที"
+      }
+    }
+  },
+  "sources": [
+    "https://docs.aws.amazon.com/Route53/latest/DeveloperGuide/dns-failover-types.html",
+    "https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/USER_ReadRepl.Promote.html"
+  ]
+}

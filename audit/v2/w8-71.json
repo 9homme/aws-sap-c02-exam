@@ -1,0 +1,29 @@
+{
+  "id": "w8-71",
+  "scope": "explanations",
+  "verdict": "AMBIGUOUS",
+  "verifiedCorrectIds": [
+    "C"
+  ],
+  "issues": [
+    "review.reasoning: ประโยคท้ายอ่านไม่เป็นประโยค และไม่ชัดว่าข้อจำกัดคือ log เนื้อหา SSH/port-forwarding session ไม่ได้",
+    "options.C.explanation: ขัดแย้งกันเอง (เป็นเฉลยแต่จบด้วยการบอกว่า log ไม่ได้) ไม่บอกว่า shell session log คำสั่งได้อย่างไร",
+    "review.caveat: ต้องชัดว่าเฉลย C ยังเป็นคำตอบที่คาดหวังแม้ requirement log commands ของ SSH session ตีความได้สองแบบ"
+  ],
+  "changes": {
+    "options": {
+      "C": {
+        "explanation": "Session Manager ใช้ IAM + SSM Agent เปิด session โดยไม่ต้องเปิด inbound port 22 จึงตัด brute-force SSH และ bastion ได้ รองรับ port forwarding (AWS-StartPortForwardingSession) และ log คำสั่ง/output ของ shell session ลง CloudWatch Logs หรือ S3 ได้ พร้อม CloudTrail บันทึก StartSession ข้อจำกัด: เนื้อหา SSH หรือ port-forwarding session ไม่ถูก log"
+      }
+    },
+    "review": {
+      "reasoning": "ต้องตัด brute-force SSH ด้วยการไม่เปิด port 22 จาก internet และเลิกใช้ bastion จึงเหลือ Session Manager (C) หรือ Client VPN (A) Session Manager ใช้ IAM ควบคุมผู้เข้าถึง รองรับ port forwarding และ log คำสั่ง/output ของ shell session ลง CloudWatch Logs หรือ S3 ได้ ส่วน Client VPN ไม่มี command log และ Run Command ไม่มี interactive session หรือ port forwarding จึงเลือก C",
+      "caveat": "ในเอกสาร AWS Session Manager log เนื้อหาของ SSH session และ port-forwarding session ไม่ได้ ถ้า 'log commands run during an SSH session' หมายถึงคำสั่งใน SSH จริง ๆ ก็ไม่มีตัวเลือกไหนครบทุกข้อ แต่ C ตรงที่สุดในโจทย์และเป็นคำตอบที่ข้อสอบคาดหวัง ถ้าตีความว่าเป็น interactive shell session ของ Session Manager",
+      "reviewStatus": "ambiguous"
+    }
+  },
+  "sources": [
+    "https://docs.aws.amazon.com/systems-manager/latest/userguide/session-manager-logging.html",
+    "https://docs.aws.amazon.com/systems-manager/latest/userguide/session-manager-working-with-sessions-start.html"
+  ]
+}

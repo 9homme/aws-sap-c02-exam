@@ -1,0 +1,20 @@
+{
+  "id": "course-17",
+  "scope": "explanations",
+  "verdict": "FIX",
+  "verifiedCorrectIds": [
+    "A"
+  ],
+  "issues": [
+    "review.decisiveClue/reasoning: clue was not tied to wording in the prompt/option; reasoning did not say why A matches 'overarching ... every security area' nor why the others fail."
+  ],
+  "changes": {
+    "review": {
+      "decisiveClue": "ตัวเลือก A พูดถึง 'overarching security best practices across every security area' คือครอบคลุมทุกด้านของ Security",
+      "reasoning": "Security pillar ไม่ใช่ control เดียว แต่ครอบคลุมหลาย area เช่น IAM, detection, infrastructure protection, data protection และ incident response จึงต้องใช้ best practices ร่วมกันทุกด้าน เพราะเข้ารหัสอย่างเดียวไม่พอถ้าสิทธิ์กว้างเกินไปหรือไม่รู้ว่าถูกบุกรุก ส่วน B คุมแค่ load balancer, C พึ่ง encryption อย่างเดียวและข้าม authorization, D ทำ security ครั้งเดียวก่อน deploy ทั้งหมดละเลยความเสี่ยงที่เปลี่ยนไปตลอดวงจรระบบ"
+    }
+  },
+  "sources": [
+    "https://docs.aws.amazon.com/wellarchitected/latest/framework/security.html"
+  ]
+}

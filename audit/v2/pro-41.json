@@ -1,0 +1,60 @@
+{
+  "id": "pro-41",
+  "scope": "full",
+  "verdict": "FIX",
+  "originalCorrectIds": [
+    "D"
+  ],
+  "verifiedCorrectIds": [
+    "D"
+  ],
+  "issues": [
+    "options: ตัวลวงเดิมผิดอย่างชัดเจน (อ้างความสามารถที่บริการไม่มี) ทำให้ตอบได้จากการจำชื่อบริการ ไม่ใช่ระดับ SAP-C02 Professional; เขียนใหม่ให้แต่ละตัวลวงทำงานได้จริงบางส่วนแต่ตกเงื่อนไขหนึ่งข้อ",
+    "prompt: ลบประโยค boilerplate (architecture review board / workable for the stated environment)",
+    "review.reasoning: เดิมคัดลอก requirement ภาษาอังกฤษมาต่อกัน ไม่ได้อธิบายการตัดตัวเลือก"
+  ],
+  "changes": {
+    "prompt": "In 2026, a film studio that has never used AWS Snow Family is migrating a remote production site that stores 1.5 PB of footage but has only a low-bandwidth satellite link. The studio can safely move its own encrypted portable storage devices to an accessible AWS Data Transfer Terminal facility, and its chain-of-custody process permits those visits. Uploading the original data over the satellite link would take an unacceptable amount of time. After the initial move, a smaller daily feed from partner post-production firms will arrive over SFTP using their existing clients. A third workflow must synchronize changed directories from another branch with a fast private network connection. The business wants S3 as its durable destination and must choose offerings that accept new customers in 2026. The solution must meet all of the following requirements: (1) Move the initial petabyte-scale offline backlog where network bandwidth is severely constrained; (2) Accept recurring SFTP transfers into AWS without managing a public SFTP host; (3) Synchronize changed network-accessible directories efficiently and verify transfers. Which solution meets these requirements with the LEAST operational overhead?",
+    "options": {
+      "A": {
+        "text": "Order AWS Snowball Edge Storage Optimized devices to import the 1.5 PB backlog into Amazon S3, use AWS Transfer Family for the partners' SFTP feed, and use AWS DataSync for the branch synchronization.",
+        "explanation": "ตกข้อ (1): Transfer Family และ DataSync ถูกต้อง แต่ AWS Snowball Edge ไม่เปิดให้ลูกค้าใหม่แล้ว สตูดิโอที่ไม่เคยใช้ Snow Family จึงสั่งอุปกรณ์ไม่ได้ในปี 2026 สำหรับ physical transfer ต้องใช้ AWS Data Transfer Terminal หรือ partner แทน"
+      },
+      "B": {
+        "text": "Run AWS DataSync over the satellite link with a high bandwidth limit for the 1.5 PB backlog, use AWS Transfer Family for the partners' SFTP feed, and use DataSync for the branch synchronization.",
+        "explanation": "ตกข้อ (1): DataSync เหมาะกับ online transfer ที่มี bandwidth พอ แต่ลิงก์ดาวเทียมแบนด์วิดท์ต่ำทำให้ 1.5 PB ใช้เวลานานเกินรับได้ตามที่โจทย์ระบุ การเพิ่ม bandwidth limit ไม่ได้เพิ่มความจุของลิงก์จริง"
+      },
+      "C": {
+        "text": "Take the encrypted portable drives to an AWS Data Transfer Terminal for the backlog, run an OpenSSH SFTP server on an EC2 instance in a public subnet that writes to Amazon S3 for the partners, and use AWS DataSync for the branch.",
+        "explanation": "ตกข้อ (2): Data Transfer Terminal และ DataSync ถูกต้อง แต่ SFTP server บน EC2 ใน public subnet คือ public SFTP host ที่ต้อง patch, ดูแล availability และความปลอดภัยเอง ซึ่งโจทย์ห้าม Transfer Family ให้ managed SFTP endpoint ที่เขียนเข้า S3 โดยตรง"
+      },
+      "D": {
+        "text": "Upload the encrypted portable drives at a reserved AWS Data Transfer Terminal, use AWS Transfer Family for partners’ SFTP ingress into S3, and use DataSync with transfer verification for the fast-link branch.",
+        "explanation": "ถูก: Data Transfer Terminal ให้ลูกค้านำอุปกรณ์จัดเก็บของตัวเองไปเชื่อมต่อเครือข่ายความเร็วสูงของ AWS เพื่ออัปโหลดเข้า S3 จึงแก้ปัญหาลิงก์ดาวเทียมสำหรับ backlog ระดับ PB Transfer Family ให้ partner ใช้ SFTP client เดิมโดยไม่มี server ให้ดูแล ส่วน DataSync ส่งเฉพาะไฟล์ที่เปลี่ยนจาก branch และตรวจความถูกต้องของข้อมูลได้"
+      }
+    },
+    "review": {
+      "decisiveClue": "backlog 1.5 PB บนลิงก์ดาวเทียมช้า และไม่เคยใช้ Snow Family, partner ใช้ SFTP โดยห้ามดูแล SFTP host, branch ต้อง sync ไฟล์ที่เปลี่ยนพร้อม verification",
+      "reasoning": "1) ข้อ (1): bandwidth ไม่พอสำหรับ online transfer (B) และ Snowball Edge ไม่รับลูกค้าใหม่ (A) ทางเลือก physical ที่ใช้ได้คือ Data Transfer Terminal 2) ข้อ (2): SFTP แบบ managed เข้าสู่ S3 = Transfer Family ไม่ใช่ server บน EC2 (C) 3) ข้อ (3): sync ไฟล์ที่เปลี่ยนผ่านลิงก์ที่เร็วพร้อม verification = DataSync 4) D ใช้บริการที่ตรงกับแต่ละ workflow และเปิดรับลูกค้าใหม่ทั้งหมด",
+      "references": [
+        {
+          "title": "AWS Data Transfer Terminal technical requirements",
+          "url": "https://docs.aws.amazon.com/datatransferterminal/latest/userguide/tech-requirements.html"
+        },
+        {
+          "title": "AWS Snowball Edge availability change",
+          "url": "https://docs.aws.amazon.com/snowball/latest/developer-guide/snowball-edge-availability-change.html"
+        },
+        {
+          "title": "What is AWS Transfer Family?",
+          "url": "https://docs.aws.amazon.com/transfer/latest/userguide/what-is-aws-transfer-family.html"
+        }
+      ]
+    }
+  },
+  "sources": [
+    "https://docs.aws.amazon.com/datatransferterminal/latest/userguide/tech-requirements.html",
+    "https://docs.aws.amazon.com/snowball/latest/developer-guide/snowball-edge-availability-change.html",
+    "https://docs.aws.amazon.com/transfer/latest/userguide/what-is-aws-transfer-family.html"
+  ]
+}

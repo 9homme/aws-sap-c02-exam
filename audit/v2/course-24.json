@@ -1,0 +1,13 @@
+{
+  "id": "course-24",
+  "scope": "explanations",
+  "verdict": "PASS",
+  "verifiedCorrectIds": [
+    "D"
+  ],
+  "issues": [],
+  "changes": {},
+  "sources": [
+    "https://docs.aws.amazon.com/wellarchitected/latest/framework/performance-efficiency.html"
+  ]
+}

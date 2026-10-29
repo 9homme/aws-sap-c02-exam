@@ -1,0 +1,82 @@
+{
+  "id": "pro-89",
+  "sourceCategory": "professional",
+  "sourceLabel": "AI-authored · Professional multi-requirement",
+  "sourceDetail": "Original multi-constraint scenario — รัน container C++ ที่ต้องการ latency ต่ำที่สุด",
+  "coreEligible": true,
+  "emerging": false,
+  "domain": "4",
+  "task": "Migration and modernization",
+  "topic": "รัน container C++ ที่ต้องการ latency ต่ำที่สุด",
+  "type": "multiple-choice",
+  "selectCount": 1,
+  "prompt": "A proprietary trading firm is containerizing its C++ order-matching engine, which is latency sensitive at the microsecond level. The engine is compiled with AVX-512 instructions and requires a specific Intel processor generation. Its components exchange market data with each other over TCP, and they perform best when they bypass container network address translation. Benchmarks show that latency between engine nodes must be as low as possible, and the nodes run in a single Availability Zone by design, with a warm standby stack in a second Availability Zone. The firm wants to deploy the engine through its existing container pipeline that pushes images to Amazon ECR, and the operations team is comfortable managing EC2 capacity. The engine writes journal files to fast local block storage. Cost is a secondary concern compared with latency for this workload, and the firm accepts operating the underlying hosts. Market data feeds arrive through an AWS Direct Connect connection that lands in the same Availability Zone. Which solution will provide the BEST performance for the matching engine?",
+  "options": [
+    {
+      "id": "A",
+      "text": "Run the engine as an Amazon ECS service on AWS Fargate in one Availability Zone with the largest available task size, use the awsvpc network mode, and store the journal files on Amazon EFS. Pull the images from Amazon ECR through an interface VPC endpoint.",
+      "explanation": "ไม่ผ่านด้าน performance: Fargate ไม่ให้เลือก processor generation หรือใช้ host network mode และไม่รองรับ placement group จึงควบคุม latency ระหว่าง nodes ไม่ได้ ส่วน EFS เป็น network file system ที่ latency สูงกว่า block storage ในเครื่องสำหรับ journal"
+    },
+    {
+      "id": "B",
+      "text": "Run the engine on Amazon EKS with AWS Fargate profiles in one Availability Zone, use the Amazon VPC CNI with security groups for pods, and store the journal files on Amazon EFS through the EFS CSI driver. Pull the images from Amazon ECR through an interface VPC endpoint.",
+      "explanation": "ไม่ผ่าน: EKS บน Fargate มีข้อจำกัดเดียวกับ Fargate คือเลือก CPU ไม่ได้และไม่มี host networking หรือ placement group อีกทั้ง EFS ยังเพิ่ม latency ของการเขียน journal จึงไม่ได้ performance สูงสุด"
+    },
+    {
+      "id": "C",
+      "text": "Run the engine as an Amazon ECS service on EC2 container instances spread across three Availability Zones behind an Application Load Balancer, use the awsvpc network mode, and store the journal files on gp3 Amazon EBS volumes. Use the spread task placement strategy so that each node runs on a different instance. Define the resources in AWS CloudFormation templates for repeatable deployment.",
+      "explanation": "ไม่ผ่าน: การกระจายข้าม AZ เพิ่ม latency ระหว่าง nodes อย่างมาก ALB เป็น layer 7 proxy ที่เพิ่ม hop และไม่เหมาะกับ messaging ภายในระดับ microsecond และ awsvpc ไม่ได้ให้ประสิทธิภาพเท่า host network mode ตามที่ benchmark ระบุ"
+    },
+    {
+      "id": "D",
+      "text": "Run the engine as an Amazon ECS service on an EC2 capacity provider whose Auto Scaling group launches compute-optimized instances with the required Intel processor into a cluster placement group in one Availability Zone, use the host network mode for the tasks, enable enhanced networking, and store the journal files on io2 Amazon EBS volumes.",
+      "explanation": "ถูก: ECS บน EC2 ให้เลือก instance type ที่มี processor และ AVX-512 ตรงตามที่ต้องการ cluster placement group วาง nodes ใกล้กันในเครือข่ายที่ latency ต่ำและ bandwidth สูง host network mode ข้าม NAT ของ container และ enhanced networking ลด jitter ส่วน io2 EBS ให้ IOPS สูงและ latency คงที่สำหรับ journal standby ใน AZ ที่สองแยกเป็น stack ต่างหาก"
+    }
+  ],
+  "correctIds": [
+    "D"
+  ],
+  "rationale": "1) ต้องเลือก processor และ host network mode ซึ่ง Fargate (A) และ EKS on Fargate (B) ทำไม่ได้ 2) latency ระหว่าง nodes ต้องต่ำที่สุด การกระจายข้าม AZ และผ่าน ALB (C) จึงขัดกับเป้าหมาย 3) ECS บน EC2 ใน cluster placement group พร้อม host networking, enhanced networking และ io2 EBS ให้ทั้ง CPU ที่ต้องการ latency ต่ำ และ storage ที่คงที่ D จึงให้ performance ดีที่สุด",
+  "wrongAnswerHelp": "Start with the explicit business constraint, then eliminate choices that solve a different layer of the architecture or add unnecessary operational work.",
+  "references": [
+    "https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/placement-groups.html",
+    "https://docs.aws.amazon.com/AmazonECS/latest/developerguide/networking-networkmode-host.html",
+    "https://docs.aws.amazon.com/ebs/latest/userguide/ebs-volume-types.html"
+  ],
+  "products": [
+    "ECS (Elastic Container Service)",
+    "EC2",
+    "ECR (Elastic Container Registry)",
+    "EBS"
+  ],
+  "requirements": [
+    "Microsecond-sensitive C++ engine needs specific CPU features and host networking",
+    "Containerized deployment pipeline",
+    "Low network latency between engine nodes"
+  ],
+  "review": {
+    "decisiveClue": "latency ระดับ microsecond, ต้องใช้ CPU รุ่นเฉพาะ (AVX-512) และ host networking, nodes อยู่ใน AZ เดียว, journal บน block storage เร็ว, ยอมดูแล hosts",
+    "reasoning": "1) ต้องเลือก processor และ host network mode ซึ่ง Fargate (A) และ EKS on Fargate (B) ทำไม่ได้ 2) latency ระหว่าง nodes ต้องต่ำที่สุด การกระจายข้าม AZ และผ่าน ALB (C) จึงขัดกับเป้าหมาย 3) ECS บน EC2 ใน cluster placement group พร้อม host networking, enhanced networking และ io2 EBS ให้ทั้ง CPU ที่ต้องการ latency ต่ำ และ storage ที่คงที่ D จึงให้ performance ดีที่สุด",
+    "options": {
+      "A": "ไม่ผ่านด้าน performance: Fargate ไม่ให้เลือก processor generation หรือใช้ host network mode และไม่รองรับ placement group จึงควบคุม latency ระหว่าง nodes ไม่ได้ ส่วน EFS เป็น network file system ที่ latency สูงกว่า block storage ในเครื่องสำหรับ journal",
+      "B": "ไม่ผ่าน: EKS บน Fargate มีข้อจำกัดเดียวกับ Fargate คือเลือก CPU ไม่ได้และไม่มี host networking หรือ placement group อีกทั้ง EFS ยังเพิ่ม latency ของการเขียน journal จึงไม่ได้ performance สูงสุด",
+      "C": "ไม่ผ่าน: การกระจายข้าม AZ เพิ่ม latency ระหว่าง nodes อย่างมาก ALB เป็น layer 7 proxy ที่เพิ่ม hop และไม่เหมาะกับ messaging ภายในระดับ microsecond และ awsvpc ไม่ได้ให้ประสิทธิภาพเท่า host network mode ตามที่ benchmark ระบุ",
+      "D": "ถูก: ECS บน EC2 ให้เลือก instance type ที่มี processor และ AVX-512 ตรงตามที่ต้องการ cluster placement group วาง nodes ใกล้กันในเครือข่ายที่ latency ต่ำและ bandwidth สูง host network mode ข้าม NAT ของ container และ enhanced networking ลด jitter ส่วน io2 EBS ให้ IOPS สูงและ latency คงที่สำหรับ journal standby ใน AZ ที่สองแยกเป็น stack ต่างหาก"
+    },
+    "references": [
+      {
+        "title": "Placement groups for Amazon EC2 instances",
+        "url": "https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/placement-groups.html"
+      },
+      {
+        "title": "Amazon ECS task networking (host network mode)",
+        "url": "https://docs.aws.amazon.com/AmazonECS/latest/developerguide/networking-networkmode-host.html"
+      },
+      {
+        "title": "Amazon EBS volume types",
+        "url": "https://docs.aws.amazon.com/ebs/latest/userguide/ebs-volume-types.html"
+      }
+    ],
+    "reviewedAt": "2026-10-29"
+  }
+}

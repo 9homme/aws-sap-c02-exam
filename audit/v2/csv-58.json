@@ -1,0 +1,13 @@
+{
+  "id": "csv-58",
+  "scope": "explanations",
+  "verdict": "PASS",
+  "verifiedCorrectIds": [
+    "D"
+  ],
+  "issues": [],
+  "changes": {},
+  "sources": [
+    "https://docs.aws.amazon.com/local-zones/latest/ug/getting-started.html"
+  ]
+}

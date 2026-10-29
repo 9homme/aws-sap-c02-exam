@@ -1,0 +1,62 @@
+{
+  "id": "original-06",
+  "scope": "full",
+  "verdict": "FIX",
+  "originalCorrectIds": [
+    "A"
+  ],
+  "verifiedCorrectIds": [
+    "C"
+  ],
+  "issues": [
+    "prompt: เดิมตัวลวง (single-AZ, S3 Standard-IA) ผิดชัดเกินไป; เพิ่มตัวลวงที่ทำงานได้บางส่วน (cross-Region replica, DMS) ตามแบบ SAP-C02"
+  ],
+  "changes": {
+    "prompt": "A company runs a 12 TB Amazon RDS for PostgreSQL database for a customer-facing ordering system in us-east-1. A new regulation requires a disaster recovery design for a full Regional outage with an RPO of 1 second or less and an RTO of 5 minutes or less in us-west-2. The application uses standard PostgreSQL drivers, and the company will accept a migration to a PostgreSQL-compatible managed engine if application code does not need to change. Reporting users in us-west-2 also need low-latency read access to current data. The company does not want to operate replication software or failover scripts. Which solution meets these requirements?",
+    "correctIds": [
+      "C"
+    ],
+    "rationale": "Aurora global database provides typically sub-second cross-Region replication, managed failover, a global writer endpoint, and readable secondary clusters, meeting a seconds-level RPO and minutes-level RTO without custom replication tooling.",
+    "options": {
+      "A": {
+        "text": "Create a cross-Region RDS for PostgreSQL read replica in us-west-2. During a disaster, promote the read replica and update the application connection string to the promoted instance.",
+        "explanation": "ใกล้เคียงแต่ไม่ผ่าน: cross-Region read replica ใช้ asynchronous replication ซึ่ง lag ขึ้นกับ load จึงไม่รับประกัน RPO ≤1 วินาที การ promote เป็นการกระทำแบบ manual ที่ตัด replication ถาวร และต้องเปลี่ยน connection string เอง ทำให้ RTO 5 นาทีเสี่ยงและต้องมี failover script"
+      },
+      "B": {
+        "text": "Use AWS Backup to create continuous backups of the RDS database and copy recovery points to us-west-2 every hour. Restore the latest recovery point in us-west-2 during a disaster.",
+        "explanation": "ไม่ผ่าน: continuous backup ช่วย point-in-time restore ใน Region เดิมได้ แต่สำเนาข้าม Region เป็นรอบ ๆ RPO จึงเป็นระดับชั่วโมง และการ restore ฐานข้อมูล 12 TB ใช้เวลานานเกิน RTO 5 นาที อีกทั้งไม่มี read replica ให้ทีม reporting ใน us-west-2"
+      },
+      "C": {
+        "text": "Migrate to an Amazon Aurora PostgreSQL-Compatible Edition global database with a secondary cluster in us-west-2. Point the application at the global writer endpoint, use the secondary cluster for reporting reads, and use managed global database failover during a Regional outage.",
+        "explanation": "ถูก: Aurora global database ใช้ storage-based replication ข้าม Region ที่ lag ปกติต่ำกว่า 1 วินาที และ managed failover โปรโมต secondary ได้ในราวนาทีเดียว global writer endpoint ชี้ไปยัง writer ใหม่ให้อัตโนมัติ จึงไม่ต้องแก้ code หรือเขียน script ส่วน secondary cluster ให้ reporting อ่านข้อมูลใกล้ตัวได้ ต้องทดสอบ failover และคำนึงว่า RPO จริงขึ้นกับ lag ขณะเกิดเหตุ"
+      },
+      "D": {
+        "text": "Create an RDS for PostgreSQL instance in us-west-2 and use an AWS DMS task with full load and change data capture to replicate continuously. During a disaster, stop the task and point the application at the target database.",
+        "explanation": "ไม่ผ่าน: DMS ทำ CDC ได้แต่เป็น replication software ที่บริษัทต้องดูแลเอง (replication instance, task monitoring, LOB/sequence handling) lag ไม่รับประกันระดับวินาที และการ failover ยังต้องเปลี่ยน endpoint เอง DMS ออกแบบมาเพื่อ migration มากกว่า DR"
+      }
+    },
+    "review": {
+      "decisiveClue": "RPO ≤1 วินาที, RTO ≤5 นาที ข้าม Region, ไม่แก้ code, reporting อ่านใน Region ที่สอง, ไม่ดูแล replication/failover scripts เอง",
+      "reasoning": "1) RPO ≤1 วินาทีทำให้ต้องใช้ replication ข้าม Region ต่อเนื่อง จึงตัด backup copy (B) 2) RDS read replica (A) และ DMS (D) เป็น asynchronous ที่ lag ไม่แน่นอน และต้องเปลี่ยน endpoint/เขียน script เอง 3) Aurora global database ออกแบบมาสำหรับ lag ต่ำกว่า 1 วินาที มี managed switchover/failover และ global writer endpoint 4) โจทย์ยอมย้ายไป PostgreSQL-compatible engine ถ้าไม่ต้องแก้ code และ secondary cluster ยังรับ read ของ reporting ได้ C จึงตรงทุกข้อ",
+      "references": [
+        {
+          "title": "Using Amazon Aurora global databases",
+          "url": "https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/aurora-global-database.html"
+        },
+        {
+          "title": "Aurora global database failover and switchover",
+          "url": "https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/aurora-global-database-disaster-recovery.html"
+        },
+        {
+          "title": "Working with RDS read replicas",
+          "url": "https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/USER_ReadRepl.html"
+        }
+      ]
+    }
+  },
+  "sources": [
+    "https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/aurora-global-database.html",
+    "https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/aurora-global-database-disaster-recovery.html",
+    "https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/USER_ReadRepl.html"
+  ]
+}

@@ -1,0 +1,21 @@
+{
+  "id": "csv-26",
+  "scope": "explanations",
+  "verdict": "FIX",
+  "verifiedCorrectIds": [
+    "A"
+  ],
+  "issues": [
+    "options.A.explanation: ประโยค 'กลไกลงมือควบคุมค่าใช้จ่ายในตัวเลือกนี้' คลุมเครือ ไม่ผูกกับคำว่า dynamically apply policies"
+  ],
+  "changes": {
+    "options": {
+      "A": {
+        "explanation": "Budgets Actions ตั้งให้เมื่อ cost/usage ถึง threshold แล้วแนบ IAM policy หรือ SCP หรือหยุด EC2/RDS instance ที่ระบุ โดยอัตโนมัติหรือรออนุมัติ จึงตรงกับ dynamically apply policies to impact spending ต่างจาก Cost Explorer ที่แค่ดูรายงาน"
+      }
+    }
+  },
+  "sources": [
+    "https://docs.aws.amazon.com/cost-management/latest/userguide/budgets-controls.html"
+  ]
+}

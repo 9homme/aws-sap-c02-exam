@@ -1,0 +1,22 @@
+{
+  "id": "csv-29",
+  "scope": "explanations",
+  "verdict": "FIX",
+  "verifiedCorrectIds": [
+    "C"
+  ],
+  "issues": [
+    "options.B.explanation: ไม่แยกว่า DMS ย้ายข้อมูล ส่วนการแปลง schema/stored procedures เป็นหน้าที่ DMS Schema Conversion หรือ SCT"
+  ],
+  "changes": {
+    "options": {
+      "B": {
+        "explanation": "DMS หลักคือย้ายข้อมูล ส่วนแปลง schema และ stored procedures ทำด้วย DMS Schema Conversion หรือ SCT ซึ่งแปลงได้เฉพาะส่วนที่รองรับ ที่เหลือต้องแก้เอง คำว่า converts all automatically จึงเกินจริง และไม่ใช่ข้อดีหลักของ DMS"
+      }
+    }
+  },
+  "sources": [
+    "https://docs.aws.amazon.com/dms/latest/userguide/Welcome.html",
+    "https://docs.aws.amazon.com/dms/latest/userguide/CHAP_Task.CDC.html"
+  ]
+}

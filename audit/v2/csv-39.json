@@ -1,0 +1,21 @@
+{
+  "id": "csv-39",
+  "scope": "explanations",
+  "verdict": "FIX",
+  "verifiedCorrectIds": [
+    "A"
+  ],
+  "issues": [
+    "options.C.explanation: เดิมไม่ระบุว่าบริการใดทำหน้าที่ monitor traffic และไม่บอกหน้าที่จริงของ Secrets Manager"
+  ],
+  "changes": {
+    "options": {
+      "C": {
+        "explanation": "การเฝ้าดู network traffic ใช้ VPC Flow Logs, Traffic Mirroring หรือ GuardDuty. Secrets Manager ไม่ได้ตรวจ packet หรือ flow แต่เก็บ credentials เช่น database password และ API key พร้อมหมุนเวียนอัตโนมัติ."
+      }
+    }
+  },
+  "sources": [
+    "https://docs.aws.amazon.com/secretsmanager/latest/userguide/intro.html"
+  ]
+}

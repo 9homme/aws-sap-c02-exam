@@ -1,0 +1,27 @@
+{
+  "id": "w8-32",
+  "scope": "explanations",
+  "verdict": "FIX",
+  "verifiedCorrectIds": [
+    "A"
+  ],
+  "issues": [
+    "options.A.explanation: ไม่บอกว่าปัจจุบัน S3 เข้ารหัส uploads ใหม่ด้วย SSE-S3 อยู่แล้ว และไม่ผูกกับ least development effort ชัดเจน",
+    "options.D.explanation: ขาดคำอธิบายว่า Inspector สแกนอะไรจริง ๆ และระบุไม่ชัดว่าตกข้อกำหนดข้อใด"
+  ],
+  "changes": {
+    "options": {
+      "A": {
+        "explanation": "Macie สแกนเนื้อหา S3 หา sensitive data ส่วน S3 Inventory ทำรายการ objects เป็น manifest ให้ Batch Operations Copy เขียนกลับ key เดิมแบบเข้ารหัสใน bucket เดิม แอปไม่ต้องเปลี่ยน bucket หรือ endpoint จึง development effort ต่ำสุด ปัจจุบัน S3 เข้ารหัส uploads ใหม่ด้วย SSE-S3 เป็นค่าเริ่มต้นอยู่แล้ว แต่ objects เดิมไม่ถูกเข้ารหัสย้อนหลัง"
+      },
+      "D": {
+        "explanation": "ส่วน default encryption + S3 Inventory + Batch Operations เข้ารหัส objects เดิมใน bucket เดิมได้ถูกต้อง แต่ Amazon Inspector สแกนช่องโหว่ของ EC2, container image และ Lambda ไม่ได้อ่านเนื้อหา S3 เพื่อหา sensitive data เรื่องนั้นเป็นงานของ Macie จึงไม่ตอบข้อกำหนดให้ทำรายการ objects ที่มี sensitive data"
+      }
+    }
+  },
+  "sources": [
+    "https://docs.aws.amazon.com/AmazonS3/latest/userguide/default-encryption-faq.html",
+    "https://docs.aws.amazon.com/AmazonS3/latest/userguide/batch-ops-copy-object.html",
+    "https://docs.aws.amazon.com/macie/latest/user/discovery-jobs.html"
+  ]
+}

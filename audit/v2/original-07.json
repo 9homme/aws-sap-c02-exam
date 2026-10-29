@@ -1,0 +1,62 @@
+{
+  "id": "original-07",
+  "scope": "full",
+  "verdict": "FIX",
+  "originalCorrectIds": [
+    "A"
+  ],
+  "verifiedCorrectIds": [
+    "D"
+  ],
+  "issues": [
+    "prompt: เดิมตัวลวง (instance store, long-lived request) ผิดชัดเกินไป; เพิ่ม requirement retry/poison message เพื่อให้ต้องเปรียบเทียบ SQS กับ Kinesis"
+  ],
+  "changes": {
+    "prompt": "A retail company is building an order-intake API. Traffic is unpredictable and can spike from 50 to 5,000 requests per second within a minute during flash sales. Each order takes 2–8 minutes to process because it calls a third-party fraud-check service that sometimes times out. Clients must receive an order ID within 1 second and then poll for status. No accepted order can be lost, failed orders must be retried automatically, and orders that keep failing must be isolated for investigation without blocking other orders. Strict ordering is not required. The company wants the most resilient design with the least operational overhead. Which solution meets these requirements?",
+    "correctIds": [
+      "D"
+    ],
+    "rationale": "Queue-based load leveling with API Gateway → SQS → Lambda returns immediately, absorbs spikes durably, retries failed messages, and isolates poison messages in a DLQ without blocking other orders.",
+    "options": {
+      "A": {
+        "text": "Use Amazon API Gateway with an AWS Lambda proxy integration that processes each order synchronously, and increase the Lambda timeout to 15 minutes.",
+        "explanation": "ไม่ผ่าน: client ต้องรอจนประมวลผลเสร็จ 2–8 นาที ซึ่งขัดกับการตอบ order ID ใน 1 วินาที และ integration timeout ของ API Gateway โดยค่าเริ่มต้นคือ 29 วินาที เมื่อ fraud-check ช้า request ก็ล้มเหลวทั้งที่ยังไม่มีที่เก็บ order ไว้ retry"
+      },
+      "B": {
+        "text": "Use API Gateway to write orders to an Amazon Kinesis Data Streams stream. Process records with a Lambda function by using an event source mapping, and scale the stream by adding shards before each sale.",
+        "explanation": "ไม่ผ่านที่สุด: Kinesis เก็บข้อมูลได้คงทน แต่ record ที่ล้มเหลวจะบล็อกการอ่านของ shard นั้นจนกว่า retry หมดหรือถูก bisect ซึ่งขัดกับ 'ไม่บล็อก order อื่น' และต้องวางแผน shard ล่วงหน้าก่อนทุก sale โจทย์ไม่ต้องการ ordering จึงไม่ได้ประโยชน์จาก stream"
+      },
+      "C": {
+        "text": "Use an Application Load Balancer in front of an EC2 Auto Scaling group. Each instance accepts the order, returns the order ID, and processes the order in a background thread. Scale on CPU utilization.",
+        "explanation": "ไม่ผ่าน: order ที่กำลังประมวลผลอยู่ในหน่วยความจำของ instance เมื่อ instance ถูก scale in หรือล่ม order จะหายและไม่มีกลไก retry/isolation ที่จัดการให้ ทั้งยังต้องดูแล fleet EC2 และ scaling บน CPU ไม่ทันกับ spike ระดับนาที"
+      },
+      "D": {
+        "text": "Use an API Gateway REST API direct service integration to send each order to an Amazon SQS standard queue and return the message ID as the order ID. Process the queue with a Lambda function by using an event source mapping with partial batch responses, set the visibility timeout well above the function timeout, and configure a dead-letter queue with a maxReceiveCount. Store order status in Amazon DynamoDB.",
+        "explanation": "ถูก: API Gateway ส่งข้อความเข้า SQS โดยตรงจึงตอบได้ทันทีและ SQS เก็บ order ไว้อย่างคงทนแม้มี spike Lambda ดึงข้อความและ scale ตาม backlog partial batch response ทำให้ retry เฉพาะข้อความที่ล้มเหลว DLQ แยก order ที่ล้มซ้ำหลาย ๆ ครั้งโดยไม่บล็อกข้อความอื่น ต้องตั้ง visibility timeout ให้มากกว่าเวลาประมวลผลสูงสุด และทำให้ processing idempotent เพราะ standard queue ส่งซ้ำได้"
+      }
+    },
+    "review": {
+      "decisiveClue": "ตอบใน 1 วินาทีแต่ประมวลผล 2–8 นาที, spike 100 เท่า, ห้าม order หาย, retry อัตโนมัติ, แยก order ที่ล้มซ้ำโดยไม่บล็อกตัวอื่น, ไม่ต้องการ ordering",
+      "reasoning": "1) เวลาตอบกับเวลาประมวลผลต่างกันมาก จึงต้องแยกการรับ order ออกจากการประมวลผล (asynchronous) ตัด A 2) ต้องมีที่เก็บ order ที่คงทนและรับ spike ได้ เครื่องที่ถือ order ในหน่วยความจำ (C) จึงทำ order หาย 3) เลือกระหว่าง queue กับ stream: โจทย์ไม่ต้องการ ordering และห้ามให้ order ที่ล้มบล็อกตัวอื่น SQS + DLQ ตอบโจทย์นี้ตรงกว่า Kinesis (B) ที่บล็อกระดับ shard 4) API Gateway direct integration + Lambda ESM เป็น managed ทั้งหมด จึงมี overhead ต่ำที่สุด",
+      "references": [
+        {
+          "title": "Using Lambda with Amazon SQS",
+          "url": "https://docs.aws.amazon.com/lambda/latest/dg/with-sqs.html"
+        },
+        {
+          "title": "Amazon SQS dead-letter queues",
+          "url": "https://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/sqs-dead-letter-queues.html"
+        },
+        {
+          "title": "API Gateway quotas (integration timeout)",
+          "url": "https://docs.aws.amazon.com/apigateway/latest/developerguide/limits.html"
+        }
+      ]
+    }
+  },
+  "sources": [
+    "https://docs.aws.amazon.com/lambda/latest/dg/with-sqs.html",
+    "https://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/sqs-dead-letter-queues.html",
+    "https://docs.aws.amazon.com/apigateway/latest/developerguide/limits.html"
+  ]
+}

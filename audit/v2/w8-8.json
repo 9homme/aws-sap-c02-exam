@@ -1,0 +1,27 @@
+{
+  "id": "w8-8",
+  "scope": "explanations",
+  "verdict": "FIX",
+  "verifiedCorrectIds": [
+    "D"
+  ],
+  "issues": [
+    "options.B.explanation: บอกว่า SG ไม่ใช่ deny ตามตัวอักษร ซึ่งทำให้ดูเหมือนตัดทิ้งด้วยคำพูดเท่านั้น ไม่ได้บอกเหตุผลที่แท้จริง (SG ไม่ใช่ routing isolation ระดับ TGW)",
+    "options.C.explanation: ไม่ระบุว่า Network Manager กับ TGW ปกติไม่มี tag-based traffic policy (tag-based segment เป็นของ Cloud WAN)"
+  ],
+  "changes": {
+    "options": {
+      "B": {
+        "explanation": "Security group จำกัด traffic ระดับ instance ได้ด้วยกฎ allow เฉพาะ CIDR ฝั่งเดียวกัน แต่ไม่ได้แยก routing บน TGW เส้นทาง prod ↔ dev ยังเปิดอยู่ ต้องแก้ SG ทุก instance ในหลายบัญชีและพลาดง่าย จึงไม่ใช่การแยก 'completely isolated' ในชั้นเครือข่าย"
+      },
+      "C": {
+        "explanation": "Tag บน attachment ไม่ใช่เงื่อนไข routing และ Network Manager ของ TGW ใช้ดู/มอนิเตอร์ global network ไม่มี policy จำกัด traffic ตาม tag (tag-based segment policy เป็นของ AWS Cloud WAN) จึงไม่เปลี่ยนว่าทุก attachment ยังใช้ route table เดียวกัน"
+      }
+    }
+  },
+  "sources": [
+    "https://docs.aws.amazon.com/vpc/latest/tgw/tgw-route-tables.html",
+    "https://docs.aws.amazon.com/vpc/latest/tgw/associate-tgw-route-table.html",
+    "https://docs.aws.amazon.com/vpc/latest/tgw/enable-tgw-route-propagation.html"
+  ]
+}

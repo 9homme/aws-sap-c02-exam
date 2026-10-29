@@ -1,0 +1,17 @@
+{
+  "id": "pro-10",
+  "scope": "full",
+  "verdict": "PASS",
+  "originalCorrectIds": [
+    "C"
+  ],
+  "verifiedCorrectIds": [
+    "C"
+  ],
+  "issues": [],
+  "changes": {},
+  "sources": [
+    "https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/stacksets-orgs-manage-auto-deployment.html",
+    "https://docs.aws.amazon.com/servicecatalog/latest/adminguide/constraints-launch.html"
+  ]
+}

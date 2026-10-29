@@ -1,0 +1,82 @@
+{
+  "id": "pro-73",
+  "sourceCategory": "professional",
+  "sourceLabel": "AI-authored · Professional multi-requirement",
+  "sourceDetail": "Original multi-constraint scenario — desktop สำหรับผู้รับเหมาที่ป้องกันข้อมูลรั่วไหล",
+  "coreEligible": true,
+  "emerging": false,
+  "domain": "1",
+  "task": "Organizational complexity",
+  "topic": "desktop สำหรับผู้รับเหมาที่ป้องกันข้อมูลรั่วไหล",
+  "type": "multiple-choice",
+  "selectCount": 1,
+  "prompt": "A pharmaceutical company is hiring 120 external contractors from two consulting firms to analyze clinical-trial data for 9 months. The data must stay inside AWS, and the compliance team requires that contractors cannot copy data to their own devices by using the clipboard, file transfer, printing, or local drive redirection. Contractors may connect only from laptops that their consulting firm manages and that have a certificate issued by the company's private certificate authority, and only from the consulting firms' office IP ranges. Every sign-in and administrative change must be auditable. Contractors authenticate with accounts in a dedicated directory, and the company already uses IAM Identity Center for its own staff. The company wants to avoid exposing any Remote Desktop ports, and the contractors need persistent personal desktops with the analysis tools that the company provides. The consulting firms' contracts allow the company to revoke any contractor's access within 1 hour, and the company wants all contractor desktops to be separated from its internal production VPCs. Which solution will meet these requirements in the MOST secure way?",
+  "options": [
+    {
+      "id": "A",
+      "text": "Launch Amazon EC2 Windows instances for the contractors in private subnets, give them access through AWS Client VPN with certificate-based mutual authentication, and use Remote Desktop with Group Policy settings that disable clipboard and drive redirection. Record API activity with AWS CloudTrail.",
+      "explanation": "ดีพอใช้แต่ไม่ปลอดภัยที่สุด: Client VPN ที่ใช้ certificate และ GPO ช่วยได้จริง แต่ยังเปิด RDP ภายใน VPC ให้ทุกเครื่องที่ต่อ VPN เข้าถึงได้ ไม่มีการจำกัด IP ของต้นทางแบบ managed เท่า WorkSpaces และต้องดูแลความสอดคล้องของ GPO และเครื่อง 120 เครื่องเอง"
+    },
+    {
+      "id": "B",
+      "text": "Deploy Amazon WorkSpaces Personal for the contractors, disable clipboard, file transfer, printer, and local drive redirection through the WorkSpaces Group Policy settings, restrict access with IP access control groups for the consulting firms' ranges, enable trusted devices with certificate-based access, and audit with AWS CloudTrail and WorkSpaces access logs.",
+      "explanation": "ถูก: WorkSpaces ส่งเพียงภาพหน้าจอผ่าน streaming protocol โดยไม่เปิด RDP port การปิด redirection ทั้งหมดผ่าน Group Policy ป้องกันการคัดลอกข้อมูลออก IP access control groups จำกัดให้เชื่อมจาก IP ของบริษัทที่ปรึกษา trusted devices ตรวจ certificate ของ laptop ที่บริษัทจัดการ และ CloudTrail กับ access logs ให้ audit การเข้าใช้และการเปลี่ยนแปลง"
+    },
+    {
+      "id": "C",
+      "text": "Deploy Amazon WorkSpaces Personal for the contractors, require multi-factor authentication through IAM Identity Center, and keep the default clipboard and file transfer settings so that contractors can work efficiently with their local tools. Record sign-in events with AWS CloudTrail and review them monthly.",
+      "explanation": "ไม่ผ่าน: MFA ช่วยยืนยันตัวตนได้ แต่การคงค่าเริ่มต้นของ clipboard และ file transfer ทำให้ผู้รับเหมาคัดลอกข้อมูลออกไปเครื่องตนเองได้โดยตรง และไม่มีการจำกัดอุปกรณ์หรือ IP ต้นทางตามข้อกำหนด"
+    },
+    {
+      "id": "D",
+      "text": "Launch Amazon EC2 Windows instances for the contractors, use AWS Systems Manager Session Manager port forwarding for Remote Desktop so that no inbound ports are open, and log the Session Manager sessions to Amazon S3. Restrict which contractors can start sessions by using IAM policies attached to their Identity Center permission sets. Review the design with the architecture board before rollout.",
+      "explanation": "ไม่ผ่านที่สุด: port forwarding ทำให้ไม่ต้องเปิด inbound port แต่ภายใน session ยังเป็น RDP ที่ redirection ใช้ได้ตามค่าเริ่มต้น Session Manager บันทึกเนื้อหาของ port-forwarding session ไม่ได้ และไม่มีการตรวจ certificate ของอุปกรณ์หรือ IP ต้นทาง"
+    }
+  ],
+  "correctIds": [
+    "B"
+  ],
+  "rationale": "1) ข้อกำหนดเป็นการป้องกันข้อมูลออกจาก desktop จึงต้องปิด clipboard/file transfer/print/drive ทั้งหมด ตัด C ที่ใช้ค่าเริ่มต้น 2) ต้องจำกัดอุปกรณ์และ IP ต้นทาง: WorkSpaces มี trusted devices และ IP access control groups แบบ managed 3) EC2 + RDP (A, D) ต้องดูแล policy เอง และ D ไม่บันทึกเนื้อหา port forwarding 4) B รวมทุกชั้นการควบคุมไว้ในบริการ managed จึงปลอดภัยที่สุด",
+  "wrongAnswerHelp": "Start with the explicit business constraint, then eliminate choices that solve a different layer of the architecture or add unnecessary operational work.",
+  "references": [
+    "https://docs.aws.amazon.com/workspaces/latest/adminguide/amazon-workspaces-ip-access-control-groups.html",
+    "https://docs.aws.amazon.com/workspaces/latest/adminguide/trusted-devices.html",
+    "https://docs.aws.amazon.com/workspaces/latest/adminguide/group_policy.html"
+  ],
+  "products": [
+    "AWS Client VPN",
+    "IAM Identity Center",
+    "CloudTrail",
+    "Amazon WorkSpaces Personal"
+  ],
+  "requirements": [
+    "Contractors must not copy, print, or download data locally",
+    "Access only from managed contractor laptops",
+    "Every session auditable"
+  ],
+  "review": {
+    "decisiveClue": "ห้ามคัดลอก/พิมพ์/โอนไฟล์ออก, เชื่อมได้เฉพาะ laptop ที่มี certificate และจาก IP ของบริษัทที่ปรึกษา, audit ได้, ไม่เปิด RDP port",
+    "reasoning": "1) ข้อกำหนดเป็นการป้องกันข้อมูลออกจาก desktop จึงต้องปิด clipboard/file transfer/print/drive ทั้งหมด ตัด C ที่ใช้ค่าเริ่มต้น 2) ต้องจำกัดอุปกรณ์และ IP ต้นทาง: WorkSpaces มี trusted devices และ IP access control groups แบบ managed 3) EC2 + RDP (A, D) ต้องดูแล policy เอง และ D ไม่บันทึกเนื้อหา port forwarding 4) B รวมทุกชั้นการควบคุมไว้ในบริการ managed จึงปลอดภัยที่สุด",
+    "options": {
+      "A": "ดีพอใช้แต่ไม่ปลอดภัยที่สุด: Client VPN ที่ใช้ certificate และ GPO ช่วยได้จริง แต่ยังเปิด RDP ภายใน VPC ให้ทุกเครื่องที่ต่อ VPN เข้าถึงได้ ไม่มีการจำกัด IP ของต้นทางแบบ managed เท่า WorkSpaces และต้องดูแลความสอดคล้องของ GPO และเครื่อง 120 เครื่องเอง",
+      "B": "ถูก: WorkSpaces ส่งเพียงภาพหน้าจอผ่าน streaming protocol โดยไม่เปิด RDP port การปิด redirection ทั้งหมดผ่าน Group Policy ป้องกันการคัดลอกข้อมูลออก IP access control groups จำกัดให้เชื่อมจาก IP ของบริษัทที่ปรึกษา trusted devices ตรวจ certificate ของ laptop ที่บริษัทจัดการ และ CloudTrail กับ access logs ให้ audit การเข้าใช้และการเปลี่ยนแปลง",
+      "C": "ไม่ผ่าน: MFA ช่วยยืนยันตัวตนได้ แต่การคงค่าเริ่มต้นของ clipboard และ file transfer ทำให้ผู้รับเหมาคัดลอกข้อมูลออกไปเครื่องตนเองได้โดยตรง และไม่มีการจำกัดอุปกรณ์หรือ IP ต้นทางตามข้อกำหนด",
+      "D": "ไม่ผ่านที่สุด: port forwarding ทำให้ไม่ต้องเปิด inbound port แต่ภายใน session ยังเป็น RDP ที่ redirection ใช้ได้ตามค่าเริ่มต้น Session Manager บันทึกเนื้อหาของ port-forwarding session ไม่ได้ และไม่มีการตรวจ certificate ของอุปกรณ์หรือ IP ต้นทาง"
+    },
+    "references": [
+      {
+        "title": "IP access control groups for WorkSpaces Personal",
+        "url": "https://docs.aws.amazon.com/workspaces/latest/adminguide/amazon-workspaces-ip-access-control-groups.html"
+      },
+      {
+        "title": "Restrict access to trusted devices for WorkSpaces Personal",
+        "url": "https://docs.aws.amazon.com/workspaces/latest/adminguide/trusted-devices.html"
+      },
+      {
+        "title": "Manage your Windows WorkSpaces Personal (Group Policy)",
+        "url": "https://docs.aws.amazon.com/workspaces/latest/adminguide/group_policy.html"
+      }
+    ],
+    "reviewedAt": "2026-10-29"
+  }
+}

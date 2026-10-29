@@ -1,0 +1,60 @@
+{
+  "id": "pro-17",
+  "scope": "full",
+  "verdict": "FIX",
+  "originalCorrectIds": [
+    "D"
+  ],
+  "verifiedCorrectIds": [
+    "D"
+  ],
+  "issues": [
+    "options: ตัวลวงเดิมผิดอย่างชัดเจน (อ้างความสามารถที่บริการไม่มี) ทำให้ตอบได้จากการจำชื่อบริการ ไม่ใช่ระดับ SAP-C02 Professional; เขียนใหม่ให้แต่ละตัวลวงทำงานได้จริงบางส่วนแต่ตกเงื่อนไขหนึ่งข้อ",
+    "prompt: ลบประโยค boilerplate (architecture review board / workable for the stated environment)",
+    "review.reasoning: เดิมคัดลอก requirement ภาษาอังกฤษมาต่อกัน ไม่ได้อธิบายการตัดตัวเลือก"
+  ],
+  "changes": {
+    "prompt": "A publisher is launching two distinct global workloads: a cacheable static-content website and a low-latency multiplayer game using UDP over fixed destination ports. Partners must allowlist a small stable set of public IP addresses for the game. For the HTTPS website, the security team needs centralized HTTP request filtering and managed TLS certificates, and the product team expects frequent deployments to two AWS Regions. DNS changes alone are unacceptable for the game because clients may retain DNS answers; the game must be routed to healthy regional endpoints quickly while preserving static anycast addressing. The solution must meet all of the following requirements: (1) Cache static HTTPS content near users and enforce web request filtering with managed certificates; (2) Provide static public anycast IP addresses and health-based regional routing for UDP traffic; (3) Allow independent health and deployment policies for the web and game paths. Which solution meets these requirements with the LEAST operational overhead?",
+    "options": {
+      "A": {
+        "text": "Use CloudFront with AWS WAF and an ACM certificate for the website. For the game, create Route 53 latency-based records with health checks that point to Network Load Balancers with UDP listeners in each Region.",
+        "explanation": "ตกข้อ (2): ฝั่งเว็บถูกต้อง แต่ game ใช้ DNS ในการ failover ซึ่งโจทย์ระบุว่ายอมรับไม่ได้เพราะ client cache DNS answer อีกทั้ง NLB มี IP แยกตาม AZ และ Region จึงไม่ได้ชุด static anycast IP ขนาดเล็กให้ partner allowlist"
+      },
+      "B": {
+        "text": "Create one AWS Global Accelerator standard accelerator with a TCP 443 listener that points to Application Load Balancers for the website and a UDP listener that points to Network Load Balancers for the game, and attach AWS WAF to the ALBs.",
+        "explanation": "ตกข้อ (1): Global Accelerator ให้ static IP และ health-based routing ได้ทั้งสองทาง และ WAF ติดกับ ALB ได้ แต่ Global Accelerator ไม่ได้ cache เนื้อหา static ที่ edge ทุก request ของเว็บยังวิ่งไปถึง ALB ใน Region จึงไม่ได้ประโยชน์ของ CDN ตามข้อกำหนด"
+      },
+      "C": {
+        "text": "Use AWS Global Accelerator with health-checked Network Load Balancer UDP endpoints in both Regions for the game. Serve the website directly from an Amazon S3 static website endpoint protected by AWS Shield Advanced.",
+        "explanation": "ตกข้อ (1): ฝั่ง game ถูกต้อง แต่ S3 website endpoint ไม่รองรับ HTTPS ด้วย ACM certificate โดยตรง ไม่ได้ cache ใกล้ผู้ใช้ และไม่สามารถใช้ AWS WAF กรอง request ได้ Shield Advanced ช่วยเรื่อง DDoS แต่ไม่ได้แทน WAF rules"
+      },
+      "D": {
+        "text": "Use CloudFront with AWS WAF and ACM for HTTPS content, and Global Accelerator with health-checked regional UDP endpoints for the game.",
+        "explanation": "ถูก: CloudFront cache static HTTPS ที่ edge ใช้ ACM certificate (ต้องอยู่ใน us-east-1) และผูก WAF web ACL ได้ ส่วน Global Accelerator ให้ static anycast IP 2 ตัวสำหรับ allowlist รองรับ UDP และย้าย traffic ไป Region ที่ healthy โดยไม่พึ่ง DNS ทั้งสองเส้นทางแยก health check และ deployment ของตัวเอง Shield Standard คุ้มครองทั้งสองบริการโดยอัตโนมัติ"
+      }
+    },
+    "review": {
+      "decisiveClue": "เว็บ static HTTPS ต้อง cache + WAF + ACM, game UDP ต้องมี static anycast IP และ failover ไม่พึ่ง DNS, แยกนโยบายสองเส้นทาง",
+      "reasoning": "1) แยก workload: เว็บต้องการ CDN + WAF ส่วน game ต้องการ static anycast IP สำหรับ UDP 2) game: DNS failover (A) ถูกห้าม จึงต้องใช้ Global Accelerator 3) เว็บ: Global Accelerator (B) ไม่ cache และ S3 website endpoint (C) ไม่มี HTTPS/WAF จึงต้องใช้ CloudFront 4) D ใช้บริการที่เหมาะกับแต่ละเส้นทางและแยก health/deployment policy ได้",
+      "references": [
+        {
+          "title": "How AWS Global Accelerator works",
+          "url": "https://docs.aws.amazon.com/global-accelerator/latest/dg/introduction-how-it-works.html"
+        },
+        {
+          "title": "Using AWS WAF with CloudFront",
+          "url": "https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/distribution-web-awswaf.html"
+        },
+        {
+          "title": "Requirements for using SSL/TLS certificates with CloudFront",
+          "url": "https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/cnames-and-https-requirements.html"
+        }
+      ]
+    }
+  },
+  "sources": [
+    "https://docs.aws.amazon.com/global-accelerator/latest/dg/introduction-how-it-works.html",
+    "https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/distribution-web-awswaf.html",
+    "https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/cnames-and-https-requirements.html"
+  ]
+}

@@ -1,0 +1,13 @@
+{
+  "id": "csv-57",
+  "scope": "explanations",
+  "verdict": "PASS",
+  "verifiedCorrectIds": [
+    "B"
+  ],
+  "issues": [],
+  "changes": {},
+  "sources": [
+    "https://docs.aws.amazon.com/outposts/latest/userguide/service-links.html"
+  ]
+}

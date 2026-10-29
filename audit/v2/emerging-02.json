@@ -1,0 +1,57 @@
+{
+  "id": "emerging-02",
+  "scope": "full",
+  "verdict": "FIX",
+  "originalCorrectIds": [
+    "A"
+  ],
+  "verifiedCorrectIds": [
+    "B"
+  ],
+  "issues": [
+    "prompt: เดิมตัวลวง (admin key ในโค้ด, public bucket, AdministratorAccess) ผิดชัดเจน; เพิ่ม delegated OAuth ไปยัง SaaS เพื่อแยก inbound/outbound identity"
+  ],
+  "changes": {
+    "prompt": "A company is building an internal AI agent on Amazon Bedrock AgentCore Runtime. Employees sign in through the corporate identity provider and ask the agent to summarize their open GitHub issues and update their Salesforce opportunities. The agent must call these SaaS APIs with each employee's own delegated OAuth permissions, never with a shared administrator credential. No long-lived secrets may be stored in agent code or environment variables, and audit logs must show which employee each action was performed for. The agent also reads one internal Amazon S3 bucket. Which solution meets these requirements?",
+    "correctIds": [
+      "B"
+    ],
+    "rationale": "AgentCore Identity validates the caller's identity, obtains user-delegated OAuth tokens for third-party APIs, and stores them in a managed token vault, while a least-privilege IAM execution role governs AWS access.",
+    "options": {
+      "A": {
+        "text": "Create one GitHub service account and one Salesforce integration user with broad permissions, store their API keys in AWS Secrets Manager with rotation, and have the agent retrieve the keys at runtime.",
+        "explanation": "ไม่ผ่าน: Secrets Manager แก้ปัญหาการเก็บ secret ใน code ได้ แต่ทุก action จะทำในนามบัญชีที่ใช้ร่วมกันและมีสิทธิ์กว้าง ผู้ใช้จึงอาจเข้าถึงข้อมูลที่ตนไม่มีสิทธิ์ และ audit log ใน SaaS แยกไม่ได้ว่าทำแทนพนักงานคนใด ขัดกับ requirement เรื่อง delegated permissions"
+      },
+      "B": {
+        "text": "Configure AgentCore Identity with inbound authentication that validates the corporate identity provider's JWTs, and add OAuth 2.0 credential providers for GitHub and Salesforce that obtain user-delegated tokens through the user consent flow and store them in the AgentCore token vault. Give the runtime an IAM execution role that allows read access to only the required S3 bucket.",
+        "explanation": "ถูก: inbound auth ยืนยันว่าเป็นพนักงานคนไหน outbound OAuth credential provider ขอ token ในนามผู้ใช้แต่ละคน (3-legged OAuth) และเก็บใน token vault ที่ AgentCore จัดการ ไม่ต้องมี secret ใน code การเรียก SaaS จึงใช้สิทธิ์และตัวตนของผู้ใช้จริง ส่วน IAM execution role แบบ least privilege คุมการเข้าถึง S3 ต้องกำหนด scope ของ OAuth ให้แคบเท่าที่จำเป็น"
+      },
+      "C": {
+        "text": "Attach an IAM role with the AdministratorAccess managed policy to the agent runtime, and add system-prompt instructions that tell the model to act only on the requesting employee's data.",
+        "explanation": "ไม่ผ่าน: AdministratorAccess ขัดกับ least privilege โดยตรง และ IAM role ไม่ได้ให้สิทธิ์เข้า GitHub หรือ Salesforce ในนามผู้ใช้ ส่วนการพึ่ง system prompt ให้ model จำกัดตัวเองไม่ใช่การควบคุมสิทธิ์ เพราะ prompt injection หรือความผิดพลาดของ model ทำให้ข้าม 'กฎ' นี้ได้"
+      },
+      "D": {
+        "text": "Use an Amazon Cognito identity pool with unauthenticated identities to give the agent temporary AWS credentials, and embed the GitHub and Salesforce OAuth client secrets in the container image.",
+        "explanation": "ไม่ผ่าน: unauthenticated identities ไม่ได้ผูกกับพนักงานคนใด จึงทำ audit รายบุคคลไม่ได้ และ credentials ของ AWS ไม่ได้เป็นสิทธิ์ใน SaaS การฝัง OAuth client secrets ใน image ยังเป็น long-lived secret ที่โจทย์ห้าม"
+      }
+    },
+    "review": {
+      "decisiveClue": "เรียก SaaS ด้วย delegated OAuth ของผู้ใช้แต่ละคน, ไม่มี secret ใน code, audit ต่อพนักงาน, S3 แบบ least privilege",
+      "reasoning": "1) แยกสองเรื่อง: ตัวตนของผู้ใช้ที่เรียก agent (inbound) และสิทธิ์ที่ agent ใช้เรียกระบบอื่น (outbound) 2) SaaS ต้องใช้ token ในนามผู้ใช้ ไม่ใช่ service account ที่ใช้ร่วมกัน (A) และ IAM role (C) ไม่ได้ให้สิทธิ์ใน SaaS 3) ห้ามมี long-lived secrets ใน code หรือ image จึงตัด D 4) AgentCore Identity ให้ inbound JWT validation, OAuth credential providers และ token vault แบบ managed ส่วน AWS resource ใช้ IAM execution role แบบ least privilege B จึงครบทุกข้อ",
+      "references": [
+        {
+          "title": "Amazon Bedrock AgentCore Identity",
+          "url": "https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/identity.html"
+        },
+        {
+          "title": "Security best practices in IAM (least privilege)",
+          "url": "https://docs.aws.amazon.com/IAM/latest/UserGuide/best-practices.html"
+        }
+      ]
+    }
+  },
+  "sources": [
+    "https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/identity.html",
+    "https://docs.aws.amazon.com/IAM/latest/UserGuide/best-practices.html"
+  ]
+}

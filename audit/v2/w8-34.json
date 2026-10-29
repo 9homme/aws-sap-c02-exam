@@ -1,0 +1,14 @@
+{
+  "id": "w8-34",
+  "scope": "explanations",
+  "verdict": "PASS",
+  "verifiedCorrectIds": [
+    "B"
+  ],
+  "issues": [],
+  "changes": {},
+  "sources": [
+    "https://docs.aws.amazon.com/vpc/latest/tgw/tgw-transit-gateways.html",
+    "https://docs.aws.amazon.com/vpc/latest/tgw/create-vpn-attachment.html"
+  ]
+}

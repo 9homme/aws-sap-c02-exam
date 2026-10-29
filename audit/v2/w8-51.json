@@ -1,0 +1,32 @@
+{
+  "id": "w8-51",
+  "scope": "explanations",
+  "verdict": "FIX",
+  "verifiedCorrectIds": [
+    "A"
+  ],
+  "issues": [
+    "options.B.explanation: ไม่ระบุว่า Glue ไม่ได้ส่งข้อความเข้า SQS เองตามที่ตัวเลือกกล่าว (ต้องผ่าน EventBridge/โค้ดเพิ่ม) และ Glue ETL อ่าน EFS ไม่ใช่ทางหลัก; ข้อความเดิมเน้นแค่ polling",
+    "options.C.explanation: 'ข้อความเดิมต้องการ' ไม่ชัด ควรอ้างโจทย์ตรง ๆ ว่าระบบเดิมส่งข้อความเข้า queue และ EMR Serverless ไม่ publish SNS เองเช่นกัน",
+    "options.D.explanation: ประโยค 'SNS ไม่ใช่ queue ดั้งเดิมโดยลำพัง' อ่านไม่ชัด และไม่ชี้ว่าการใช้ EC2 cron ขัดกับ 'reduce management of the components' โดยตรง"
+  ],
+  "changes": {
+    "options": {
+      "B": {
+        "explanation": "Glue schedule ทุก 5 นาทีทำงานแม้ไม่มีไฟล์ใหม่และต้องติดตามเองว่าไฟล์ไหนแปลงแล้ว อีกทั้ง Glue ETL ทำงานกับ S3/JDBC เป็นหลักไม่ใช่ EFS และไม่ส่งข้อความเข้า SQS ให้เอง ต้องเพิ่ม EventBridge หรือโค้ดอีกชั้น จึงยุ่งกว่า A"
+      },
+      "C": {
+        "explanation": "EMR Serverless แปลงไฟล์จาก S3 ได้ แต่เกินความจำเป็นสำหรับงานแปลงไฟล์เล็ก ๆ ทุกไม่กี่นาที และปลายทาง SNS เป็น topic แบบ pub/sub ไม่ใช่ queue ที่ระบบเดิมส่งข้อความเข้าไป จึงไม่ใช่ผู้มาแทน messaging queue; EMR ก็ไม่ publish SNS เองต้องเพิ่มโค้ด"
+      },
+      "D": {
+        "explanation": "ยังคงต้องดูแล EC2 (OS, patch, HA, cron ที่ล้มเหลว) ซึ่งขัดกับโจทย์ที่ต้องการ simplify และลด management ของ component และ SNS เป็น pub/sub topic ไม่ใช่ queue ที่แทน messaging server เดิมได้ตรง ๆ"
+      }
+    }
+  },
+  "sources": [
+    "https://docs.aws.amazon.com/transfer/latest/userguide/configure-storage.html",
+    "https://docs.aws.amazon.com/glue/latest/dg/automating-awsglue-with-cloudwatch-events.html",
+    "https://docs.aws.amazon.com/AmazonS3/latest/userguide/EventBridge.html",
+    "https://docs.aws.amazon.com/glue/latest/dg/starting-workflow-eventbridge.html"
+  ]
+}

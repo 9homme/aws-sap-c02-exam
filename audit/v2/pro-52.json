@@ -1,0 +1,60 @@
+{
+  "id": "pro-52",
+  "scope": "full",
+  "verdict": "FIX",
+  "originalCorrectIds": [
+    "C"
+  ],
+  "verifiedCorrectIds": [
+    "C"
+  ],
+  "issues": [
+    "options: ตัวลวงเดิมผิดอย่างชัดเจน (อ้างความสามารถที่บริการไม่มี) ทำให้ตอบได้จากการจำชื่อบริการ ไม่ใช่ระดับ SAP-C02 Professional; เขียนใหม่ให้แต่ละตัวลวงทำงานได้จริงบางส่วนแต่ตกเงื่อนไขหนึ่งข้อ",
+    "prompt: ลบประโยค boilerplate (architecture review board / workable for the stated environment)",
+    "review.reasoning: เดิมคัดลอก requirement ภาษาอังกฤษมาต่อกัน ไม่ได้อธิบายการตัดตัวเลือก"
+  ],
+  "changes": {
+    "prompt": "A multiplayer gaming platform provides an internet-facing custom TCP protocol for players in North America, Europe and Asia. The client software is hard-coded to allowlist a small set of static destination IP addresses and needs rapid regional endpoint failover when an origin becomes unhealthy. The actual TCP game services scale across multiple Availability Zones and require connection-level load balancing. Separately, the platform's internal inventory HTTP microservices run in several accounts and VPCs with overlapping address ranges. Teams want service-level authentication and discovery for the internal microservices without placing them on the public network. A reviewer suggested using only one Application Load Balancer for all ingress and east-west service connectivity. The solution must meet all of the following requirements: (1) Expose the TCP game service via static anycast IP addresses with global traffic optimization and endpoint failover; (2) Balance TCP connections across healthy game servers within each Region; (3) Connect and authorize internal HTTP services across VPC/account boundaries without public ingress or an overlapping-CIDR routing mesh. Which solution meets these requirements with the LEAST operational overhead?",
+    "options": {
+      "A": {
+        "text": "Deploy Network Load Balancers in each Region for the game servers, create Route 53 latency-based records with health checks for the NLBs, and use VPC Lattice service networks with auth policies for the internal HTTP services.",
+        "explanation": "ตกข้อ (1): NLB และ Lattice ถูกต้อง แต่ Route 53 ให้ IP ของ NLB แยกตาม AZ และ Region ไม่ใช่ static anycast IP ชุดเล็กที่ client allowlist ไว้ และ failover ขึ้นกับ DNS TTL/การ cache ของ client จึงไม่รวดเร็วตามที่ต้องการ"
+      },
+      "B": {
+        "text": "Use AWS Global Accelerator with Application Load Balancer endpoints in each Region for the game traffic, and use VPC Lattice service networks with auth policies for the internal HTTP services.",
+        "explanation": "ตกข้อ (2): Global Accelerator ให้ static anycast IP และ Lattice ตอบฝั่ง internal แต่ ALB รับเฉพาะ HTTP/HTTPS (และ gRPC) ไม่สามารถ balance custom TCP protocol ของเกมได้ ต้องใช้ NLB เป็น endpoint"
+      },
+      "C": {
+        "text": "Expose the game service with Global Accelerator using regional NLB endpoints, and use VPC Lattice service networks with auth policies for internal HTTP services.",
+        "explanation": "ถูก: Global Accelerator ให้ static anycast IP สำหรับ allowlist ส่ง traffic ผ่าน AWS global network ไปยัง Region ที่ใกล้และ healthy และ failover โดยไม่พึ่ง DNS NLB balance TCP connections ข้าม AZ ภายใน Region ส่วน VPC Lattice เชื่อม HTTP services ข้ามบัญชีแม้ CIDR ทับกัน พร้อม service discovery และ IAM auth policies โดยไม่เปิด public ingress"
+      },
+      "D": {
+        "text": "Use AWS Global Accelerator with regional NLB endpoints for the game traffic, and connect the internal service VPCs through a shared transit gateway with security groups that allow traffic from approved CIDR ranges.",
+        "explanation": "ตกข้อ (3): ฝั่งเกมถูกต้อง แต่ Transit Gateway route ตาม CIDR จึงใช้ไม่ได้ตรง ๆ กับ VPC ที่ CIDR ทับกัน และการอนุญาตตาม CIDR ไม่ใช่ service-level authentication/authorization ที่ทีมต้องการ VPC Lattice แก้ทั้งสองเรื่องนี้"
+      }
+    },
+    "review": {
+      "decisiveClue": "static anycast IP + failover ข้าม Region สำหรับ TCP, balance TCP ภายใน Region, internal HTTP ข้ามบัญชีที่ CIDR ทับกันพร้อม service-level auth",
+      "reasoning": "1) สามชั้นต่างกัน: global edge (Global Accelerator), L4 balancing ใน Region (NLB), private service network (VPC Lattice) 2) A ใช้ DNS แทน anycast 3) B ใช้ ALB กับ custom TCP 4) D ใช้ Transit Gateway กับ CIDR ที่ทับกันและไม่มี service-level auth 5) C ใช้บริการที่ตรงกับแต่ละชั้น ไม่ใช่ ALB ตัวเดียวสำหรับทุกอย่างตามที่ reviewer เสนอ",
+      "references": [
+        {
+          "title": "Endpoints for standard accelerators",
+          "url": "https://docs.aws.amazon.com/global-accelerator/latest/dg/about-endpoints.html"
+        },
+        {
+          "title": "What is Amazon VPC Lattice?",
+          "url": "https://docs.aws.amazon.com/vpc-lattice/latest/ug/what-is-vpc-lattice.html"
+        },
+        {
+          "title": "What is a Network Load Balancer?",
+          "url": "https://docs.aws.amazon.com/elasticloadbalancing/latest/network/introduction.html"
+        }
+      ]
+    }
+  },
+  "sources": [
+    "https://docs.aws.amazon.com/global-accelerator/latest/dg/about-endpoints.html",
+    "https://docs.aws.amazon.com/vpc-lattice/latest/ug/what-is-vpc-lattice.html",
+    "https://docs.aws.amazon.com/elasticloadbalancing/latest/network/introduction.html"
+  ]
+}

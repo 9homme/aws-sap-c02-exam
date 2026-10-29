@@ -1,0 +1,13 @@
+{
+  "id": "course-11",
+  "scope": "explanations",
+  "verdict": "PASS",
+  "verifiedCorrectIds": [
+    "C"
+  ],
+  "issues": [],
+  "changes": {},
+  "sources": [
+    "https://docs.aws.amazon.com/wellarchitected/latest/framework/welcome.html"
+  ]
+}

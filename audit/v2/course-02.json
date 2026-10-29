@@ -1,0 +1,22 @@
+{
+  "id": "course-02",
+  "scope": "explanations",
+  "verdict": "FIX",
+  "verifiedCorrectIds": [
+    "B"
+  ],
+  "issues": [
+    "options.D.explanation: vague ('กิจกรรมที่รองรับ'); does not say CloudTrail has no data event for EC2 packet traffic"
+  ],
+  "changes": {
+    "options": {
+      "D": {
+        "explanation": "เหตุผลที่ตัดตัวเลือกนี้: CloudTrail บันทึกการเรียก API (management events) และ data events ของบางบริการ เช่น S3 object หรือ Lambda invoke แต่ไม่มี data event สำหรับ packet ที่วิ่งผ่าน ENI ของ EC2 จึงบอกได้แค่ว่าใครเรียก API อะไร ไม่เห็น payload ที่โจทย์ต้องการตรวจ เกณฑ์ตัดสินของข้อนี้: ต้องดูเนื้อหา packet ไม่ใช่แค่ IP/port หรือจำนวน bytes"
+      }
+    }
+  },
+  "sources": [
+    "https://docs.aws.amazon.com/vpc/latest/mirroring/what-is-traffic-mirroring.html",
+    "https://docs.aws.amazon.com/awscloudtrail/latest/userguide/logging-data-events-with-cloudtrail.html"
+  ]
+}

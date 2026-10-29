@@ -1,0 +1,65 @@
+{
+  "id": "pro-38",
+  "scope": "full",
+  "verdict": "FIX",
+  "originalCorrectIds": [
+    "A"
+  ],
+  "verifiedCorrectIds": [
+    "A"
+  ],
+  "issues": [
+    "options: ตัวลวงเดิมผิดอย่างชัดเจน (อ้างความสามารถที่บริการไม่มี) ทำให้ตอบได้จากการจำชื่อบริการ ไม่ใช่ระดับ SAP-C02 Professional; เขียนใหม่ให้แต่ละตัวลวงทำงานได้จริงบางส่วนแต่ตกเงื่อนไขหนึ่งข้อ",
+    "prompt: ลบประโยค boilerplate (architecture review board / workable for the stated environment)",
+    "review.reasoning: เดิมคัดลอก requirement ภาษาอังกฤษมาต่อกัน ไม่ได้อธิบายการตัดตัวเลือก"
+  ],
+  "changes": {
+    "prompt": "A company runs hundreds of EC2 workloads and stores personal data in S3 across many AWS accounts. Security engineers need to know when unusual AWS activity suggests compromised access keys or malicious network behavior. Vulnerability teams separately want assessments of supported compute images and workload packages. Privacy officers need to discover sensitive data in S3, including unexpected buckets containing personal information. The central security team wants a common place to aggregate prioritized security findings across enrolled accounts and Regions, and also needs visibility into external resource-policy exposure without pretending that detection alone revokes permissions. The solution must meet all of the following requirements: (1) Identify suspicious activity or compromised credentials as distinct from package vulnerability findings; (2) Discover and classify sensitive S3 data and detect unintended resource policy access; (3) Aggregate findings for triage at organization scale without assuming all detectors share a single capability. Which solution meets these requirements with the LEAST operational overhead?",
+    "options": {
+      "A": {
+        "text": "Use GuardDuty for threat detection, Inspector for vulnerability assessments, Macie for sensitive S3 data discovery, IAM Access Analyzer for access exposure, and Security Hub for centralized findings.",
+        "explanation": "ถูก: GuardDuty วิเคราะห์ CloudTrail, VPC Flow Logs และ DNS logs หาพฤติกรรมผิดปกติ เช่น credentials ถูกขโมย Inspector สแกน CVE ของ EC2, container images และ Lambda Macie ค้นหาข้อมูลส่วนบุคคลใน S3 Access Analyzer หา resource policy ที่เปิดให้ภายนอกเข้าถึง และ Security Hub รวม findings ทุกบัญชี/Region เพื่อจัดลำดับความสำคัญ การตรวจพบยังต้องมีขั้นตอนแก้สิทธิ์แยกต่างหาก"
+      },
+      "B": {
+        "text": "Use GuardDuty, including its Malware Protection feature, to detect both suspicious activity and package vulnerabilities on EC2. Use Macie for sensitive S3 data, IAM Access Analyzer for external access, and Security Hub to aggregate findings.",
+        "explanation": "ตกข้อ (1): GuardDuty Malware Protection สแกนหา malware บน EBS volume เมื่อพบ finding ที่น่าสงสัย ไม่ใช่การประเมินช่องโหว่ของ packages ตาม CVE การใช้ GuardDuty แทน Inspector จึงทำให้ทีม vulnerability ไม่ได้ข้อมูลที่ต้องการ และขัดกับโจทย์ที่ให้แยกสองประเภทนี้"
+      },
+      "C": {
+        "text": "Use GuardDuty for threat detection, Inspector for vulnerability assessments, Macie for sensitive S3 data, and Security Hub to aggregate findings and automatically revoke any external access that its controls detect.",
+        "explanation": "ตกข้อ (2): ขาด IAM Access Analyzer ที่วิเคราะห์ resource policies หลายชนิดเพื่อหาการเข้าถึงจากภายนอก และ Security Hub เป็นที่รวมและจัดลำดับ findings ไม่ได้เพิกถอนสิทธิ์ให้เองโดยอัตโนมัติ ซึ่งโจทย์เตือนไว้ว่าการตรวจพบไม่เท่ากับการแก้สิทธิ์"
+      },
+      "D": {
+        "text": "Enable GuardDuty, Inspector, Macie, and IAM Access Analyzer in every account, and have each service publish its findings to a separate Amazon SNS topic in each account that emails the account owners.",
+        "explanation": "ตกข้อ (3): detectors ครบทุกตัว แต่ findings กระจายอยู่ในแต่ละบัญชีและส่งเป็นอีเมล ไม่มีที่รวมเพื่อ triage ระดับองค์กร ไม่มีรูปแบบ finding กลางและการจัดลำดับความสำคัญข้ามบัญชี/Region ซึ่ง Security Hub ทำให้ได้"
+      }
+    },
+    "review": {
+      "decisiveClue": "แยก threat detection กับ vulnerability, หา sensitive data ใน S3 และ resource policy ที่เปิดออกนอก, รวม findings ระดับองค์กร",
+      "reasoning": "1) แต่ละบริการตรวจคนละชนิด: GuardDuty = threats/compromised credentials, Inspector = CVE, Macie = sensitive data, Access Analyzer = external access, Security Hub = aggregation 2) B ใช้ GuardDuty แทน Inspector 3) C ขาด Access Analyzer และเข้าใจผิดว่า Security Hub เพิกถอนสิทธิ์เอง 4) D ไม่มีที่รวม findings 5) A จับคู่บริการกับงานครบ",
+      "references": [
+        {
+          "title": "What is AWS Security Hub CSPM?",
+          "url": "https://docs.aws.amazon.com/securityhub/latest/userguide/what-is-securityhub.html"
+        },
+        {
+          "title": "What is Amazon GuardDuty?",
+          "url": "https://docs.aws.amazon.com/guardduty/latest/ug/what-is-guardduty.html"
+        },
+        {
+          "title": "What is Amazon Inspector?",
+          "url": "https://docs.aws.amazon.com/inspector/latest/user/what-is-inspector.html"
+        },
+        {
+          "title": "What is Amazon Macie?",
+          "url": "https://docs.aws.amazon.com/macie/latest/user/what-is-macie.html"
+        }
+      ]
+    }
+  },
+  "sources": [
+    "https://docs.aws.amazon.com/securityhub/latest/userguide/what-is-securityhub.html",
+    "https://docs.aws.amazon.com/guardduty/latest/ug/what-is-guardduty.html",
+    "https://docs.aws.amazon.com/inspector/latest/user/what-is-inspector.html",
+    "https://docs.aws.amazon.com/macie/latest/user/what-is-macie.html"
+  ]
+}

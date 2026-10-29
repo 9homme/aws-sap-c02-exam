@@ -1,0 +1,13 @@
+{
+  "id": "course-46",
+  "scope": "explanations",
+  "verdict": "PASS",
+  "verifiedCorrectIds": [
+    "B"
+  ],
+  "issues": [],
+  "changes": {},
+  "sources": [
+    "https://docs.aws.amazon.com/systems-manager/latest/userguide/run-command.html"
+  ]
+}

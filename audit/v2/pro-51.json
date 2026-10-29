@@ -1,0 +1,60 @@
+{
+  "id": "pro-51",
+  "scope": "full",
+  "verdict": "FIX",
+  "originalCorrectIds": [
+    "A"
+  ],
+  "verifiedCorrectIds": [
+    "A"
+  ],
+  "issues": [
+    "options: ตัวลวงเดิมผิดอย่างชัดเจน (อ้างความสามารถที่บริการไม่มี) ทำให้ตอบได้จากการจำชื่อบริการ ไม่ใช่ระดับ SAP-C02 Professional; เขียนใหม่ให้แต่ละตัวลวงทำงานได้จริงบางส่วนแต่ตกเงื่อนไขหนึ่งข้อ",
+    "prompt: ลบประโยค boilerplate (architecture review board / workable for the stated environment)",
+    "review.reasoning: เดิมคัดลอก requirement ภาษาอังกฤษมาต่อกัน ไม่ได้อธิบายการตัดตัวเลือก"
+  ],
+  "changes": {
+    "prompt": "A healthcare software provider has exactly two application VPCs in different AWS accounts and the same Region. The CIDR ranges do not overlap, and the network is not expected to expand beyond this pair for at least three years. A private monitoring service needs to communicate with a database endpoint using private IP addresses. Separately, a small rotating group of authenticated contractors working from laptops must access narrowly scoped private administration tools in one VPC without publishing them on the internet. The organization already has a corporate identity provider and a requirement to revoke contractor access promptly. Network operations will reject the management burden of a transit hub unless its capabilities are genuinely needed. The solution must meet all of the following requirements: (1) Connect the two non-overlapping VPCs privately with minimal transit infrastructure and explicit routes; (2) Give individual off-network contractors authenticated VPN access to approved private resources; (3) Avoid public exposure of the database and administration endpoint and avoid unnecessary hubs. Which solution meets these requirements with the LEAST operational overhead?",
+    "options": {
+      "A": {
+        "text": "Peer both VPCs, configure route tables and security rules, and provision AWS Client VPN with identity authentication and least-privilege network authorization for contractors.",
+        "explanation": "ถูก: VPC peering เชื่อมสอง VPC ที่ CIDR ไม่ทับกันข้ามบัญชีได้โดยไม่มี hub เพิ่ม route เฉพาะ prefix ที่จำเป็นและจำกัดด้วย security groups ส่วน Client VPN ใช้ SAML กับ IdP ขององค์กรเพื่อยืนยันตัวตนรายคน authorization rules จำกัดให้เข้าถึงเฉพาะ subnet ของ admin tools และถอนสิทธิ์ได้ทันทีที่ IdP"
+      },
+      "B": {
+        "text": "Attach both VPCs to a new AWS Transit Gateway with route tables for the two attachments, and provision AWS Client VPN with SAML-based federated authentication and authorization rules for the contractors.",
+        "explanation": "ตกข้อ (1)(3): ทำงานได้ถูกต้อง แต่ Transit Gateway เป็น hub ที่มีค่า attachment และงานดูแลเพิ่มสำหรับเพียงสอง VPC ที่จะไม่ขยายใน 3 ปี ซึ่ง network operations ระบุว่าจะปฏิเสธหากไม่จำเป็นจริง VPC peering ให้ผลเดียวกันโดยง่ายกว่า"
+      },
+      "C": {
+        "text": "Peer both VPCs and configure route tables and security groups. Publish the administration tools through an internet-facing Application Load Balancer that authenticates contractors with the corporate identity provider through OIDC.",
+        "explanation": "ตกข้อ (2)(3): peering ถูกต้อง และ ALB authentication ยืนยันตัวตนรายคนได้ แต่ admin tools ถูกเปิดสู่ internet ซึ่งโจทย์ห้าม และไม่ใช่ VPN access ไปยัง private resources ตามที่กำหนด"
+      },
+      "D": {
+        "text": "Peer both VPCs and configure route tables and security groups. Provision AWS Client VPN with mutual certificate authentication that uses one client certificate shared by all contractors.",
+        "explanation": "ตกข้อ (2): peering และ Client VPN ถูกต้อง แต่ certificate เดียวที่ใช้ร่วมกันไม่ได้ยืนยันตัวตนรายบุคคล ถอนสิทธิ์คนเดียวต้องเปลี่ยน certificate ของทุกคน และ authorization rules แยกตามกลุ่มจาก IdP ไม่ได้ ขัดกับข้อกำหนดเรื่อง revoke ทันที"
+      }
+    },
+    "review": {
+      "decisiveClue": "แค่สอง VPC ที่ CIDR ไม่ทับและไม่ขยาย, ผู้รับเหมารายคนต้อง VPN แบบยืนยันตัวตนและถอนสิทธิ์ได้ทันที, ห้ามเปิด public และห้ามมี hub ที่ไม่จำเป็น",
+      "reasoning": "1) VPC-to-VPC สองตัวที่ไม่ขยาย: peering ง่ายที่สุด Transit Gateway (B) เป็น hub ที่ไม่จำเป็น 2) human remote access ต้องเป็น Client VPN แบบ federated รายคน ตัด shared certificate (D) 3) ห้ามเปิด endpoint สู่ internet ตัด ALB สาธารณะ (C) 4) A แยก workload connectivity (peering) ออกจาก human access (Client VPN) และครบทุกข้อ",
+      "references": [
+        {
+          "title": "What is VPC peering?",
+          "url": "https://docs.aws.amazon.com/vpc/latest/peering/what-is-vpc-peering.html"
+        },
+        {
+          "title": "What is AWS Client VPN?",
+          "url": "https://docs.aws.amazon.com/vpn/latest/clientvpn-admin/what-is.html"
+        },
+        {
+          "title": "Client VPN authentication",
+          "url": "https://docs.aws.amazon.com/vpn/latest/clientvpn-admin/client-authentication.html"
+        }
+      ]
+    }
+  },
+  "sources": [
+    "https://docs.aws.amazon.com/vpc/latest/peering/what-is-vpc-peering.html",
+    "https://docs.aws.amazon.com/vpn/latest/clientvpn-admin/what-is.html",
+    "https://docs.aws.amazon.com/vpn/latest/clientvpn-admin/client-authentication.html"
+  ]
+}

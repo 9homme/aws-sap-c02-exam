@@ -3,10 +3,12 @@
 import { type CSSProperties, useEffect, useMemo, useState } from "react";
 import BibleReader from "./BibleReader";
 import AnswerExplanations from "./AnswerExplanations";
+import type { TeachingReview } from "../src/explanation-types";
 import { acceptedOptionIds, isCorrectAnswer } from "../src/answer-grading";
 import { filterStudyQuestions, selectStudyQuestions, shuffle, STUDY_SIZES } from "../src/question-selection";
+import { SOURCE_GROUPS, SOURCE_NAMES, sourceGroupFor, type SourceCategory, type SourceGroup } from "../src/source-groups";
+import { CURRENT_ANSWER_BANK_VERSION, migrateSavedCourseAnswers } from "../src/course-answer-migration";
 
-type SourceCategory = "captured" | "csv" | "course-derived" | "original" | "emerging";
 type Mode = "study" | "exam";
 type Screen = "dashboard" | "attempt" | "result";
 type WorkspaceView = "practice" | "bible";
@@ -31,6 +33,7 @@ type Question = {
   studyNote?: string;
   studyReferences?: string[];
   rationale: string;
+  review?: TeachingReview;
   wrongAnswerHelp: string;
   references: string[];
 };
@@ -45,6 +48,8 @@ type ActiveAttempt = {
   currentIndex: number;
   startedAt: number;
   deadline: number | null;
+  answerBankVersion?: number;
+  originalCourseAnswers?: Record<string, string[]>;
 };
 
 type HistoryItem = Omit<ActiveAttempt, "checked" | "currentIndex"> & {
@@ -72,16 +77,10 @@ const DOMAIN_NAMES: Record<string, string> = {
 };
 const EXAM_QUOTAS: Record<string, number> = { "1": 19, "2": 22, "3": 19, "4": 15 };
 
-const sourceNames: Record<SourceCategory, string> = {
-  captured: "Week 8 captured",
-  csv: "Assessment CSV",
-  "course-derived": "Course-derived",
-  original: "Original scenarios",
-  emerging: "Emerging AI",
-};
-
 function viewFromPath(pathname: string): WorkspaceView {
-  return pathname.replace(/\/$/, "") === VIEW_PATHS.bible ? "bible" : "practice";
+  const path = pathname.replace(/\/$/, "");
+  if (path === VIEW_PATHS.bible) return "bible";
+  return "practice";
 }
 
 function formatDuration(seconds: number) {
@@ -135,14 +134,19 @@ export default function Home() {
   const [resultState, setResultState] = useState<ResultState | null>(null);
   const [now, setNow] = useState(Date.now());
   const [domainFilter, setDomainFilter] = useState("all");
+  const [sourceGroupFilter, setSourceGroupFilter] = useState<"all" | SourceGroup>("all");
   const [sourceFilter, setSourceFilter] = useState<"all" | SourceCategory>("all");
   const [includeEmerging, setIncludeEmerging] = useState(false);
-  const [reviewFilter, setReviewFilter] = useState<"all" | "incorrect" | "unanswered" | "flagged">("incorrect");
+  const [reviewFilter, setReviewFilter] = useState<"all" | "correct" | "incorrect" | "unanswered" | "flagged">("all");
 
   useEffect(() => {
-    const applyRoute = () => setWorkspaceView(viewFromPath(window.location.pathname));
-    const canonicalPath = VIEW_PATHS[viewFromPath(window.location.pathname)];
-    if (window.location.pathname !== canonicalPath) window.history.replaceState(null, "", canonicalPath);
+    const applyRoute = () => {
+      const view = viewFromPath(window.location.pathname);
+      const canonicalPath = VIEW_PATHS[view];
+      if (window.location.pathname !== canonicalPath) window.history.replaceState(null, "", canonicalPath);
+      setWorkspaceView(view);
+    };
+    applyRoute();
     window.addEventListener("popstate", applyRoute);
     return () => window.removeEventListener("popstate", applyRoute);
   }, []);
@@ -178,8 +182,8 @@ export default function Home() {
       const saved = window.localStorage.getItem(STORAGE_KEY);
       if (saved) {
         const parsed = JSON.parse(saved) as StoredState;
-        setActiveAttempt(parsed.activeAttempt ?? null);
-        setHistory(Array.isArray(parsed.history) ? parsed.history : []);
+        setActiveAttempt(parsed.activeAttempt ? migrateSavedCourseAnswers(parsed.activeAttempt) : null);
+        setHistory(Array.isArray(parsed.history) ? parsed.history.map(migrateSavedCourseAnswers) : []);
       }
     } catch {
       window.localStorage.removeItem(STORAGE_KEY);
@@ -196,16 +200,24 @@ export default function Home() {
 
   const questionsById = useMemo(() => new Map(bank.map((question) => [question.id, question])), [bank]);
   const sourceCounts = useMemo(
-    () => bank.reduce<Record<SourceCategory, number>>((counts, question) => ({ ...counts, [question.sourceCategory]: (counts[question.sourceCategory] ?? 0) + 1 }), { captured: 0, csv: 0, "course-derived": 0, original: 0, emerging: 0 }),
+    () => bank.reduce<Record<SourceCategory, number>>((counts, question) => ({ ...counts, [question.sourceCategory]: (counts[question.sourceCategory] ?? 0) + 1 }), { captured: 0, csv: 0, "course-derived": 0, original: 0, professional: 0, emerging: 0 }),
     [bank],
+  );
+  const sourceGroupCounts = useMemo(
+    () => Object.fromEntries(SOURCE_GROUPS.map((group) => [group.id, group.sources.reduce((sum, source) => sum + sourceCounts[source], 0)])) as Record<SourceGroup, number>,
+    [sourceCounts],
+  );
+  const visibleSourceOptions = useMemo(
+    () => SOURCE_GROUPS.filter((group) => sourceGroupFilter === "all" || group.id === sourceGroupFilter).flatMap((group) => group.sources),
+    [sourceGroupFilter],
   );
   const activeQuestions = useMemo(
     () => (activeAttempt ? activeAttempt.questionIds.map((id) => questionsById.get(id)).filter((question): question is Question => Boolean(question)) : []),
     [activeAttempt, questionsById],
   );
   const studyPool = useMemo(
-    () => filterStudyQuestions(bank, { domain: domainFilter, source: sourceFilter, includeEmerging }),
-    [bank, domainFilter, sourceFilter, includeEmerging],
+    () => filterStudyQuestions(bank, { domain: domainFilter, group: sourceGroupFilter, source: sourceFilter, includeEmerging }),
+    [bank, domainFilter, sourceGroupFilter, sourceFilter, includeEmerging],
   );
   const missedStudyPool = useMemo(() => {
     const missedIds = new Set(history.flatMap((item) => item.questionIds.filter((id) => {
@@ -215,7 +227,7 @@ export default function Home() {
     return studyPool.filter((question) => missedIds.has(question.id));
   }, [history, questionsById, studyPool]);
   const missedStudySize = Math.min(25, missedStudyPool.length);
-  const hasStudyFilters = domainFilter !== "all" || sourceFilter !== "all" || includeEmerging;
+  const hasStudyFilters = domainFilter !== "all" || sourceGroupFilter !== "all" || sourceFilter !== "all" || includeEmerging;
 
   useEffect(() => {
     if (!activeAttempt?.deadline) return;
@@ -232,6 +244,8 @@ export default function Home() {
       mode: attempt.mode,
       questionIds: attempt.questionIds,
       answers: attempt.answers,
+      answerBankVersion: attempt.answerBankVersion,
+      originalCourseAnswers: attempt.originalCourseAnswers,
       flags: attempt.flags,
       startedAt: attempt.startedAt,
       deadline: attempt.deadline,
@@ -268,6 +282,7 @@ export default function Home() {
       currentIndex: 0,
       startedAt,
       deadline: mode === "exam" ? startedAt + 180 * 60 * 1000 : null,
+      answerBankVersion: CURRENT_ANSWER_BANK_VERSION,
     });
     setResultState(null);
     setScreen("attempt");
@@ -292,8 +307,19 @@ export default function Home() {
 
   function resetStudyFilters() {
     setDomainFilter("all");
+    setSourceGroupFilter("all");
     setSourceFilter("all");
     setIncludeEmerging(false);
+  }
+
+  function changeSourceGroup(next: "all" | SourceGroup) {
+    setSourceGroupFilter(next);
+    setSourceFilter("all");
+  }
+
+  function changeIncludeEmerging(next: boolean) {
+    setIncludeEmerging(next);
+    if (!next && sourceFilter === "emerging") setSourceFilter("all");
   }
 
   function resumeAttempt() {
@@ -437,7 +463,7 @@ export default function Home() {
               <button className={`flag-button ${activeAttempt.flags.includes(question.id) ? "active" : ""}`} onClick={() => toggleFlag(question.id)}>{activeAttempt.flags.includes(question.id) ? "★ Marked" : "☆ Mark for review"}</button>
             </div>
             <article className="question-card">
-              <div className="question-badges"><span className="chip source">{question.sourceLabel}</span><span className="chip muted">{question.selectCount > 1 ? `Select ${question.selectCount}` : "Select one"}</span></div>
+              <div className="question-badges"><span className="chip group">{SOURCE_GROUPS.find((group) => group.id === sourceGroupFor(question.sourceCategory))?.label}</span><span className="chip source">{question.sourceLabel}</span><span className="chip muted">{question.selectCount > 1 ? `Select ${question.selectCount}` : "Select one"}</span></div>
               <h1>{question.prompt}</h1>
               <p className="question-instruction">{question.selectCount > 1 ? `Select exactly ${question.selectCount} responses.` : "Select the best response."}</p>
               <fieldset className="options" disabled={checked}>
@@ -445,7 +471,7 @@ export default function Home() {
                 {question.options.map((option) => {
                   const isSelected = selected.includes(option.id);
                   const correctOption = acceptedOptionIds(question).includes(option.id);
-                  const optionState = checked ? (correctOption ? "is-correct" : isSelected ? "is-wrong" : "") : isSelected ? "is-selected" : "";
+                  const optionState = checked && question.review?.reviewStatus === "ambiguous" ? "is-ambiguous" : checked ? (correctOption ? "is-correct" : isSelected ? "is-wrong" : "") : isSelected ? "is-selected" : "";
                   return (
                     <label key={option.id} className={`option ${optionState}`}>
                       <input type={question.selectCount > 1 ? "checkbox" : "radio"} name={question.id} checked={isSelected} onChange={() => updateSelection(question, option.id)} />
@@ -455,14 +481,12 @@ export default function Home() {
                 })}
               </fieldset>
               {checked && (
-                <div className={`feedback ${outcome.correct ? "good" : "bad"}`} role="status">
-                  <strong>{outcome.correct ? "Correct — review the reasoning below." : "Not quite — compare your choice with the correct answer below."}</strong>
-                  {!outcome.correct && <p><b>{question.acceptedAnswerSets?.length ? "Accepted answers" : `Correct answer${question.correctIds.length > 1 ? "s" : ""}`}:</b> {[question.correctIds, ...(question.acceptedAnswerSets ?? [])].map((ids) => ids.join(", ")).join(" or ")}</p>}
-                  <p>{question.rationale}</p>
-                  <a href={question.references[0]} target="_blank" rel="noreferrer">Open SAP-C02 guide ↗</a>
+                <div className={`feedback ${question.review?.reviewStatus === "ambiguous" ? "uncertain" : outcome.correct ? "good" : "bad"}`} role="status">
+                  <strong>{question.review?.reviewStatus === "ambiguous" ? (outcome.correct ? "ตรงกับเฉลยเดิม — อ่านข้อกำกวมด้านล่างด้วย" : "ไม่ตรงกับเฉลยเดิม — ข้อนี้มีข้อกำกวมที่ควรอ่านก่อนสรุปว่าตอบผิด") : outcome.correct ? "ตอบถูก — ดูเหตุผลและเทียบตัวเลือกด้านล่าง" : "ยังไม่ถูก — ดูว่าเงื่อนไขใดทำให้ตัวเลือกนี้ไม่เหมาะ"}</strong>
+                  {!outcome.correct && <p><b>{question.review?.reviewStatus === "ambiguous" ? "Recorded answer" : question.acceptedAnswerSets?.length ? "Accepted answers" : `Correct answer${question.correctIds.length > 1 ? "s" : ""}`}:</b> {[question.correctIds, ...(question.acceptedAnswerSets ?? [])].map((ids) => ids.join(", ")).join(" or ")}</p>}
                 </div>
               )}
-              {checked && <AnswerExplanations question={question} selected={selected} />}
+              {checked && <AnswerExplanations question={question} selected={selected} originalCourseSelection={activeAttempt.originalCourseAnswers?.[question.id]} />}
               {activeAttempt.mode === "study" && !checked && <button className="button primary check-answer" disabled={selected.length === 0} onClick={() => checkStudyAnswer(question.id)}>Check answer</button>}
             </article>
             <div className="question-actions">
@@ -478,11 +502,13 @@ export default function Home() {
   if (screen === "result" && resultState) {
     const result = getResult(resultState.item, questionsById);
     const filteredOutcomes = result.outcomes.filter((outcome) => {
+      if (reviewFilter === "correct") return outcome.correct;
       if (reviewFilter === "incorrect") return outcome.answered && !outcome.correct;
       if (reviewFilter === "unanswered") return !outcome.answered;
       if (reviewFilter === "flagged") return resultState.item.flags.includes(outcome.question.id);
       return true;
     });
+    const ambiguousCount = result.outcomes.filter((outcome) => outcome.question.review?.reviewStatus === "ambiguous").length;
     const missedIds = result.outcomes.filter((outcome) => !outcome.correct).map((outcome) => outcome.question.id);
     return (
       <main className="app-shell">
@@ -495,13 +521,13 @@ export default function Home() {
             <div className="score-ring" style={{ "--score": `${result.score}%` } as CSSProperties}><span>{result.score}%</span><small>raw score</small></div>
             <p>{result.correct} correct · {result.incorrect} incorrect · {result.questions.length - result.answered} unanswered · {formatDuration(resultState.item.elapsedSeconds)}</p>
             <p className="benchmark">Practice benchmark: 75% raw. AWS Certification uses a separate scaled score, so this site never estimates an official score.</p>
+            {ambiguousCount > 0 && <p className="score-caveat">มี {ambiguousCount} ข้อที่โจทย์หรือเฉลยกำกวม คะแนนข้างต้นยังเทียบกับเฉลยที่บันทึกไว้ ควรอ่านหมายเหตุของข้อเหล่านี้ก่อนใช้คะแนนประเมินความเข้าใจ</p>}
             <div className="hero-actions"><button className="button primary" onClick={() => { if (missedIds.length) startAttempt("study", shuffle(missedIds).slice(0, Math.min(25, missedIds.length))); }}>Practice missed questions</button><button className="button secondary" onClick={() => setScreen("dashboard")}>Back to dashboard</button></div>
           </div>
           <section className="result-section"><div className="section-heading"><div><span className="eyebrow">Domain performance</span><h2>See where to focus next</h2></div></div><div className="domain-results">{result.byDomain.map((domain) => <article key={domain.domain} className="domain-result"><div><span>D{domain.domain}</span><strong>{domain.accuracy}%</strong></div><h3>{DOMAIN_NAMES[domain.domain]}</h3><p>{domain.correct} of {domain.total} correct</p><div className="progress"><i style={{ width: `${domain.accuracy}%` }} /></div></article>)}</div></section>
-          <section className="result-section"><div className="review-heading"><div><span className="eyebrow">Answer review</span><h2>Turn misses into rules you remember</h2></div><div className="review-filters">{(["incorrect", "unanswered", "flagged", "all"] as const).map((filter) => <button key={filter} className={reviewFilter === filter ? "selected" : ""} onClick={() => setReviewFilter(filter)}>{filter}</button>)}</div></div><div className="review-list">{filteredOutcomes.length ? filteredOutcomes.map((outcome, index) => {
-            const correctText = [outcome.question.correctIds, ...(outcome.question.acceptedAnswerSets ?? [])].map((ids) => ids.map((id) => `${id}. ${outcome.question.options.find((option) => option.id === id)?.text}`).join(" · ")).join(" OR ");
+          <section className="result-section"><div className="review-heading"><div><span className="eyebrow">Answer review</span><h2>ทบทวนทั้งข้อที่ตอบถูกและตอบผิด</h2></div><div className="review-filters">{(["all", "correct", "incorrect", "unanswered", "flagged"] as const).map((filter) => <button key={filter} className={reviewFilter === filter ? "selected" : ""} aria-pressed={reviewFilter === filter} onClick={() => setReviewFilter(filter)}>{{ all: "ทั้งหมด", correct: "ตอบถูก", incorrect: "ตอบผิด", unanswered: "ไม่ได้ตอบ", flagged: "ปักธง" }[filter]}</button>)}</div></div><div className="review-list">{filteredOutcomes.length ? filteredOutcomes.map((outcome, index) => {
             const selectedText = outcome.selected.length ? outcome.selected.map((id) => `${id}. ${outcome.question.options.find((option) => option.id === id)?.text}`).join(" · ") : "No answer";
-            return <details key={outcome.question.id} className={`review-item ${outcome.correct ? "review-correct" : "review-missed"}`} open={index === 0}><summary><span className="review-status">{outcome.correct ? "✓" : "!"}</span><span><b>Question {resultState.item.questionIds.indexOf(outcome.question.id) + 1}</b> · {outcome.question.topic}<small>{outcome.question.sourceLabel}</small></span><span>{outcome.correct ? "Correct" : "Review"}</span></summary><div className="review-body"><p className="review-prompt">{outcome.question.prompt}</p><p><b>Your answer:</b> {selectedText}</p>{!outcome.correct && <p><b>Correct answer:</b> {correctText}</p>}<div className="rationale"><b>Why:</b> {outcome.question.rationale}</div><AnswerExplanations question={outcome.question} selected={outcome.selected} /><a href={outcome.question.references[0]} target="_blank" rel="noreferrer">Study the AWS guide ↗</a></div></details>;
+            return <details key={outcome.question.id} className={`review-item ${outcome.question.review?.reviewStatus === "ambiguous" ? "review-ambiguous" : outcome.correct ? "review-correct" : "review-missed"}`} open={index === 0}><summary><span className="review-status">{outcome.question.review?.reviewStatus === "ambiguous" ? "?" : outcome.correct ? "✓" : "!"}</span><span><b>Question {resultState.item.questionIds.indexOf(outcome.question.id) + 1}</b> · {outcome.question.topic}<small>{SOURCE_GROUPS.find((group) => group.id === sourceGroupFor(outcome.question.sourceCategory))?.label} · {outcome.question.sourceLabel}</small></span><span>{outcome.question.review?.reviewStatus === "ambiguous" ? "เฉลยมีข้อกำกวม" : outcome.correct ? "ตอบถูก" : "ทบทวน"}</span></summary><div className="review-body"><p className="review-prompt">{outcome.question.prompt}</p><p><b>Your answer:</b> {selectedText}</p><AnswerExplanations question={outcome.question} selected={outcome.selected} originalCourseSelection={resultState.item.originalCourseAnswers?.[outcome.question.id]} /></div></details>;
           }) : <p className="empty-review">No questions match this filter.</p>}</div></section>
         </section>
       </main>
@@ -524,25 +550,26 @@ export default function Home() {
             <article className="study-card">
               <div className="filters">
                 <label>Domain<select value={domainFilter} onChange={(event) => setDomainFilter(event.target.value)}><option value="all">All domains</option>{Object.entries(DOMAIN_NAMES).map(([value, label]) => <option key={value} value={value}>D{value} · {label}</option>)}</select></label>
-                <label>Source<select value={sourceFilter} onChange={(event) => setSourceFilter(event.target.value as "all" | SourceCategory)}><option value="all">All sources</option>{Object.entries(sourceNames).map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></label>
-                <label className="checkbox-label"><input type="checkbox" checked={includeEmerging} onChange={(event) => setIncludeEmerging(event.target.checked)} /> Include optional emerging-AI practice</label>
+                <label>Source group<select value={sourceGroupFilter} onChange={(event) => changeSourceGroup(event.target.value as "all" | SourceGroup)}><option value="all">All groups · {bank.length}</option>{SOURCE_GROUPS.map((group) => <option key={group.id} value={group.id}>{group.label} · {sourceGroupCounts[group.id]}</option>)}</select></label>
+                <label>Specific source<select value={sourceFilter} onChange={(event) => setSourceFilter(event.target.value as "all" | SourceCategory)}><option value="all">All sources in group</option>{visibleSourceOptions.map((source) => <option key={source} value={source} disabled={source === "emerging" && !includeEmerging}>{SOURCE_NAMES[source]} · {sourceCounts[source]}{source === "emerging" && !includeEmerging ? " (enable below)" : ""}</option>)}</select></label>
+                <label className="checkbox-label"><input type="checkbox" checked={includeEmerging} onChange={(event) => changeIncludeEmerging(event.target.checked)} /> Include optional emerging-AI practice (+{sourceCounts.emerging})</label>
               </div>
               <div className="study-availability">
-                <p id="study-availability" role="status"><strong>{studyPool.length} questions available</strong>{hasStudyFilters ? " with your current filters." : " across all domains and sources."}{studyPool.length < 75 && " Larger sets need more questions; broaden or reset your filters."}</p>
+                <p id="study-availability" role="status"><strong>{studyPool.length} questions available</strong>{hasStudyFilters ? " with your current filters." : " across all domains and sources."}{studyPool.length < 200 && " Unavailable lengths need more questions; broaden or reset your filters."}</p>
                 {hasStudyFilters && <button className="button secondary" onClick={resetStudyFilters}>Reset filters</button>}
               </div>
               <div className="study-actions">
                 <div><h3>Choose your set length</h3><p>Untimed, with an explanation after each answer. Each set contains exactly the number you choose.</p></div>
                 <div className="set-buttons" aria-describedby="study-availability">
                   {STUDY_SIZES.map((size) => <button key={size} className="button secondary" disabled={studyPool.length < size} title={studyPool.length < size ? `Only ${studyPool.length} questions match. Reset or broaden your filters for ${size}.` : `Start ${size} study questions`} onClick={() => startStudy(size)}>{size} questions</button>)}
-                  {studyPool.length > 0 && studyPool.length < 75 && !STUDY_SIZES.some((size) => size === studyPool.length) && <button className="button secondary" onClick={() => startStudy(studyPool.length)}>All {studyPool.length} questions</button>}
+                  <button className="button secondary" disabled={studyPool.length === 0} title={studyPool.length ? `Practice all ${studyPool.length} questions matching your filters` : "No questions match your filters"} onClick={() => startStudy(studyPool.length)}>All ({studyPool.length})</button>
                 </div>
               </div>
             </article>
           </section>
           {history.length > 0 && <section className="mode-section history-section"><div className="section-heading"><div><span className="eyebrow">Attempt history</span><h2>Track the trend, not one score</h2></div></div><div className="history-list">{history.slice(0, 6).map((item) => { const result = getResult(item, questionsById); return <article key={item.id}><div className="history-score"><strong>{result.score}%</strong><span>{item.mode === "exam" ? "Mock exam" : "Study"}</span></div><div><h3>{item.questionIds.length} questions · {result.correct} correct</h3><p>{formatDate(item.finishedAt)} · {formatDuration(item.elapsedSeconds)}</p></div><button className="button-text" onClick={() => { setResultState({ item, autoSubmitted: false }); setScreen("result"); }}>Review →</button></article>; })}</div></section>}
         </div>
-        <aside className="side-column"><section className="side-card"><span className="eyebrow">Your study signal</span><h2>Weak topics</h2>{weakTopics.length ? <ul className="weak-list">{weakTopics.map((topic) => <li key={topic.topic}><div><b>{topic.topic}</b><span>{topic.total} answered</span></div><strong>{topic.accuracy}%</strong></li>)}</ul> : <p>Complete at least two questions in a topic to see a dependable signal here.</p>}<button className="button secondary full-width" disabled={missedStudySize === 0} onClick={() => startStudy(missedStudySize, true)}>{missedStudySize ? `Practice ${missedStudySize} missed questions` : "Practice missed questions"}</button>{history.length > 0 && missedStudySize === 0 && <p>No missed questions match your study filters.</p>}</section><section className="side-card library-card"><span className="eyebrow">Question library</span><h2>Know what you are practicing</h2><ul>{(Object.keys(sourceNames) as SourceCategory[]).map((source) => <li key={source}><span className={`source-dot ${source}`} /> <span>{sourceNames[source]}</span><b>{sourceCounts[source]}</b></li>)}</ul><p className="library-note">Only Week 8 is a captured official-practice-exam record. Original scenarios are 15 extra app-written questions, not a full mock. Full mocks draw 75 questions across eligible sources.</p></section></aside>
+        <aside className="side-column"><section className="side-card"><span className="eyebrow">Your study signal</span><h2>Weak topics</h2>{weakTopics.length ? <ul className="weak-list">{weakTopics.map((topic) => <li key={topic.topic}><div><b>{topic.topic}</b><span>{topic.total} answered</span></div><strong>{topic.accuracy}%</strong></li>)}</ul> : <p>Complete at least two questions in a topic to see a dependable signal here.</p>}<button className="button secondary full-width" disabled={missedStudySize === 0} onClick={() => startStudy(missedStudySize, true)}>{missedStudySize ? `Practice ${missedStudySize} missed questions` : "Practice missed questions"}</button>{history.length > 0 && missedStudySize === 0 && <p>No missed questions match your study filters.</p>}</section><section className="side-card library-card"><span className="eyebrow">Question library</span><h2>Where questions come from</h2><div className="source-groups">{SOURCE_GROUPS.map((group) => <section key={group.id} className="source-group"><div className="source-group-title"><strong>{group.label}</strong><b>{sourceGroupCounts[group.id]}</b></div><p>{group.description}</p><ul>{group.sources.map((source) => <li key={source}><span className={`source-dot ${source}`} /><span>{SOURCE_NAMES[source]}</span><b>{sourceCounts[source]}</b></li>)}</ul></section>)}</div><p className="library-note">Recorded Questions come from AWS Skill Builder: 75 Week 8 practice questions and 61 earlier assessment CSV questions. The AI-generated pool includes 63 scored, multi-requirement Professional scenarios, including the original 10 examples. Optional Emerging AI is off by default.</p></section></aside>
       </section>
     </main>
   );

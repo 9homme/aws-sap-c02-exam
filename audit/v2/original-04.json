@@ -1,0 +1,67 @@
+{
+  "id": "original-04",
+  "scope": "full",
+  "verdict": "FIX",
+  "originalCorrectIds": [
+    "A"
+  ],
+  "verifiedCorrectIds": [
+    "A"
+  ],
+  "issues": [
+    "prompt: เดิมตัวลวง (public record, hosts file, NAT) ไม่ใช่ทางเลือกที่สถาปนิกจะพิจารณาจริง; เพิ่ม multi-account และ DNS สองทิศทางให้เป็นระดับ Professional"
+  ],
+  "changes": {
+    "prompt": "A company uses a hub-and-spoke network with a shared-services VPC in a central networking account and application VPCs in 25 accounts, all connected through a transit gateway and to the on-premises data center over AWS Direct Connect. Application teams own Route 53 private hosted zones for subdomains of aws.example.com in their own accounts. On-premises DNS servers must resolve these private names, and workloads in every VPC must resolve records in the on-premises zone corp.example.com. New application VPCs are added every month. The company wants the solution with the least ongoing administration. Which solution meets these requirements?",
+    "correctIds": [
+      "A"
+    ],
+    "rationale": "Centralized Route 53 Resolver inbound and outbound endpoints in a shared-services VPC, cross-account private hosted zone associations, and RAM-shared forwarding rules provide bidirectional hybrid DNS with minimal administration.",
+    "options": {
+      "A": {
+        "text": "In the shared-services VPC, create Route 53 Resolver inbound and outbound endpoints. Configure on-premises DNS servers to conditionally forward aws.example.com to the inbound endpoint IP addresses. Associate each private hosted zone with the shared-services VPC. Create a forwarding rule for corp.example.com that targets the on-premises DNS servers, share it through AWS RAM, and associate it with each application VPC.",
+        "explanation": "ถูก: endpoint ชุดเดียวที่ hub ใช้ได้กับทุก VPC inbound endpoint resolve private hosted zone ที่ associate กับ VPC ของ endpoint จึงต้อง associate zone ข้ามบัญชีเข้ากับ shared-services VPC ส่วน outbound rule ที่แชร์ผ่าน RAM ทำให้ทุก VPC ส่ง query corp.example.com ไป on premises ได้ เมื่อมี VPC ใหม่ก็แค่ associate rule/zone ไม่ต้องสร้าง endpoint ใหม่"
+      },
+      "B": {
+        "text": "Create Route 53 Resolver inbound and outbound endpoints in every application VPC. Configure on-premises DNS servers with a conditional forwarder per subdomain that points to the inbound endpoint of the VPC that owns the zone.",
+        "explanation": "ทำงานได้แต่ไม่ใช่ least administration: ต้องสร้าง endpoint อย่างน้อย 2 ENI ต่อทิศทางในทุก VPC ทำให้ค่าใช้จ่ายเพิ่มตามจำนวน VPC และฝั่ง on premises ต้องเพิ่ม conditional forwarder ทุกครั้งที่มี subdomain หรือ VPC ใหม่"
+      },
+      "C": {
+        "text": "Deploy a pair of BIND DNS servers on Amazon EC2 instances in the shared-services VPC that forward to the Amazon-provided DNS server. Point on-premises forwarders and the DHCP options sets of all application VPCs to the BIND servers.",
+        "explanation": "ทำงานได้แต่ overhead สูง: ต้องดูแล patch, scaling, HA และ monitoring ของ DNS server เอง และการเปลี่ยน DHCP options ทุก VPC ทำให้ทุก query ต้องผ่าน EC2 เพียงไม่กี่ตัว ซึ่ง Route 53 Resolver endpoints ที่เป็น managed service ทำแทนได้แล้ว"
+      },
+      "D": {
+        "text": "Create only a Route 53 Resolver outbound endpoint in the shared-services VPC with forwarding rules for both aws.example.com and corp.example.com, and share the rules with all application accounts.",
+        "explanation": "ไม่ผ่าน: outbound endpoint ใช้ส่ง query จาก VPC ออกไปยัง DNS ภายนอก ไม่ได้รับ query ที่มาจาก on premises การมีแต่ outbound จึงแก้ได้เฉพาะ AWS→on premises และการตั้ง rule ให้ aws.example.com ส่งออกไปข้างนอกยังทำให้ VPC resolve private zone ของตัวเองผิดทางด้วย"
+      }
+    },
+    "review": {
+      "decisiveClue": "DNS สองทิศทาง (on prem→PHZ และ VPC→corp.example.com), 25 บัญชี, VPC ใหม่ทุกเดือน, least ongoing administration",
+      "reasoning": "1) แยกทิศทาง: on premises → AWS ใช้ inbound endpoint, AWS → on premises ใช้ outbound endpoint พร้อม forwarding rule ดังนั้น D ที่มีแต่ outbound ไม่ครบ 2) จะวาง endpoint ที่ไหน: hub เดียวใน shared-services VPC ประหยัดและดูแลง่ายกว่าวางทุก VPC (B) 3) ทำให้ hub resolve PHZ ของบัญชีอื่นได้ด้วยการ associate zone ข้ามบัญชีกับ shared-services VPC และแชร์ outbound rule ผ่าน RAM ให้ทุก VPC 4) BIND บน EC2 (C) ทำได้แต่ต้องดูแลเอง จึงไม่ใช่ least administration",
+      "references": [
+        {
+          "title": "Resolving DNS queries between VPCs and your network",
+          "url": "https://docs.aws.amazon.com/Route53/latest/DeveloperGuide/resolver.html"
+        },
+        {
+          "title": "Forwarding inbound DNS queries to your VPCs",
+          "url": "https://docs.aws.amazon.com/Route53/latest/DeveloperGuide/resolver-forwarding-inbound-queries.html"
+        },
+        {
+          "title": "Sharing Resolver rules with other AWS accounts",
+          "url": "https://docs.aws.amazon.com/Route53/latest/DeveloperGuide/resolver-rules-managing.html"
+        },
+        {
+          "title": "Associating a private hosted zone with a VPC in a different account",
+          "url": "https://docs.aws.amazon.com/Route53/latest/DeveloperGuide/hosted-zone-private-associate-vpcs-different-accounts.html"
+        }
+      ]
+    }
+  },
+  "sources": [
+    "https://docs.aws.amazon.com/Route53/latest/DeveloperGuide/resolver.html",
+    "https://docs.aws.amazon.com/Route53/latest/DeveloperGuide/resolver-forwarding-inbound-queries.html",
+    "https://docs.aws.amazon.com/Route53/latest/DeveloperGuide/resolver-rules-managing.html",
+    "https://docs.aws.amazon.com/Route53/latest/DeveloperGuide/hosted-zone-private-associate-vpcs-different-accounts.html"
+  ]
+}

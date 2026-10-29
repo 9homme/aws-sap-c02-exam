@@ -1,0 +1,60 @@
+{
+  "id": "pro-60",
+  "scope": "full",
+  "verdict": "FIX",
+  "originalCorrectIds": [
+    "A"
+  ],
+  "verifiedCorrectIds": [
+    "A"
+  ],
+  "issues": [
+    "options: ตัวลวงเดิมผิดอย่างชัดเจน (อ้างความสามารถที่บริการไม่มี) ทำให้ตอบได้จากการจำชื่อบริการ ไม่ใช่ระดับ SAP-C02 Professional; เขียนใหม่ให้แต่ละตัวลวงทำงานได้จริงบางส่วนแต่ตกเงื่อนไขหนึ่งข้อ",
+    "prompt: ลบประโยค boilerplate (architecture review board / workable for the stated environment)",
+    "review.reasoning: เดิมคัดลอก requirement ภาษาอังกฤษมาต่อกัน ไม่ได้อธิบายการตัดตัวเลือก"
+  ],
+  "changes": {
+    "prompt": "In 2026, a manufacturing conglomerate that has not previously used AWS Migration Hub or AWS Application Discovery Service operates 650 on-premises servers with poorly maintained dependency diagrams and numerous Java services that still connect to a commercial SQL database. The board approved a two-year AWS migration and requires a centralized view of discovery, migration waves and job progress using offerings available to new customers. Before prioritizing waves, architects must identify utilization, server dependencies and which application databases are actually coupled to each workload. The database team has already chosen a PostgreSQL-compatible AWS target but several source stored procedures and data types require conversion testing; business systems must continue changing data until a cutover window. The database conversion and replication tools must be selected separately from the server portfolio discovery system. The solution must meet all of the following requirements: (1) Collect available server utilization and dependency information to establish migration waves; (2) Track the migration portfolio and progress in a centralized view across supported tools; (3) Convert incompatible database schema/code where possible and use a full-load plus ongoing-change replication path for the database. Which solution meets these requirements with the LEAST operational overhead?",
+    "options": {
+      "A": {
+        "text": "Use AWS Transform for server discovery and migration-wave tracking, AWS SCT for assessment/conversion of incompatible database schema and procedures, and AWS DMS for initial full load with ongoing CDC before cutover.",
+        "explanation": "ถูก: AWS Transform รวบรวม utilization และ dependencies เพื่อจัด migration waves และให้มุมมองความคืบหน้าแบบรวมศูนย์สำหรับลูกค้าใหม่ AWS SCT (หรือ DMS Schema Conversion) ประเมินและแปลง stored procedures/data types ที่ไม่เข้ากัน ส่วน DMS ทำ full load แล้ว CDC ต่อเนื่องจนถึงช่วง cutover โดยแยกเครื่องมือ database ออกจาก portfolio discovery ตามโจทย์"
+      },
+      "B": {
+        "text": "Deploy AWS Application Discovery Service agents and track the portfolio in AWS Migration Hub, use AWS SCT for schema conversion, and use AWS DMS full load plus CDC for the database.",
+        "explanation": "ตกข้อ (1)(2): SCT และ DMS ถูกต้อง แต่ AWS Migration Hub และ Application Discovery Service ไม่เปิดให้ลูกค้าใหม่แล้ว บริษัทที่ไม่เคยใช้จึงเริ่มใช้ไม่ได้ในปี 2026 ต้องใช้ AWS Transform สำหรับ discovery และ portfolio tracking"
+      },
+      "C": {
+        "text": "Use AWS Transform for server discovery and migration-wave tracking, and use AWS DMS full load plus CDC to move the database directly to the PostgreSQL-compatible target and convert the stored procedures automatically.",
+        "explanation": "ตกข้อ (3): discovery และ DMS CDC ถูกต้อง แต่ DMS ย้ายข้อมูลและสร้างตารางพื้นฐานเท่านั้น ไม่แปลง stored procedures หรือ data types ที่ไม่เข้ากันระหว่าง engine ต้องใช้ SCT หรือ DMS Schema Conversion ทดสอบการแปลงก่อน"
+      },
+      "D": {
+        "text": "Use AWS Transform for server discovery and migration-wave tracking and AWS SCT for schema conversion, and then stop all writes and run a one-time AWS DMS full-load task during an extended outage.",
+        "explanation": "ตกข้อ (3): discovery และการแปลง schema ถูกต้อง แต่ full load อย่างเดียวต้องหยุด business systems นานตลอดการโหลดข้อมูล ซึ่งขัดกับข้อกำหนดที่ระบบต้องเปลี่ยนข้อมูลได้จนถึง cutover ต้องใช้ full load ต่อด้วย CDC"
+      }
+    },
+    "review": {
+      "decisiveClue": "ลูกค้าใหม่ปี 2026 ต้องการ discovery + wave + progress view, database ต้องแปลง schema/procedures และ full load + CDC",
+      "reasoning": "1) ตรวจ availability: Migration Hub และ ADS ไม่รับลูกค้าใหม่ ตัด B 2) AWS Transform ตอบข้อ (1)(2) 3) database migration แบบ heterogeneous มีสองส่วน: แปลง schema/code (SCT) และย้ายข้อมูลที่เปลี่ยนตลอดด้วย full load + CDC (DMS) 4) C ขาด SCT และ D ขาด CDC 5) A ครบทุกข้อ",
+      "references": [
+        {
+          "title": "AWS Migration Hub availability change",
+          "url": "https://docs.aws.amazon.com/migrationhub/latest/ug/migrationhub-availability-change.html"
+        },
+        {
+          "title": "What is the AWS Schema Conversion Tool?",
+          "url": "https://docs.aws.amazon.com/SchemaConversionTool/latest/userguide/CHAP_Welcome.html"
+        },
+        {
+          "title": "Creating tasks for ongoing replication using AWS DMS",
+          "url": "https://docs.aws.amazon.com/dms/latest/userguide/CHAP_Task.CDC.html"
+        }
+      ]
+    }
+  },
+  "sources": [
+    "https://docs.aws.amazon.com/migrationhub/latest/ug/migrationhub-availability-change.html",
+    "https://docs.aws.amazon.com/SchemaConversionTool/latest/userguide/CHAP_Welcome.html",
+    "https://docs.aws.amazon.com/dms/latest/userguide/CHAP_Task.CDC.html"
+  ]
+}

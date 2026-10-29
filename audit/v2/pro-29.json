@@ -1,0 +1,60 @@
+{
+  "id": "pro-29",
+  "scope": "full",
+  "verdict": "FIX",
+  "originalCorrectIds": [
+    "D"
+  ],
+  "verifiedCorrectIds": [
+    "D"
+  ],
+  "issues": [
+    "options: ตัวลวงเดิมผิดอย่างชัดเจน (อ้างความสามารถที่บริการไม่มี) ทำให้ตอบได้จากการจำชื่อบริการ ไม่ใช่ระดับ SAP-C02 Professional; เขียนใหม่ให้แต่ละตัวลวงทำงานได้จริงบางส่วนแต่ตกเงื่อนไขหนึ่งข้อ",
+    "prompt: ลบประโยค boilerplate (architecture review board / workable for the stated environment)",
+    "review.reasoning: เดิมคัดลอก requirement ภาษาอังกฤษมาต่อกัน ไม่ได้อธิบายการตัดตัวเลือก"
+  ],
+  "changes": {
+    "prompt": "A healthcare analytics company holds raw medical data and de-identified clinical reports in S3 across several accounts. Data stewards want to grant analysts access to specific Glue Catalog tables and only selected columns, while preventing each analyst from being given broad S3 bucket-reader permissions. Analysts currently issue ad hoc SQL queries using Athena. The team must also handle cross-account sharing of governed tables with consistent grants and revocation, while preserving existing object encryption and audit logs. Data must remain in S3, and the company cannot duplicate a separate physical dataset for every department. The solution must meet all of the following requirements: (1) Manage fine-grained table, column, and cross-account permissions above raw bucket-level IAM; (2) Keep existing S3 data lake and Athena SQL access; (3) Avoid maintaining copies of the data for each consuming team. Which solution meets these requirements with the LEAST operational overhead?",
+    "options": {
+      "A": {
+        "text": "Create IAM policies for each analyst that allow s3:GetObject only on approved prefixes, create a separate AWS Glue database for each department, and use S3 bucket policies to share prefixes with other accounts.",
+        "explanation": "ตกข้อ (1): ยังเป็นการคุมสิทธิ์ระดับ bucket/prefix ด้วย IAM ซึ่งให้สิทธิ์ทั้งไฟล์ ไม่สามารถจำกัดเฉพาะบางคอลัมน์ในตาราง และการแชร์ข้ามบัญชีด้วย bucket policy ทำให้การ grant/revoke ไม่สอดคล้องกับ catalog ต้องแก้หลายที่เมื่อสิทธิ์เปลี่ยน"
+      },
+      "B": {
+        "text": "Run AWS Glue ETL jobs that write a separate de-identified copy of each table with only the allowed columns for every department, and grant each department IAM access to its own copy.",
+        "explanation": "ตกข้อ (3): การทำสำเนาเฉพาะคอลัมน์ให้ผลลัพธ์ที่จำกัดได้จริง แต่ขัดกับข้อห้ามทำสำเนาข้อมูลต่อทีม ต้องดูแล ETL, ค่าจัดเก็บ และความสอดคล้องของข้อมูลหลายชุด และทุกครั้งที่สิทธิ์เปลี่ยนต้องสร้างหรือแก้ pipeline ใหม่"
+      },
+      "C": {
+        "text": "Load the curated data from Amazon S3 into Amazon Redshift, use Redshift column-level GRANT statements for analysts, and share tables with other accounts by using Redshift data sharing.",
+        "explanation": "ตกข้อ (2)(3): Redshift ให้ column-level permissions และ data sharing ได้จริง แต่ต้องโหลดข้อมูลเป็นอีกชุดใน warehouse และเปลี่ยนเครื่องมือ query จาก Athena ซึ่งโจทย์ต้องการคงไว้พร้อมกับให้ข้อมูลอยู่ใน S3"
+      },
+      "D": {
+        "text": "Register governed S3 locations with Lake Formation, apply catalog/table permissions and cross-account shares, and let Athena query permitted Glue Catalog objects.",
+        "explanation": "ถูก: เมื่อ register S3 location กับ Lake Formation สิทธิ์จะคุมที่ระดับ database/table/column (และ row/cell ด้วย data filters) แทนการให้ IAM อ่าน bucket ตรง Athena ได้ credentials ชั่วคราวสำหรับเฉพาะข้อมูลที่ได้รับอนุญาต การแชร์ข้ามบัญชีใช้ Lake Formation grants ผ่าน RAM ข้อมูลยังอยู่ใน S3 ชุดเดียวและ CloudTrail ยังบันทึกการเข้าถึง"
+      }
+    },
+    "review": {
+      "decisiveClue": "สิทธิ์ระดับตาราง/คอลัมน์และข้ามบัญชีเหนือ IAM ระดับ bucket, ข้อมูลอยู่ใน S3 และใช้ Athena ต่อ, ห้ามทำสำเนาต่อทีม",
+      "reasoning": "1) ข้อ (1) ต้องการสิทธิ์ระดับคอลัมน์ ซึ่ง IAM/bucket policy (A) ให้ได้แค่ระดับ object/prefix 2) ข้อ (3) ห้ามทำสำเนา ตัด ETL ต่อทีม (B) 3) ข้อ (2) ต้องคง S3 + Athena ตัดการโหลดเข้า Redshift (C) 4) Lake Formation วางชั้น permission เหนือ Glue Data Catalog ทั้ง column-level และ cross-account sharing โดย Athena query ผ่านสิทธิ์นั้น D จึงครบ",
+      "references": [
+        {
+          "title": "Lake Formation permissions model",
+          "url": "https://docs.aws.amazon.com/lake-formation/latest/dg/managing-permissions.html"
+        },
+        {
+          "title": "Cross-account data sharing in Lake Formation",
+          "url": "https://docs.aws.amazon.com/lake-formation/latest/dg/cross-account-permissions.html"
+        },
+        {
+          "title": "Using Athena to query data registered with Lake Formation",
+          "url": "https://docs.aws.amazon.com/athena/latest/ug/security-athena-lake-formation.html"
+        }
+      ]
+    }
+  },
+  "sources": [
+    "https://docs.aws.amazon.com/lake-formation/latest/dg/managing-permissions.html",
+    "https://docs.aws.amazon.com/lake-formation/latest/dg/cross-account-permissions.html",
+    "https://docs.aws.amazon.com/athena/latest/ug/security-athena-lake-formation.html"
+  ]
+}

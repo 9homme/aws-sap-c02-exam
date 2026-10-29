@@ -1,0 +1,57 @@
+{
+  "id": "emerging-03",
+  "scope": "full",
+  "verdict": "FIX",
+  "originalCorrectIds": [
+    "A"
+  ],
+  "verifiedCorrectIds": [
+    "C"
+  ],
+  "issues": [
+    "prompt: เดิมตัวลวง (instance store, CloudFront validate refund) ไม่เกี่ยวข้อง; เพิ่ม user confirmation และ timeout/escalation เพื่อให้ต้องแยกผู้อนุมัติอิสระจาก requester"
+  ],
+  "changes": {
+    "prompt": "An ecommerce company uses an AI agent to resolve customer refund requests. Refunds of $500 or less can be issued automatically. Refunds above $500 must be approved by a human supervisor before any money moves. The supervisor has 24 hours to respond; otherwise, the request must escalate to a manager. The agent must not be able to bypass the approval step even if a malicious prompt manipulates it, and auditors require a durable record of every decision and approver. The company wants a managed solution with the least custom state-management code. Which solution meets these requirements?",
+    "correctIds": [
+      "C"
+    ],
+    "rationale": "Moving the approval rule into a Step Functions workflow with a task-token human approval, a timeout-based escalation, and IAM that lets only the workflow issue refunds enforces human oversight that the agent cannot bypass.",
+    "options": {
+      "A": {
+        "text": "Add instructions to the agent's system prompt that require it to ask a supervisor in the chat before issuing refunds above $500, and log the conversation transcripts to Amazon S3.",
+        "explanation": "ไม่ผ่าน: คำสั่งใน system prompt ไม่ใช่การบังคับใช้ prompt injection หรือความผิดพลาดของ model ทำให้ข้ามได้ และ agent ยังมีสิทธิ์เรียก refund API โดยตรง การเก็บ transcript ก็ไม่ได้ให้หลักฐานการอนุมัติที่มีโครงสร้าง หรือการ escalate เมื่อครบ 24 ชั่วโมง"
+      },
+      "B": {
+        "text": "Enable user confirmation on the refund action group in Amazon Bedrock Agents so that the agent asks for confirmation before it invokes the refund function.",
+        "explanation": "ไม่ผ่าน: user confirmation ถามผู้ใช้ที่กำลังคุยกับ agent ซึ่งในที่นี้คือลูกค้าผู้ขอ refund เอง ไม่ใช่ supervisor ที่เป็นอิสระ และไม่มีการรอ 24 ชั่วโมงพร้อม escalation หรือบันทึกผู้อนุมัติ จึงเป็นการยืนยันเจตนา ไม่ใช่การควบคุมโดยมนุษย์ตามนโยบาย"
+      },
+      "C": {
+        "text": "Give the agent a single tool that starts an AWS Step Functions Standard workflow. The workflow checks the amount, issues refunds of $500 or less, and for larger refunds sends an approval request with a task token by using the waitForTaskToken pattern, with a 24-hour timeout that routes to a manager-escalation state. Only the workflow's IAM role can invoke the refund Lambda function, and the execution history provides the audit record.",
+        "explanation": "ถูก: กฎ $500 และขั้นตอนอนุมัติอยู่ใน workflow ที่ deterministic ไม่ใช่ใน model และ agent มีสิทธิ์เพียงเริ่ม workflow จึงข้ามการอนุมัติไม่ได้แม้ถูก prompt injection waitForTaskToken หยุดรอการตอบได้ยาวโดยไม่ต้องเขียน state management เอง timeout 24 ชั่วโมงนำไปสู่ escalation และ Standard workflow เก็บ execution history ให้ audit ควรเก็บตัวตนผู้อนุมัติใน output ของ task ด้วย"
+      },
+      "D": {
+        "text": "Allow the agent to call the refund API directly, and run a weekly AWS CloudTrail and Amazon Athena report that flags refunds above $500 for supervisors to review afterward.",
+        "explanation": "ไม่ผ่าน: เป็น detective control หลังเงินออกไปแล้ว ซึ่งขัดกับ 'ต้องอนุมัติก่อน' และ agent ยังมีสิทธิ์เต็มในการ refund หากถูกบงการ การตรวจรายสัปดาห์จึงพบปัญหาช้าเกินไปและไม่มี escalation ภายใน 24 ชั่วโมง"
+      }
+    },
+    "review": {
+      "decisiveClue": "refund > $500 ต้องมี supervisor อนุมัติก่อนเงินออก, timeout 24 ชั่วโมงแล้ว escalate, agent ต้องข้ามไม่ได้แม้ถูก prompt injection, audit ถาวร",
+      "reasoning": "1) การควบคุมต้องไม่อยู่ใน model เพราะ model ถูกบงการได้ จึงตัด system prompt (A) และต้องเป็นการอนุมัติก่อน ไม่ใช่ตรวจภายหลัง (D) 2) ผู้อนุมัติต้องเป็น supervisor ที่อิสระ ไม่ใช่ผู้ใช้ที่ขอ refund จึงตัด user confirmation (B) 3) Step Functions มี waitForTaskToken สำหรับ human approval, timeout สำหรับ escalation และ execution history สำหรับ audit 4) จำกัด IAM ให้เฉพาะ workflow เรียก refund function ได้ ทำให้ agent ข้ามขั้นตอนไม่ได้ C จึงถูกต้อง",
+      "references": [
+        {
+          "title": "Wait for a callback with a task token",
+          "url": "https://docs.aws.amazon.com/step-functions/latest/dg/connect-to-resource.html"
+        },
+        {
+          "title": "Step Functions Standard and Express workflows",
+          "url": "https://docs.aws.amazon.com/step-functions/latest/dg/choosing-workflow-type.html"
+        }
+      ]
+    }
+  },
+  "sources": [
+    "https://docs.aws.amazon.com/step-functions/latest/dg/connect-to-resource.html",
+    "https://docs.aws.amazon.com/step-functions/latest/dg/choosing-workflow-type.html"
+  ]
+}

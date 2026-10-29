@@ -1,0 +1,26 @@
+{
+  "id": "w8-5",
+  "scope": "explanations",
+  "verdict": "FIX",
+  "verifiedCorrectIds": [
+    "C"
+  ],
+  "issues": [
+    "options.B.explanation: เรียก NLB ว่ามี IP ระดับ Region/AZ ไม่ชัดเจน (จริงคือ static IP ต่อ AZ ที่เปิดใช้)",
+    "options.C.explanation: ไม่ระบุว่า Global Accelerator ให้ static anycast IP สองหมายเลขและส่ง traffic ผ่าน AWS backbone ซึ่งคือเหตุผลที่ตอบเงื่อนไข latency ต่ำสุด"
+  ],
+  "changes": {
+    "options": {
+      "B": {
+        "explanation": "NLB มี static IP ต่อ AZ ที่เปิดใช้ ไม่ใช่ IP คู่เดียวระดับ global และ Route 53 geolocation เลือกตามประเทศของ resolver ไม่ใช่ latency ต่ำสุด DNS routing หน้าสอง NLB จึงไม่ให้ IP คงที่สองหมายเลขที่ลูกค้าใช้ได้ทั้งสอง Region"
+      },
+      "C": {
+        "explanation": "Global Accelerator ให้ static anycast IPv4 สองหมายเลขที่ไม่เปลี่ยนแม้เพิ่ม/ย้าย Region และใช้ NLB ทั้งสอง Region เป็น endpoint แบบ active-active ได้ traffic เข้าสู่ AWS backbone ที่ edge ใกล้ผู้ใช้ จึงได้ latency ต่ำสุดและมี health-based failover โดยลูกค้าไม่ต้องเปลี่ยน IP"
+      }
+    }
+  },
+  "sources": [
+    "https://docs.aws.amazon.com/global-accelerator/latest/dg/what-is-global-accelerator.html",
+    "https://docs.aws.amazon.com/elasticloadbalancing/latest/network/availability-zones.html"
+  ]
+}

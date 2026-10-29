@@ -1,0 +1,17 @@
+{
+  "id": "pro-02",
+  "scope": "full",
+  "verdict": "PASS",
+  "originalCorrectIds": [
+    "D"
+  ],
+  "verifiedCorrectIds": [
+    "D"
+  ],
+  "issues": [],
+  "changes": {},
+  "sources": [
+    "https://docs.aws.amazon.com/workspaces/latest/adminguide/managing-wsp-personal.html",
+    "https://docs.aws.amazon.com/workspaces/latest/adminguide/manage-workspaces-directory.html"
+  ]
+}

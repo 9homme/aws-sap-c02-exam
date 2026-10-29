@@ -1,0 +1,32 @@
+{
+  "id": "w8-63",
+  "scope": "explanations",
+  "verdict": "FIX",
+  "verifiedCorrectIds": [
+    "A"
+  ],
+  "issues": [
+    "options.A-D.explanation: ไม่ระบุชัดว่า planned failover ให้ RPO=0 ส่วน unplanned ใช้กับ Region ล่มจริง และไม่เชื่อมกับเกณฑ์ minimize latency/LEAST overhead",
+    "options.B.explanation: ไม่อธิบายภาระของ app ที่ต้องเลือก endpoint เอง"
+  ],
+  "changes": {
+    "options": {
+      "A": {
+        "explanation": "Write forwarding ให้ app แต่ละ Region ใช้ endpoint ท้องถิ่นของ secondary เพื่อ latency ต่ำ โดยคำสั่งเขียนถูกส่งไป primary writer เอง และตั้ง consistency mode (SESSION/GLOBAL) เพื่อให้ read-after-write ได้ ส่วน managed planned failover สลับ primary หลังข้อมูลตรงกัน (RPO เป็น 0) จึงซ้อม DR ได้โดยไม่เสียข้อมูล overhead ต่ำสุด"
+      },
+      "B": {
+        "explanation": "แยก read ไป secondary และ write ไป primary ทำให้ app ต้องมี logic เลือก endpoint เอง และการเขียนข้าม Region ไป primary โดยตรงเพิ่ม latency ที่ Region ที่สอง อีกทั้งอ่านจาก secondary หลังเขียนทันทีอาจยังไม่เห็นข้อมูลใหม่เพราะ replication lag จึงไม่รับประกัน read-after-write แม้ planned failover จะถูกต้อง"
+      },
+      "C": {
+        "explanation": "ล้มด้วยสองจุด คืออ่านจาก secondary แล้วไม่รับประกัน read-after-write (replication lag) และใช้ manual unplanned failover ซึ่งออกแบบไว้สำหรับ Region ล่มจริง ต้อง detach/promote secondary เอง อาจสูญข้อมูลที่ replicate ไม่ทัน (RPO > 0) ไม่เหมาะกับการซ้อม DR ที่ต้องการลด data loss และ overhead"
+      },
+      "D": {
+        "explanation": "Write forwarding ถูกต้องและลด routing code แต่การซ้อม DR ด้วย manual unplanned failover คือ detach แล้ว promote secondary เป็น cluster อิสระ อาจสูญข้อมูลที่ยัง replicate ไม่ทัน และต้องสร้าง global database กลับเอง ขัดกับเป้าหมาย minimize data loss และ overhead ต่ำสุด ส่วน managed planned failover สลับ role ให้อัตโนมัติ"
+      }
+    }
+  },
+  "sources": [
+    "https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/aurora-global-database-write-forwarding.html",
+    "https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/aurora-global-database-disaster-recovery.html"
+  ]
+}

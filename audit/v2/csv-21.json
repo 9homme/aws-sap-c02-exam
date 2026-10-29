@@ -1,0 +1,21 @@
+{
+  "id": "csv-21",
+  "scope": "explanations",
+  "verdict": "FIX",
+  "verifiedCorrectIds": [
+    "C"
+  ],
+  "issues": [
+    "options.C.explanation: ไม่บอกว่าถูกเพราะอะไร และอ้างข้อจำกัด IPv6-only subnet ที่ไม่จำเป็น"
+  ],
+  "changes": {
+    "options": {
+      "C": {
+        "explanation": "Transit Gateway ส่งต่อ traffic ได้ทั้ง IPv4 และ IPv6 ผ่าน attachment และ route table เดียวกัน โดย VPC attachment มีตัวเลือกเปิด IPv6 support (VPC ต้องมี IPv6 CIDR) จึงเป็นคุณสมบัติของ attachment ที่ถูกต้อง ส่วนตัวเลือกอื่นเหมารวมเกินจริง"
+      }
+    }
+  },
+  "sources": [
+    "https://docs.aws.amazon.com/vpc/latest/tgw/tgw-vpc-attachments.html"
+  ]
+}

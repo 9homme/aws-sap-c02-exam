@@ -1,0 +1,24 @@
+{
+  "id": "w8-42",
+  "scope": "explanations",
+  "verdict": "FIX",
+  "verifiedCorrectIds": [
+    "B",
+    "C",
+    "F"
+  ],
+  "issues": [
+    "options.E.explanation: ไม่ระบุว่า Alexa for Business ถูกยกเลิกแล้ว และไม่บอกว่ามันทำหน้าที่อะไร"
+  ],
+  "changes": {
+    "options": {
+      "E": {
+        "explanation": "Alexa for Business ใช้ Alexa ในที่ทำงาน เช่น ห้องประชุม ไม่ใช่บริการสร้าง bot รู้ intent ใน contact flow ของ Amazon Connect และ AWS ยกเลิกบริการนี้แล้ว (สิ้นสุด 31 มี.ค. 2024) ตัวที่ผสาน Connect เพื่อรู้ intent ของผู้โทรคือ Amazon Lex"
+      }
+    }
+  },
+  "sources": [
+    "https://docs.aws.amazon.com/connect/latest/adminguide/amazon-lex.html",
+    "https://docs.aws.amazon.com/connect/latest/adminguide/connect-lambda-functions.html"
+  ]
+}

@@ -1,0 +1,83 @@
+{
+  "id": "pro-71",
+  "sourceCategory": "professional",
+  "sourceLabel": "AI-authored · Professional multi-requirement",
+  "sourceDetail": "Original multi-constraint scenario — ยกเลิก Windows PC ให้เร็วที่สุดโดยใช้ AD เดิม",
+  "coreEligible": true,
+  "emerging": false,
+  "domain": "4",
+  "task": "Migration and modernization",
+  "topic": "ยกเลิก Windows PC ให้เร็วที่สุดโดยใช้ AD เดิม",
+  "type": "multiple-choice",
+  "selectCount": 1,
+  "prompt": "A law firm must vacate one of its offices in 3 weeks because the building lease is ending, and the 150 Windows PCs in that office will not be moved. The employees will work from home and from a shared coworking space. Each employee needs a personal Windows desktop with the same line-of-business applications that run today, including a document-management client and a legacy billing application whose vendor no longer provides installers for new platforms. Employees must keep signing in with their existing accounts in the firm's on-premises Active Directory, and the security team will not allow user accounts or passwords to be copied into a new directory. The firm already has a Site-to-Site VPN connection between its data center and a VPC in the closest AWS Region, and the data center hosts the domain controllers. The IT team can build one Windows image with the current applications in a few days. There is no budget or time for application repackaging or rewriting, and the team has never operated a remote desktop broker. Which solution will meet these requirements in the LEAST amount of time?",
+  "options": [
+    {
+      "id": "A",
+      "text": "Build a Remote Desktop Services deployment on Amazon EC2 with session hosts, a connection broker, and an RD Gateway in the VPC, join all servers to the on-premises domain over the VPN, and publish full desktops to the employees. Store user profiles on an SMB share in the VPC and size the session hosts for 150 concurrent users.",
+      "explanation": "ทำได้ในทางเทคนิค แต่ทีมไม่เคยดูแล broker ต้องออกแบบ HA ของ broker/gateway, RDS CALs, profile storage และทดสอบแอป legacy บน multi-session host ซึ่งใช้เวลานานเกิน 3 สัปดาห์ และยังต้องดูแล infrastructure นี้ต่อไป"
+    },
+    {
+      "id": "B",
+      "text": "Create an AWS Managed Microsoft AD directory, migrate the employee accounts into it with a password reset, and deploy Amazon WorkSpaces Personal desktops from a custom bundle that contains the applications. Grant the new accounts the same group memberships and file permissions that they have on premises.",
+      "explanation": "ไม่ผ่าน: WorkSpaces ถูกต้อง แต่การย้ายบัญชีผู้ใช้ไป directory ใหม่และ reset password คือการคัดลอก user accounts ซึ่ง security ห้าม และการ migrate บัญชีพร้อมสิทธิ์ไฟล์ยังเพิ่มเวลาเกินกำหนด"
+    },
+    {
+      "id": "C",
+      "text": "Launch one Amazon EC2 Windows instance per employee from the new image, join the instances to the on-premises domain, and give employees access through AWS Client VPN and Remote Desktop with a spreadsheet that maps each employee to an instance. Use AWS Systems Manager to patch the instances and stop them outside business hours.",
+      "explanation": "ทำได้แต่ช้าและเสี่ยง: ต้องสร้าง Client VPN endpoint, การจับคู่ผู้ใช้กับ 150 instances, การ patch, backup และการเปิดปิดเครื่องเอง ไม่มีบริการจัดการ desktop ให้ และการใช้ spreadsheet จัดสรรเครื่องทำให้ onboarding ล่าช้าและผิดพลาดง่าย"
+    },
+    {
+      "id": "D",
+      "text": "Create an AD Connector directory that points to the on-premises domain controllers over the existing VPN, create a custom WorkSpaces bundle from the new Windows image, and provision Amazon WorkSpaces Personal desktops for the 150 employees, who connect with the WorkSpaces client or web access.",
+      "explanation": "ถูก: AD Connector ส่ง authentication ไปยัง AD เดิมผ่าน VPN ที่มีอยู่โดยไม่คัดลอกบัญชี WorkSpaces Personal ให้ desktop ส่วนตัวจาก custom bundle ที่มีแอปเดิม จึงไม่ต้อง repackage และ provision ทีละหลายเครื่องได้ภายในวัน ทีมไม่ต้องสร้าง broker หรือ gateway เอง ควรวาง AD Connector ใน subnet สอง AZ และตรวจว่า VPN มี bandwidth พอ"
+    }
+  ],
+  "correctIds": [
+    "D"
+  ],
+  "rationale": "1) ห้ามคัดลอกบัญชีไป directory ใหม่ ตัด Managed AD + migrate (B) 2) ทางที่เหลือใช้ AD เดิมได้ทั้งหมด แต่ qualifier คือเวลา: RDS farm (A) ต้องออกแบบ broker/gateway ที่ทีมไม่เคยทำ EC2 รายคน (C) ต้องสร้าง Client VPN และการจัดสรรเครื่องเอง 3) WorkSpaces Personal + AD Connector ใช้ VPN และ image ที่เตรียมได้ในไม่กี่วัน แล้ว provision ได้ทันที จึงเร็วที่สุด D",
+  "wrongAnswerHelp": "Start with the explicit business constraint, then eliminate choices that solve a different layer of the architecture or add unnecessary operational work.",
+  "references": [
+    "https://docs.aws.amazon.com/workspaces/latest/adminguide/launch-workspace-ad-connector.html",
+    "https://docs.aws.amazon.com/workspaces/latest/adminguide/create-custom-bundle.html",
+    "https://docs.aws.amazon.com/vpn/latest/clientvpn-admin/what-is.html"
+  ],
+  "products": [
+    "Site-to-Site VPN",
+    "AWS Client VPN",
+    "EC2",
+    "Amazon WorkSpaces Personal",
+    "AD Connector"
+  ],
+  "requirements": [
+    "Retire 150 Windows PCs within 3 weeks",
+    "Users sign in with existing on-prem AD accounts",
+    "No app re-packaging or rewrite"
+  ],
+  "review": {
+    "decisiveClue": "เหลือ 3 สัปดาห์, ใช้บัญชี AD on premises เดิมโดยห้ามคัดลอก, แอปเดิมไม่ต้อง repackage, ทีมไม่เคยดูแล broker",
+    "reasoning": "1) ห้ามคัดลอกบัญชีไป directory ใหม่ ตัด Managed AD + migrate (B) 2) ทางที่เหลือใช้ AD เดิมได้ทั้งหมด แต่ qualifier คือเวลา: RDS farm (A) ต้องออกแบบ broker/gateway ที่ทีมไม่เคยทำ EC2 รายคน (C) ต้องสร้าง Client VPN และการจัดสรรเครื่องเอง 3) WorkSpaces Personal + AD Connector ใช้ VPN และ image ที่เตรียมได้ในไม่กี่วัน แล้ว provision ได้ทันที จึงเร็วที่สุด D",
+    "options": {
+      "A": "ทำได้ในทางเทคนิค แต่ทีมไม่เคยดูแล broker ต้องออกแบบ HA ของ broker/gateway, RDS CALs, profile storage และทดสอบแอป legacy บน multi-session host ซึ่งใช้เวลานานเกิน 3 สัปดาห์ และยังต้องดูแล infrastructure นี้ต่อไป",
+      "B": "ไม่ผ่าน: WorkSpaces ถูกต้อง แต่การย้ายบัญชีผู้ใช้ไป directory ใหม่และ reset password คือการคัดลอก user accounts ซึ่ง security ห้าม และการ migrate บัญชีพร้อมสิทธิ์ไฟล์ยังเพิ่มเวลาเกินกำหนด",
+      "C": "ทำได้แต่ช้าและเสี่ยง: ต้องสร้าง Client VPN endpoint, การจับคู่ผู้ใช้กับ 150 instances, การ patch, backup และการเปิดปิดเครื่องเอง ไม่มีบริการจัดการ desktop ให้ และการใช้ spreadsheet จัดสรรเครื่องทำให้ onboarding ล่าช้าและผิดพลาดง่าย",
+      "D": "ถูก: AD Connector ส่ง authentication ไปยัง AD เดิมผ่าน VPN ที่มีอยู่โดยไม่คัดลอกบัญชี WorkSpaces Personal ให้ desktop ส่วนตัวจาก custom bundle ที่มีแอปเดิม จึงไม่ต้อง repackage และ provision ทีละหลายเครื่องได้ภายในวัน ทีมไม่ต้องสร้าง broker หรือ gateway เอง ควรวาง AD Connector ใน subnet สอง AZ และตรวจว่า VPN มี bandwidth พอ"
+    },
+    "references": [
+      {
+        "title": "Create a directory for WorkSpaces Personal with AD Connector",
+        "url": "https://docs.aws.amazon.com/workspaces/latest/adminguide/launch-workspace-ad-connector.html"
+      },
+      {
+        "title": "Create a custom WorkSpaces image and bundle",
+        "url": "https://docs.aws.amazon.com/workspaces/latest/adminguide/create-custom-bundle.html"
+      },
+      {
+        "title": "What is AWS Client VPN?",
+        "url": "https://docs.aws.amazon.com/vpn/latest/clientvpn-admin/what-is.html"
+      }
+    ],
+    "reviewedAt": "2026-10-29"
+  }
+}

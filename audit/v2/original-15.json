@@ -1,0 +1,64 @@
+{
+  "id": "original-15",
+  "scope": "full",
+  "verdict": "FIX",
+  "originalCorrectIds": [
+    "A"
+  ],
+  "verifiedCorrectIds": [
+    "D"
+  ],
+  "issues": [
+    "prompt: เดิมผูกกับลูกค้าเดิมของ Refactor Spaces ซึ่งปิดรับลูกค้าใหม่ และตัวลวง (S3, EC2 ใหญ่ขึ้น) ไม่เกี่ยวข้อง; เขียนใหม่ให้ใช้ ALB เป็น facade ของ strangler fig",
+    "reviewStatus: ลบ historical"
+  ],
+  "changes": {
+    "prompt": "A company runs a monolithic Java application on Amazon EC2 instances behind an Application Load Balancer at api.example.com. Over the next 12 months, the company wants to extract the orders and payments capabilities into new services on Amazon ECS while the monolith keeps serving all other features. Mobile clients cannot be updated to use new hostnames. Each extracted capability must start with a small share of production traffic and must be able to return to the monolith within minutes if problems occur. The company has never used AWS Migration Hub Refactor Spaces and wants the least operational overhead. Which approach meets these requirements?",
+    "correctIds": [
+      "D"
+    ],
+    "rationale": "Using the existing ALB as a strangler-fig facade with path-based rules and weighted target groups lets each capability move gradually and roll back within minutes without changing client hostnames.",
+    "options": {
+      "A": {
+        "text": "Rewrite the entire application as microservices in a parallel environment, run full regression testing, and switch the api.example.com DNS record to the new environment in a single cutover.",
+        "explanation": "ไม่ผ่าน: big-bang rewrite ทำให้ต้องรอจนทุก capability เสร็จก่อนได้ประโยชน์ ความเสี่ยงรวมอยู่ที่ cutover ครั้งเดียว และการย้อนกลับต้องสลับ DNS ทั้งระบบซึ่งติด TTL ขัดกับการเริ่มด้วย traffic ส่วนน้อยและย้อนรายความสามารถภายในไม่กี่นาที"
+      },
+      "B": {
+        "text": "Create Amazon Route 53 weighted records for api.example.com that send a percentage of requests to a new ALB for the ECS services and the rest to the monolith's ALB.",
+        "explanation": "ไม่ผ่าน: DNS แบ่ง traffic ตาม hostname ไม่สามารถส่งเฉพาะ path /orders หรือ /payments ไป service ใหม่ได้ request ของ feature อื่นที่ยังอยู่ใน monolith จะถูกส่งไปผิดที่ และ client cache DNS ทำให้ทั้งสัดส่วนและการย้อนกลับไม่แม่นยำ"
+      },
+      "C": {
+        "text": "Use AWS Migration Hub Refactor Spaces to create an environment and application proxy and route the orders and payments paths to the new ECS services.",
+        "explanation": "ไม่ผ่าน: แนวคิด strangler fig ของ Refactor Spaces ถูกต้อง แต่ AWS Migration Hub Refactor Spaces หยุดรับลูกค้าใหม่ตั้งแต่ 7 พฤศจิกายน 2025 บริษัทที่ไม่เคยใช้จึงเริ่มใช้บริการนี้ไม่ได้ ต้องสร้าง routing layer ด้วยบริการที่มีอยู่แทน"
+      },
+      "D": {
+        "text": "Keep the existing ALB as the facade. Add listener rules that match the /orders/* and /payments/* paths and forward to weighted target groups that contain the monolith and the new ECS service, start with a small weight for each new service, and increase it or set it back to zero as needed. Leave the default rule pointing to the monolith.",
+        "explanation": "ถูก: นี่คือ strangler fig pattern ด้วย ALB เดิม hostname ไม่เปลี่ยน path-based rule แยกเฉพาะ capability ที่ย้าย weighted target groups ให้เริ่มด้วยสัดส่วนน้อยและปรับน้ำหนักกลับเป็น 0 ได้ทันทีโดยไม่ขึ้นกับ DNS ส่วน feature อื่นยังไปที่ monolith ตาม default rule ต้องจัดการข้อมูลที่ใช้ร่วมกันระหว่าง monolith กับ service ใหม่ระหว่างช่วงเปลี่ยนผ่านด้วย"
+      }
+    },
+    "review": {
+      "decisiveClue": "ย้ายทีละ capability, hostname เดิม, เริ่ม traffic ส่วนน้อย, ย้อนกลับในไม่กี่นาที, ไม่เคยใช้ Refactor Spaces",
+      "reasoning": "1) การแยกทีละ capability โดยไม่กระทบ client คือ strangler fig pattern ตัด big-bang (A) 2) ต้องแยก traffic ตาม path ไม่ใช่ hostname DNS weighted (B) จึงใช้ไม่ได้ 3) Refactor Spaces (C) เป็นเครื่องมือของ pattern นี้แต่ปิดรับลูกค้าใหม่แล้ว 4) ALB เดิมมี path-based listener rules และ weighted target groups ซึ่งให้ทั้งการเริ่มด้วยสัดส่วนน้อยและการย้อนกลับทันที โดยไม่ต้องเพิ่มชิ้นส่วนใหม่ D จึงตอบโจทย์ด้วย overhead ต่ำที่สุด",
+      "references": [
+        {
+          "title": "Strangler fig pattern",
+          "url": "https://docs.aws.amazon.com/prescriptive-guidance/latest/cloud-design-patterns/strangler-fig.html"
+        },
+        {
+          "title": "ALB listener rules and weighted target groups",
+          "url": "https://docs.aws.amazon.com/elasticloadbalancing/latest/application/load-balancer-listeners.html"
+        },
+        {
+          "title": "AWS Migration Hub Refactor Spaces availability change",
+          "url": "https://docs.aws.amazon.com/migrationhub-refactor-spaces/latest/userguide/migrationhub-availability-change.html"
+        }
+      ],
+      "reviewStatus": null
+    }
+  },
+  "sources": [
+    "https://docs.aws.amazon.com/prescriptive-guidance/latest/cloud-design-patterns/strangler-fig.html",
+    "https://docs.aws.amazon.com/elasticloadbalancing/latest/application/load-balancer-listeners.html",
+    "https://docs.aws.amazon.com/migrationhub-refactor-spaces/latest/userguide/migrationhub-availability-change.html"
+  ]
+}

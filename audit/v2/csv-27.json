@@ -1,0 +1,21 @@
+{
+  "id": "csv-27",
+  "scope": "explanations",
+  "verdict": "FIX",
+  "verifiedCorrectIds": [
+    "D"
+  ],
+  "issues": [
+    "options.D.explanation: ไม่บอกประโยชน์เทียบกับ bucket policy ก้อนเดียวและตัวอย่างการแยกสิทธิ์"
+  ],
+  "changes": {
+    "options": {
+      "D": {
+        "explanation": "แต่ละ access point มี endpoint, access point policy และเลือกจำกัดให้เข้าผ่าน VPC ได้ ทำให้แยกสิทธิ์รายทีมกับ dataset เดียวกันโดยไม่ต้องแก้ bucket policy ก้อนใหญ่ จึงลดความซับซ้อนของการจัดการสิทธิ์ใน shared dataset ตามที่โจทย์ถาม"
+      }
+    }
+  },
+  "sources": [
+    "https://docs.aws.amazon.com/AmazonS3/latest/userguide/access-points.html"
+  ]
+}

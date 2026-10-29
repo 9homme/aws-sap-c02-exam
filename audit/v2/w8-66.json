@@ -1,0 +1,33 @@
+{
+  "id": "w8-66",
+  "scope": "explanations",
+  "verdict": "FIX",
+  "verifiedCorrectIds": [
+    "B"
+  ],
+  "issues": [
+    "options.B.explanation: ไม่บอกว่า LAMP blueprint มี MySQL ในตัวและราคาแพ็กเกจรายเดือนคงที่ตรงกับ requirement ราคาคาดการณ์ได้",
+    "options.A/C/D.explanation: ไม่ชัดว่าต้องเรียนอะไรเพิ่ม (Docker/ECS, PHP บน Lambda, DynamoDB) และราคาแบบ pay-per-use คาดการณ์ยากกว่า",
+    "options.C.explanation: ไม่ระบุว่า Lambda ไม่มี managed PHP runtime"
+  ],
+  "changes": {
+    "options": {
+      "A": {
+        "explanation": "Fargate + DynamoDB ใช้ได้ทางเทคนิค แต่ developer ต้องเรียน Docker/ECS และ rewrite data layer จาก SQL (MySQL ใน LAMP) เป็น NoSQL key-value ซึ่งขัดกับ LEAST time to learn new technologies อีกทั้งค่าใช้จ่าย Fargate และ DynamoDB คิดตามการใช้งานจริง คาดการณ์งบยากกว่าแพ็กเกจ fixed ของ Lightsail"
+      },
+      "B": {
+        "explanation": "Lightsail มี blueprint LAMP (instance พร้อม Apache, MySQL, PHP) ที่ developer เดิมใช้ได้เกือบเหมือน server ปกติ ไม่ต้องเรียน service ใหม่มาก มี object storage สำหรับ static files และราคาเป็นแพ็กเกจรายเดือนคงที่ เหมาะกับ traffic คงที่และงบที่ต้องคาดการณ์ได้ ข้อควรระวังคือ data transfer เกินโควต้าอาจมีค่าเพิ่ม"
+      },
+      "C": {
+        "explanation": "Lambda ไม่มี managed PHP runtime ในตัว (ต้องใช้ custom runtime/layer) และต้อง refactor แอป LAMP เป็น function หลัง API Gateway รวมทั้งตั้ง RDS, S3, IAM แยกกัน ทำให้ต้องเรียนรู้หลาย service มากกว่าความรู้เดิม และค่าใช้จ่ายแบบ pay-per-request คาดการณ์ยากกว่าแพ็กเกจ fixed"
+      },
+      "D": {
+        "explanation": "Elastic Beanstalk deploy PHP จาก .zip ได้ง่าย แต่ยังต้องเรียนรู้ environment/Auto Scaling/ALB ที่อยู่ข้างใต้ และเปลี่ยนจาก MySQL เป็น DynamoDB ทำให้ต้อง redesign data layer Beanstalk เองไม่คิดค่า แต่ resource ข้างใต้และ DynamoDB คิดตามการใช้งาน ไม่ได้ราคาคงที่แบบ Lightsail"
+      }
+    }
+  },
+  "sources": [
+    "https://docs.aws.amazon.com/lightsail/latest/userguide/amazon-lightsail-quick-start-guide-lamp.html",
+    "https://aws.amazon.com/lightsail/pricing/"
+  ]
+}

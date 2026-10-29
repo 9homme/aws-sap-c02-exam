@@ -1,0 +1,20 @@
+{
+  "id": "course-54",
+  "scope": "explanations",
+  "verdict": "FIX",
+  "verifiedCorrectIds": [
+    "B"
+  ],
+  "issues": [
+    "review.decisiveClue/reasoning: not anchored to the prompt wording 'Migrate and Modernize'; clarified this is the execution phase following Assess and Mobilize."
+  ],
+  "changes": {
+    "review": {
+      "decisiveClue": "'Migrate and Modernize' คือเฟสลงมือจริงหลัง Assess และ Mobilize",
+      "reasoning": "Migrate and Modernize เป็นเฟสท้ายของ MAP ต่อจาก Assess และ Mobilize คือช่วงลงมือจริง: สร้าง target environment, ทำ integrations ระหว่างระบบ แล้วย้าย workload จำนวนมากเป็น waves พร้อมทดสอบและ cutover ไม่ใช่ช่วงเขียน business case หรือเลือกเครื่องมือซึ่งเป็นงาน Assess"
+    }
+  },
+  "sources": [
+    "https://docs.aws.amazon.com/prescriptive-guidance/latest/large-migration-guide/phases.html"
+  ]
+}

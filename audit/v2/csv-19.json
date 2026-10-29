@@ -1,0 +1,38 @@
+{
+  "id": "csv-19",
+  "scope": "explanations",
+  "verdict": "AMBIGUOUS",
+  "verifiedCorrectIds": [
+    "D"
+  ],
+  "issues": [
+    "options.A.explanation: อ้างว่า 'ตรงกับ S3' ทั้งที่โจทย์ไม่ได้พูดถึง S3 และไม่บอกว่า FSx บางแบบ (เช่น ONTAP) ทำ tiering ตามการเข้าถึงได้จริง",
+    "options.B.explanation: ไม่อธิบายว่า tiering ของ File Gateway ทำที่ S3 lifecycle",
+    "options.D.explanation: ไม่บอกกลไกที่ทำให้ถูก (ย้ายอัตโนมัติ, ไม่มี retrieval fee) ",
+    "key: FSx for NetApp ONTAP/OpenZFS มี tiering ตามการเข้าถึง จึงกำกวมเล็กน้อย แต่คำตอบมาตรฐานของคอร์สคือ S3 Intelligent-Tiering"
+  ],
+  "changes": {
+    "options": {
+      "A": {
+        "explanation": "FSx เป็นกลุ่มบริการหลายแบบ บางแบบ เช่น FSx for NetApp ONTAP ย้ายข้อมูลไป capacity pool ตาม tiering policy และ cooling period ที่ตั้งเอง จึงใกล้เคียงโจทย์ แต่เป็นความสามารถเฉพาะบางประเภท ไม่ใช่คำตอบมาตรฐานของ tiering อัตโนมัติตาม access pattern"
+      },
+      "B": {
+        "explanation": "Storage Gateway เป็นสะพานให้ระบบ on premises เข้าถึง S3/EBS/Glacier ตัว gateway เองแค่ cache และส่งข้อมูล การย้าย tier จริงต้องตั้ง S3 lifecycle หรือใช้ storage class อื่น จึงไม่ใช่บริการที่เฝ้า access pattern แล้วย้ายให้เอง"
+      },
+      "C": {
+        "explanation": "Snowball เป็นอุปกรณ์ทางกายภาพสำหรับย้ายข้อมูลปริมาณมากเข้าออก AWS แบบครั้งเดียว ไม่ได้เฝ้าดูว่า object ถูกอ่านเมื่อไรและไม่มีการย้ายระหว่าง storage tiers ต่อเนื่องหลังข้อมูลอยู่ใน AWS แล้ว"
+      },
+      "D": {
+        "explanation": "Intelligent-Tiering เฝ้าดู access ของแต่ละ object แล้วย้ายอัตโนมัติ: ไม่ถูกอ่าน 30 วันไป Infrequent, 90 วันไป Archive Instant และไม่มีค่า retrieval ใน tier เหล่านี้ แต่มี monitoring fee ต่อ object (object เล็กกว่า 128 KB ไม่ถูก tier) ส่วน Archive/Deep Archive Access เป็น optional ต้อง restore"
+      }
+    },
+    "review": {
+      "caveat": "เฉลยที่บันทึกไว้คือ S3 Intelligent-Tiering ซึ่งเป็นคำตอบมาตรฐานของคอร์สสำหรับ tiering อัตโนมัติตาม access pattern แต่ตัวเลือก A (Amazon FSx) กำกวม เพราะ FSx for NetApp ONTAP ก็ย้ายข้อมูลไป capacity pool ตามการเข้าถึงได้ ถ้าเจอข้อสอบจริงที่พูดถึง S3 objects ให้เลือก Intelligent-Tiering",
+      "reviewStatus": "ambiguous"
+    }
+  },
+  "sources": [
+    "https://docs.aws.amazon.com/AmazonS3/latest/userguide/intelligent-tiering-overview.html",
+    "https://docs.aws.amazon.com/fsx/latest/ONTAPGuide/managing-storage-capacity.html"
+  ]
+}

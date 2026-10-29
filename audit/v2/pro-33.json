@@ -1,0 +1,60 @@
+{
+  "id": "pro-33",
+  "scope": "full",
+  "verdict": "FIX",
+  "originalCorrectIds": [
+    "D"
+  ],
+  "verifiedCorrectIds": [
+    "D"
+  ],
+  "issues": [
+    "options: ตัวลวงเดิมผิดอย่างชัดเจน (อ้างความสามารถที่บริการไม่มี) ทำให้ตอบได้จากการจำชื่อบริการ ไม่ใช่ระดับ SAP-C02 Professional; เขียนใหม่ให้แต่ละตัวลวงทำงานได้จริงบางส่วนแต่ตกเงื่อนไขหนึ่งข้อ",
+    "prompt: ลบประโยค boilerplate (architecture review board / workable for the stated environment)",
+    "review.reasoning: เดิมคัดลอก requirement ภาษาอังกฤษมาต่อกัน ไม่ได้อธิบายการตัดตัวเลือก"
+  ],
+  "changes": {
+    "prompt": "An online marketplace emits order lifecycle events from a collection of independently deployed services. The events must be routed based on source, detail type, and selected event attributes to different consumers without changing producer code whenever a new team subscribes. A warehouse service processes every order-event asynchronously and must absorb burst traffic, retry safely, and isolate poison messages. A customer-messaging service independently fans out alerts to mobile or downstream notification endpoints. Some fulfillment flows contain multi-step compensating actions with explicit failure and wait states and must remain observable end-to-end. The solution must meet all of the following requirements: (1) Route diverse application events with filtering and loose producer-to-consumer coupling; (2) Buffer a critical consumer with retries and DLQ isolation while distributing notifications to independent endpoints; (3) Represent a stateful multi-step fulfillment process with explicit error transitions. Which solution meets these requirements with the LEAST operational overhead?",
+    "options": {
+      "A": {
+        "text": "Use EventBridge rules for event routing, an SQS queue with a DLQ for warehouse processing, and SNS for notification fanout. Implement fulfillment as a chain of Lambda functions that invoke each other and handle retries and compensation in code.",
+        "explanation": "ตกข้อ (3): routing, buffering และ fanout ถูกต้อง แต่ Lambda ที่เรียกต่อกันเองต้องเก็บ state, wait, retry และ compensation ใน code ไม่มี state transitions ที่ชัดเจนหรือ execution history ให้ติดตาม end-to-end Step Functions ให้สิ่งเหล่านี้แบบ managed"
+      },
+      "B": {
+        "text": "Use EventBridge rules for event routing and Step Functions for fulfillment. Subscribe the warehouse Lambda function and the notification endpoints directly to an SNS topic that receives all order events.",
+        "explanation": "ตกข้อ (2): SNS fanout เหมาะกับ notification แต่ warehouse service ที่ subscribe ตรงกับ SNS ไม่มีคิวพักงานช่วง burst หาก consumer ถูก throttle หรือล้ม message จะ retry ตามนโยบายของ SNS แล้วไป DLQ ของ subscription เท่านั้น ไม่ได้ buffer และควบคุมอัตราการประมวลผลแบบ SQS"
+      },
+      "C": {
+        "text": "Have each producer service publish order events directly to the warehouse SQS queue and to the notification SNS topic, and use Step Functions for fulfillment.",
+        "explanation": "ตกข้อ (1): SQS, SNS และ Step Functions ถูกต้องในหน้าที่ของตัวเอง แต่ producer ต้องรู้จักทุก consumer และต้องแก้ code ทุกครั้งที่มีทีมใหม่ต้องการ event ซึ่งเป็น tight coupling ที่โจทย์ห้าม EventBridge rules ให้ filter ตาม source, detail-type และ attributes โดยไม่แตะ producer"
+      },
+      "D": {
+        "text": "Use EventBridge rules for event routing, an SQS queue with DLQ for warehouse processing, SNS for notification fanout where suitable, and Step Functions for the fulfillment orchestration.",
+        "explanation": "ถูก: EventBridge event bus รับ event จากทุก service และใช้ rules กรองตาม source, detail-type และ attributes ส่งไปยัง target ใหม่โดยไม่แก้ producer SQS พร้อม DLQ พักงาน burst และแยก poison messages SNS กระจาย notification ไปหลาย endpoints ส่วน Step Functions จัดการ workflow หลายขั้นตอนพร้อม Wait, Retry/Catch และ execution history"
+      }
+    },
+    "review": {
+      "decisiveClue": "routing ตาม source/detail-type โดยไม่แก้ producer, consumer สำคัญต้องมี buffer + DLQ, notification fanout, workflow หลายขั้นที่มี error transitions",
+      "reasoning": "1) แต่ละบริการมีบทบาทเฉพาะ: EventBridge = content-based routing, SQS = buffer/retry/DLQ, SNS = push fanout, Step Functions = stateful orchestration 2) C ให้ producer ส่งตรงถึง consumer จึง coupling สูง 3) B ข้าม SQS ทำให้ warehouse ไม่มี buffer 4) A ใช้ Lambda chain แทน workflow ที่มี state ชัดเจน 5) D วางทุกบริการตรงกับหน้าที่ จึงครบทั้งสามข้อ",
+      "references": [
+        {
+          "title": "What is Amazon EventBridge?",
+          "url": "https://docs.aws.amazon.com/eventbridge/latest/userguide/eb-what-is.html"
+        },
+        {
+          "title": "Amazon SQS dead-letter queues",
+          "url": "https://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/sqs-dead-letter-queues.html"
+        },
+        {
+          "title": "Handling errors in Step Functions workflows",
+          "url": "https://docs.aws.amazon.com/step-functions/latest/dg/concepts-error-handling.html"
+        }
+      ]
+    }
+  },
+  "sources": [
+    "https://docs.aws.amazon.com/eventbridge/latest/userguide/eb-what-is.html",
+    "https://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/sqs-dead-letter-queues.html",
+    "https://docs.aws.amazon.com/step-functions/latest/dg/concepts-error-handling.html"
+  ]
+}

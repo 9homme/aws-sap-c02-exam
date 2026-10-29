@@ -1,0 +1,60 @@
+{
+  "id": "pro-48",
+  "scope": "full",
+  "verdict": "FIX",
+  "originalCorrectIds": [
+    "C"
+  ],
+  "verifiedCorrectIds": [
+    "C"
+  ],
+  "issues": [
+    "options: ตัวลวงเดิมผิดอย่างชัดเจน (อ้างความสามารถที่บริการไม่มี) ทำให้ตอบได้จากการจำชื่อบริการ ไม่ใช่ระดับ SAP-C02 Professional; เขียนใหม่ให้แต่ละตัวลวงทำงานได้จริงบางส่วนแต่ตกเงื่อนไขหนึ่งข้อ",
+    "prompt: ลบประโยค boilerplate (architecture review board / workable for the stated environment)",
+    "review.reasoning: เดิมคัดลอก requirement ภาษาอังกฤษมาต่อกัน ไม่ได้อธิบายการตัดตัวเลือก"
+  ],
+  "changes": {
+    "prompt": "A global manufacturer operates a Windows-based document-management application using SMB file locking, Windows ACLs, and Microsoft Active Directory authentication. The application servers are moving to EC2 in an AWS Region, but identity accounts remain in an existing on-premises AD forest. Some factory clients will continue accessing approved files locally with network latency constraints during the transition. IT does not want to maintain Windows file server failover clusters on EC2, and the directory team will permit a managed directory with forest trust but does not allow duplicating user identities into a disconnected domain. The platform must preserve authorization semantics and minimize file-server operations. The solution must meet all of the following requirements: (1) Run a managed Windows-compatible SMB file service with existing ACL/file-locking behavior; (2) Integrate with existing Microsoft AD identities through a supported directory topology; (3) Plan a phased cutover for latency-sensitive on-prem clients without assuming that S3 File Gateway caches FSx Windows shares. Which solution meets these requirements with the LEAST operational overhead?",
+    "options": {
+      "A": {
+        "text": "Deploy Amazon FSx for Windows File Server and join it to the on-premises domain through an AD Connector directory in the VPC, and give factory clients access to the FSx share over the private connection.",
+        "explanation": "ตกข้อ (2): AD Connector เป็น proxy สำหรับบริการที่รองรับ เช่น WorkSpaces แต่ FSx for Windows File Server ไม่รองรับการ join ผ่าน AD Connector ต้อง join กับ AWS Managed Microsoft AD (ใช้ forest trust กับ AD เดิมได้) หรือกับ self-managed AD โดยตรง จึงไม่ใช่ directory topology ที่ใช้ได้"
+      },
+      "B": {
+        "text": "Deploy Amazon FSx for Windows File Server joined to AWS Managed Microsoft AD with a forest trust, and deploy an Amazon FSx File Gateway at each factory to cache the FSx shares locally for latency-sensitive clients.",
+        "explanation": "ตกข้อ (3): FSx และ forest trust ถูกต้อง แต่ Amazon FSx File Gateway ไม่เปิดให้ลูกค้าใหม่แล้ว จึงวางแผนใช้เป็น local cache สำหรับโรงงานไม่ได้ โจทย์เตือนให้ไม่สมมติว่ามี gateway cache สำหรับ FSx share ต้องคง local SMB service ไว้ชั่วคราวและวางแผน sync/cutover"
+      },
+      "C": {
+        "text": "Use FSx for Windows File Server with a supported Active Directory trust or self-managed AD integration; connect suitable on-prem SMB clients privately and keep a local SMB service temporarily for latency-critical factory workloads until an explicit synchronization and cutover plan is ready.",
+        "explanation": "ถูก: FSx for Windows File Server เป็น managed SMB ที่รองรับ NTFS ACLs, file locking และ Multi-AZ โดยไม่ต้องดูแล failover cluster เอง join กับ AWS Managed Microsoft AD ที่มี forest trust กับ AD เดิม หรือ join กับ self-managed AD โดยตรง จึงใช้ identities เดิมได้ client ที่รับ latency ได้เข้าผ่านเครือข่าย private ส่วนโรงงานที่ไวต่อ latency ใช้ file server ในพื้นที่ต่อไปจนพร้อม sync ด้วย DataSync และ cutover"
+      },
+      "D": {
+        "text": "Build a Windows Server failover cluster with Storage Spaces Direct on EC2 instances across two Availability Zones, join it to the on-premises domain over the private connection, and keep a local SMB server at each factory during the transition.",
+        "explanation": "ตกข้อ (1): ได้ SMB, ACL และ AD integration ครบ แต่ IT ต้องดูแล Windows failover cluster, storage และ patch เอง ซึ่งโจทย์ระบุว่าไม่ต้องการ FSx for Windows File Server ให้ความสามารถเดียวกันแบบ managed"
+      }
+    },
+    "review": {
+      "decisiveClue": "managed SMB ที่คง ACL/file locking, ใช้ AD identities เดิมผ่าน topology ที่รองรับ, โรงงานไวต่อ latency โดยห้ามสมมติว่ามี gateway cache สำหรับ FSx",
+      "reasoning": "1) ข้อ (1) ต้องการ managed SMB ตัด failover cluster บน EC2 (D) 2) ข้อ (2) FSx join ได้กับ AWS Managed Microsoft AD (ผ่าน trust) หรือ self-managed AD ไม่ใช่ AD Connector (A) 3) ข้อ (3) FSx File Gateway ไม่เปิดให้ลูกค้าใหม่แล้ว จึงไม่ควรวางแผนพึ่งพา (B) 4) C ใช้ FSx กับ directory topology ที่รองรับ และวางแผน phased cutover สำหรับโรงงานอย่างชัดเจน",
+      "references": [
+        {
+          "title": "What is FSx for Windows File Server?",
+          "url": "https://docs.aws.amazon.com/fsx/latest/WindowsGuide/what-is.html"
+        },
+        {
+          "title": "Using Microsoft Active Directory with FSx for Windows File Server",
+          "url": "https://docs.aws.amazon.com/fsx/latest/WindowsGuide/aws-ad-integration-fsxW.html"
+        },
+        {
+          "title": "Amazon FSx File Gateway availability change",
+          "url": "https://docs.aws.amazon.com/filegateway/latest/filefsxw/what-is-file-fsxw.html"
+        }
+      ]
+    }
+  },
+  "sources": [
+    "https://docs.aws.amazon.com/fsx/latest/WindowsGuide/what-is.html",
+    "https://docs.aws.amazon.com/fsx/latest/WindowsGuide/aws-ad-integration-fsxW.html",
+    "https://docs.aws.amazon.com/filegateway/latest/filefsxw/what-is-file-fsxw.html"
+  ]
+}

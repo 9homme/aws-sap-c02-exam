@@ -1,0 +1,77 @@
+{
+  "id": "pro-83",
+  "sourceCategory": "professional",
+  "sourceLabel": "AI-authored · Professional multi-requirement",
+  "sourceDetail": "Original multi-constraint scenario — เร่ง GET endpoints ที่อ่านซ้ำด้วย cache ระดับ API",
+  "coreEligible": true,
+  "emerging": false,
+  "domain": "3",
+  "task": "Continuous improvement",
+  "topic": "เร่ง GET endpoints ที่อ่านซ้ำด้วย cache ระดับ API",
+  "type": "multiple-choice",
+  "selectCount": 1,
+  "prompt": "An online retailer serves its product catalog through an Amazon API Gateway REST API. Each GET request invokes an AWS Lambda function that reads one or more items from an Amazon DynamoDB table and assembles a response. About 85% of the traffic is GET requests for the same few thousand products, and the product data changes only a few times per hour. During promotions, the p95 latency of catalog requests rises to 600 ms, the Lambda function's concurrency approaches the account limit, and DynamoDB read costs spike. The product team states that catalog responses may be up to 5 minutes stale, but checkout and inventory endpoints must always return live data. The company wants to cut the p95 latency of catalog GET requests as much as possible and reduce both Lambda invocations and DynamoDB reads, without rewriting the Lambda function. The responses vary only by the productId path parameter and the Accept-Language header. The API is not currently behind a CDN, and the operations team wants a change that it can roll out to one stage and monitor with existing CloudWatch metrics. Which solution will provide the BEST performance for the catalog GET requests?",
+  "options": [
+    {
+      "id": "A",
+      "text": "Deploy a DynamoDB Accelerator (DAX) cluster in the VPC, attach the Lambda function to the VPC, and replace the DynamoDB client in the function with the DAX client so that repeated item reads are served from memory. Size the DAX cluster with three nodes across Availability Zones for the promotional load.",
+      "explanation": "ช่วยได้บางส่วน: DAX ลด latency และจำนวน read ที่เข้า DynamoDB ได้ แต่ทุก request ยังต้องเรียก Lambda จึงไม่ลด invocation และ concurrency ที่ใกล้เต็ม อีกทั้งต้องแก้ code ให้ใช้ DAX client และย้าย function เข้า VPC ซึ่งโจทย์ไม่ต้องการ"
+    },
+    {
+      "id": "B",
+      "text": "Enable API Gateway caching on the production stage with a 300-second TTL for the catalog GET methods only, include the productId path parameter and the Accept-Language header in the cache key, and disable caching for the checkout and inventory methods.",
+      "explanation": "ถูก: cache ของ API Gateway ตอบ request ที่ซ้ำได้โดยไม่ต้องเรียก Lambda หรืออ่าน DynamoDB เลย จึงลดทั้ง latency, invocations และ read cost พร้อมกัน TTL 300 วินาทีตรงกับความ stale ที่ยอมรับได้ cache key ที่รวม path parameter และ header ทำให้ได้ response ที่ถูกต้องตามภาษา และการปิด cache สำหรับ checkout/inventory คง live data ไว้ ไม่ต้องแก้ Lambda"
+    },
+    {
+      "id": "C",
+      "text": "Increase the reserved concurrency of the Lambda function, raise the function's memory size, and switch the DynamoDB table to on-demand capacity mode so that it can absorb the promotional read spikes. Request a higher account concurrency quota before each promotion so that the function is not throttled.",
+      "explanation": "ไม่ผ่าน: ช่วยให้ระบบรับโหลดได้มากขึ้น แต่ทุก request ยังวิ่งผ่าน Lambda และ DynamoDB จึงไม่ลด invocation หรือจำนวน read และ latency ยังเท่าการประมวลผลเต็มรอบ on-demand ยังอาจเพิ่มค่าใช้จ่ายช่วง promotion ด้วย"
+    },
+    {
+      "id": "D",
+      "text": "Add an Amazon ElastiCache (Redis OSS) cluster, attach the Lambda function to the VPC, and update the function to check the cache before reading DynamoDB and to write each assembled response to the cache with a 5-minute TTL. Size the cluster with replicas across Availability Zones for the promotional load.",
+      "explanation": "ช่วยได้บางส่วน: ลด DynamoDB reads และ latency ส่วนของการอ่านได้ แต่ทุก request ยังเรียก Lambda และต้องเขียน cache-aside logic ใหม่ ซึ่งขัดกับข้อกำหนดที่ไม่แก้ function และเพิ่ม cluster ที่ต้องดูแล"
+    }
+  ],
+  "correctIds": [
+    "B"
+  ],
+  "rationale": "1) ตัวเลือก DAX (A) และ ElastiCache (D) cache หลัง Lambda จึงไม่ลด invocations และต้องแก้ code 2) การเพิ่ม concurrency/on-demand (C) รับโหลดได้แต่ไม่ลดงานหรือ latency 3) cache ที่ API layer ตอบ request ซ้ำก่อนถึง Lambda จึงลดทั้งสามอย่างพร้อมกันและได้ latency ต่ำที่สุด 4) ตั้ง cache เฉพาะ catalog GET ด้วย cache key ที่ถูกต้องและ TTL 300 วินาที B จึงดีที่สุด",
+  "wrongAnswerHelp": "Start with the explicit business constraint, then eliminate choices that solve a different layer of the architecture or add unnecessary operational work.",
+  "references": [
+    "https://docs.aws.amazon.com/apigateway/latest/developerguide/api-gateway-caching.html",
+    "https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/DAX.html"
+  ],
+  "products": [
+    "CloudFront",
+    "DynamoDB",
+    "DAX (DynamoDB Accelerator)",
+    "API Gateway"
+  ],
+  "requirements": [
+    "Cut p95 latency of catalog GETs",
+    "Reduce Lambda invocations and DynamoDB reads",
+    "Data may be up to 5 minutes stale"
+  ],
+  "review": {
+    "decisiveClue": "85% เป็น GET ซ้ำ, ยอม stale 5 นาที, ต้องลด latency + Lambda invocations + DynamoDB reads, ห้ามแก้ Lambda, checkout ต้อง live",
+    "reasoning": "1) ตัวเลือก DAX (A) และ ElastiCache (D) cache หลัง Lambda จึงไม่ลด invocations และต้องแก้ code 2) การเพิ่ม concurrency/on-demand (C) รับโหลดได้แต่ไม่ลดงานหรือ latency 3) cache ที่ API layer ตอบ request ซ้ำก่อนถึง Lambda จึงลดทั้งสามอย่างพร้อมกันและได้ latency ต่ำที่สุด 4) ตั้ง cache เฉพาะ catalog GET ด้วย cache key ที่ถูกต้องและ TTL 300 วินาที B จึงดีที่สุด",
+    "options": {
+      "A": "ช่วยได้บางส่วน: DAX ลด latency และจำนวน read ที่เข้า DynamoDB ได้ แต่ทุก request ยังต้องเรียก Lambda จึงไม่ลด invocation และ concurrency ที่ใกล้เต็ม อีกทั้งต้องแก้ code ให้ใช้ DAX client และย้าย function เข้า VPC ซึ่งโจทย์ไม่ต้องการ",
+      "B": "ถูก: cache ของ API Gateway ตอบ request ที่ซ้ำได้โดยไม่ต้องเรียก Lambda หรืออ่าน DynamoDB เลย จึงลดทั้ง latency, invocations และ read cost พร้อมกัน TTL 300 วินาทีตรงกับความ stale ที่ยอมรับได้ cache key ที่รวม path parameter และ header ทำให้ได้ response ที่ถูกต้องตามภาษา และการปิด cache สำหรับ checkout/inventory คง live data ไว้ ไม่ต้องแก้ Lambda",
+      "C": "ไม่ผ่าน: ช่วยให้ระบบรับโหลดได้มากขึ้น แต่ทุก request ยังวิ่งผ่าน Lambda และ DynamoDB จึงไม่ลด invocation หรือจำนวน read และ latency ยังเท่าการประมวลผลเต็มรอบ on-demand ยังอาจเพิ่มค่าใช้จ่ายช่วง promotion ด้วย",
+      "D": "ช่วยได้บางส่วน: ลด DynamoDB reads และ latency ส่วนของการอ่านได้ แต่ทุก request ยังเรียก Lambda และต้องเขียน cache-aside logic ใหม่ ซึ่งขัดกับข้อกำหนดที่ไม่แก้ function และเพิ่ม cluster ที่ต้องดูแล"
+    },
+    "references": [
+      {
+        "title": "Cache settings for REST APIs in API Gateway",
+        "url": "https://docs.aws.amazon.com/apigateway/latest/developerguide/api-gateway-caching.html"
+      },
+      {
+        "title": "In-memory acceleration with DynamoDB Accelerator (DAX)",
+        "url": "https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/DAX.html"
+      }
+    ],
+    "reviewedAt": "2026-10-29"
+  }
+}

@@ -1,0 +1,81 @@
+{
+  "id": "pro-82",
+  "sourceCategory": "professional",
+  "sourceLabel": "AI-authored · Professional multi-requirement",
+  "sourceDetail": "Original multi-constraint scenario — API ที่ตรวจ JWT ปริมาณสูงด้วยต้นทุนต่ำสุด",
+  "coreEligible": true,
+  "emerging": false,
+  "domain": "2",
+  "task": "New solution design",
+  "topic": "API ที่ตรวจ JWT ปริมาณสูงด้วยต้นทุนต่ำสุด",
+  "type": "multiple-choice",
+  "selectCount": 1,
+  "prompt": "A media company is building a public content API for its mobile apps. The API is a thin proxy: each request is authenticated with a JSON Web Token that the company's existing OpenID Connect identity provider issues, and an AWS Lambda function reads metadata from Amazon DynamoDB and returns a small JSON document. The company expects about 2 billion requests per month, with traffic that varies widely by time of day and spikes during live events. The API does not need usage plans, API keys, request validation, response caching, AWS WAF integration at the API layer, or request and response transformations, because the CDN and the Lambda function already handle those concerns. The platform team requires a fully managed, serverless front door that scales automatically with no servers or containers to patch. Finance has asked for the option with the lowest monthly cost for the API layer while still validating every token before the Lambda function runs. The team already publishes Lambda metrics to Amazon CloudWatch and wants to keep using them. Which solution will meet these requirements MOST cost-effectively?",
+  "options": [
+    {
+      "id": "A",
+      "text": "Create an Amazon API Gateway HTTP API with a Lambda proxy integration, configure a JWT authorizer that uses the identity provider's issuer URL and audience, and attach the authorizer to every route so that API Gateway validates tokens before invoking the function.",
+      "explanation": "ถูก: HTTP API ราคาต่อล้าน request ต่ำกว่า REST API อย่างมาก และมี JWT authorizer ในตัวที่ตรวจ issuer, audience และลายเซ็นของ token โดยไม่ต้องเรียก Lambda เพิ่ม จึงไม่มีค่าใช้จ่ายของ authorizer function ทั้งยังเป็น serverless และ scale อัตโนมัติ ฟีเจอร์ที่ HTTP API ไม่มี เช่น usage plans และ caching โจทย์ระบุว่าไม่ต้องใช้"
+    },
+    {
+      "id": "B",
+      "text": "Create an Amazon API Gateway REST API with a Lambda proxy integration, configure an Amazon Cognito user pool authorizer that federates with the existing identity provider, and enable the authorizer on every method. Deploy the API to a single stage and monitor latency and 4xx errors with Amazon CloudWatch metrics.",
+      "explanation": "ทำงานได้แต่แพงกว่า: REST API มีราคาต่อ request สูงกว่า HTTP API หลายเท่าเพื่อแลกกับฟีเจอร์ที่โจทย์ไม่ต้องใช้ และการ federate ผ่าน Cognito เพิ่มค่าบริการ Cognito ต่อผู้ใช้รายเดือนโดยไม่จำเป็น เพราะ IdP เดิมออก JWT ให้อยู่แล้ว"
+    },
+    {
+      "id": "C",
+      "text": "Create an Amazon API Gateway REST API with a Lambda proxy integration and a Lambda token authorizer that validates the JWT signature, and set the authorizer result cache TTL to 300 seconds to reduce authorizer invocations. Deploy the API to a single stage and monitor the authorizer's error rate with Amazon CloudWatch.",
+      "explanation": "ทำงานได้แต่ไม่คุ้มที่สุด: authorizer cache ลดจำนวนครั้งที่เรียก authorizer ได้ แต่ยังจ่ายราคาของ REST API ที่สูงกว่า และยังมีค่า Lambda authorizer สำหรับ token ที่ไม่อยู่ใน cache รวมถึงต้องดูแล code ตรวจ token เอง"
+    },
+    {
+      "id": "D",
+      "text": "Run an open source API gateway in an Amazon Lightsail container service with JWT validation middleware, scale the service manually before live events, and forward requests to the Lambda function through a function URL. Use the Lightsail fixed monthly price to keep the API layer cost predictable.",
+      "explanation": "ไม่ผ่าน: Lightsail มีราคาคงที่ที่อาจดูถูก แต่ต้องดูแล container และ scale ด้วยมือก่อนแต่ละ event ซึ่งขัดกับข้อกำหนด fully managed serverless ที่ scale อัตโนมัติ และ function URL ที่เปิดไว้ยังต้องป้องกันไม่ให้ถูกเรียกตรงโดยข้าม gateway"
+    }
+  ],
+  "correctIds": [
+    "A"
+  ],
+  "rationale": "1) ต้องเป็น managed serverless ที่ scale เอง ตัด Lightsail ที่ scale ด้วยมือ (D) 2) ทุกตัวเลือกที่เหลือตรวจ JWT ได้ จึงตัดสินด้วยต้นทุน: REST API แพงกว่า HTTP API ต่อ request อย่างมาก (B, C) และ B เพิ่มค่า Cognito, C เพิ่มค่า Lambda authorizer 3) HTTP API มี JWT authorizer ในตัวโดยไม่มีค่าใช้จ่ายเพิ่ม และฟีเจอร์ที่ขาดไปโจทย์ไม่ต้องใช้ A จึงคุ้มค่าที่สุด",
+  "wrongAnswerHelp": "Start with the explicit business constraint, then eliminate choices that solve a different layer of the architecture or add unnecessary operational work.",
+  "references": [
+    "https://docs.aws.amazon.com/apigateway/latest/developerguide/http-api-vs-rest.html",
+    "https://docs.aws.amazon.com/apigateway/latest/developerguide/http-api-jwt-authorizer.html",
+    "https://aws.amazon.com/api-gateway/pricing/"
+  ],
+  "products": [
+    "Lambda",
+    "Lightsail",
+    "API Gateway"
+  ],
+  "requirements": [
+    "Validate JWTs from the existing IdP",
+    "2 billion requests/month at the lowest cost",
+    "No need for usage plans, request validation, or caching"
+  ],
+  "review": {
+    "decisiveClue": "ตรวจ JWT ทุก request, 2 พันล้าน request/เดือน, ไม่ต้องใช้ usage plans/caching/WAF ที่ API, ต้องเป็น serverless ที่ scale อัตโนมัติ, ต้นทุนต่ำสุด",
+    "reasoning": "1) ต้องเป็น managed serverless ที่ scale เอง ตัด Lightsail ที่ scale ด้วยมือ (D) 2) ทุกตัวเลือกที่เหลือตรวจ JWT ได้ จึงตัดสินด้วยต้นทุน: REST API แพงกว่า HTTP API ต่อ request อย่างมาก (B, C) และ B เพิ่มค่า Cognito, C เพิ่มค่า Lambda authorizer 3) HTTP API มี JWT authorizer ในตัวโดยไม่มีค่าใช้จ่ายเพิ่ม และฟีเจอร์ที่ขาดไปโจทย์ไม่ต้องใช้ A จึงคุ้มค่าที่สุด",
+    "options": {
+      "A": "ถูก: HTTP API ราคาต่อล้าน request ต่ำกว่า REST API อย่างมาก และมี JWT authorizer ในตัวที่ตรวจ issuer, audience และลายเซ็นของ token โดยไม่ต้องเรียก Lambda เพิ่ม จึงไม่มีค่าใช้จ่ายของ authorizer function ทั้งยังเป็น serverless และ scale อัตโนมัติ ฟีเจอร์ที่ HTTP API ไม่มี เช่น usage plans และ caching โจทย์ระบุว่าไม่ต้องใช้",
+      "B": "ทำงานได้แต่แพงกว่า: REST API มีราคาต่อ request สูงกว่า HTTP API หลายเท่าเพื่อแลกกับฟีเจอร์ที่โจทย์ไม่ต้องใช้ และการ federate ผ่าน Cognito เพิ่มค่าบริการ Cognito ต่อผู้ใช้รายเดือนโดยไม่จำเป็น เพราะ IdP เดิมออก JWT ให้อยู่แล้ว",
+      "C": "ทำงานได้แต่ไม่คุ้มที่สุด: authorizer cache ลดจำนวนครั้งที่เรียก authorizer ได้ แต่ยังจ่ายราคาของ REST API ที่สูงกว่า และยังมีค่า Lambda authorizer สำหรับ token ที่ไม่อยู่ใน cache รวมถึงต้องดูแล code ตรวจ token เอง",
+      "D": "ไม่ผ่าน: Lightsail มีราคาคงที่ที่อาจดูถูก แต่ต้องดูแล container และ scale ด้วยมือก่อนแต่ละ event ซึ่งขัดกับข้อกำหนด fully managed serverless ที่ scale อัตโนมัติ และ function URL ที่เปิดไว้ยังต้องป้องกันไม่ให้ถูกเรียกตรงโดยข้าม gateway"
+    },
+    "references": [
+      {
+        "title": "Choose between REST APIs and HTTP APIs",
+        "url": "https://docs.aws.amazon.com/apigateway/latest/developerguide/http-api-vs-rest.html"
+      },
+      {
+        "title": "Control access to HTTP APIs with JWT authorizers",
+        "url": "https://docs.aws.amazon.com/apigateway/latest/developerguide/http-api-jwt-authorizer.html"
+      },
+      {
+        "title": "Amazon API Gateway pricing",
+        "url": "https://aws.amazon.com/api-gateway/pricing/"
+      }
+    ],
+    "reviewedAt": "2026-10-29"
+  }
+}

@@ -1,0 +1,21 @@
+{
+  "id": "csv-09",
+  "scope": "explanations",
+  "verdict": "FIX",
+  "verifiedCorrectIds": [
+    "C"
+  ],
+  "issues": [
+    "options.C.explanation: only gives caveats; does not state why Direct Connect satisfies 'consistent network performance' alongside the VPN."
+  ],
+  "changes": {
+    "options": {
+      "C": {
+        "explanation": "Direct Connect เป็นลิงก์เฉพาะจาก on-premises เข้า AWS ไม่ผ่าน public internet จึงได้ latency/bandwidth สม่ำเสมอกว่า VPN เดียว และใช้ VPN เป็น backup หรือเข้ารหัสซ้อนได้. ข้อควรระวัง: ลิงก์เดียวไม่ใช่ HA และ traffic ไม่เข้ารหัสโดยอัตโนมัติ"
+      }
+    }
+  },
+  "sources": [
+    "https://docs.aws.amazon.com/directconnect/latest/UserGuide/Welcome.html"
+  ]
+}

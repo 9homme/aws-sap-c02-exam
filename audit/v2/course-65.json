@@ -1,0 +1,13 @@
+{
+  "id": "course-65",
+  "scope": "explanations",
+  "verdict": "PASS",
+  "verifiedCorrectIds": [
+    "A"
+  ],
+  "issues": [],
+  "changes": {},
+  "sources": [
+    "https://docs.aws.amazon.com/mgn/latest/ug/what-is-application-migration-service.html"
+  ]
+}

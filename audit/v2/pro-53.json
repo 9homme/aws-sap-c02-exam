@@ -1,0 +1,60 @@
+{
+  "id": "pro-53",
+  "scope": "full",
+  "verdict": "FIX",
+  "originalCorrectIds": [
+    "D"
+  ],
+  "verifiedCorrectIds": [
+    "D"
+  ],
+  "issues": [
+    "options: ตัวลวงเดิมผิดอย่างชัดเจน (อ้างความสามารถที่บริการไม่มี) ทำให้ตอบได้จากการจำชื่อบริการ ไม่ใช่ระดับ SAP-C02 Professional; เขียนใหม่ให้แต่ละตัวลวงทำงานได้จริงบางส่วนแต่ตกเงื่อนไขหนึ่งข้อ",
+    "prompt: ลบประโยค boilerplate (architecture review board / workable for the stated environment)",
+    "review.reasoning: เดิมคัดลอก requirement ภาษาอังกฤษมาต่อกัน ไม่ได้อธิบายการตัดตัวเลือก"
+  ],
+  "changes": {
+    "prompt": "A security-sensitive software company operates an inspection VPC connected to application VPCs through a transit gateway. Its intrusion-prevention team has a certified third-party stateful virtual appliance image with proprietary packet inspection that must continue to be used for one line of business, including automated appliance fleet scaling. Another division wants managed AWS-native stateful egress rules and domain-based filtering with no third-party virtual appliances. Both divisions require consistent symmetric routing, high availability across Availability Zones and network metadata that investigators can query after an incident. The company does not want to rebuild the proprietary appliance functions as custom Lambda proxies. The solution must meet all of the following requirements: (1) Insert and elastically scale third-party security appliances transparently into the designated network path; (2) Use managed stateful AWS-native firewall inspection for a separate egress policy path; (3) Preserve correct symmetric routing and retain network connection metadata for investigation. Which solution meets these requirements with the LEAST operational overhead?",
+    "options": {
+      "A": {
+        "text": "Insert the third-party appliances with a Gateway Load Balancer and Gateway Load Balancer endpoints, and implement the second division's egress policy with security groups and network ACLs that allow only approved destination IP ranges. Enable VPC Flow Logs.",
+        "explanation": "ตกข้อ (2): GWLB สำหรับ appliances ถูกต้อง แต่ security groups และ NACLs กรองตาม IP/port แบบ stateless (NACL) หรือ per-ENI ไม่มี domain-based filtering และไม่ใช่ managed stateful firewall ที่บริหาร policy จากส่วนกลางตามที่ division ที่สองต้องการ"
+      },
+      "B": {
+        "text": "Deploy AWS Network Firewall for both divisions, translate the proprietary appliance's inspection logic into Suricata-compatible rule groups, and enable VPC Flow Logs and firewall logs.",
+        "explanation": "ตกข้อ (1): Network Firewall ตอบ division ที่สองได้ แต่ appliance ของ line of business แรกเป็น certified image ที่ต้องใช้ต่อ การแปลงเป็น Suricata rules ไม่ได้ทำซ้ำ proprietary inspection และไม่ผ่านการรับรองเดิม"
+      },
+      "C": {
+        "text": "Use a Gateway Load Balancer for the appliance fleet and AWS Network Firewall for the second division in the inspection VPC, attach the inspection VPC to the transit gateway with appliance mode disabled, and enable VPC Flow Logs.",
+        "explanation": "ตกข้อ (3): บริการถูกเลือกถูกต้อง แต่เมื่อปิด appliance mode บน attachment ของ inspection VPC Transit Gateway อาจส่ง traffic ขาไปและขากลับผ่านคนละ AZ ทำให้ stateful inspection เห็น flow ไม่ครบและ drop connection ต้องเปิด appliance mode เพื่อให้ routing สมมาตร"
+      },
+      "D": {
+        "text": "Use GWLB with Gateway Load Balancer endpoints for the supported appliance-fleet traffic, deploy Network Firewall for the AWS-managed inspection path, design symmetric routing per AZ and retain VPC Flow Logs.",
+        "explanation": "ถูก: GWLB กระจาย traffic แบบ transparent ไปยัง appliance fleet ที่ scale ได้ด้วย Auto Scaling Network Firewall ให้ stateful rules และ domain filtering แบบ managed สำหรับอีก path การเปิด appliance mode บน Transit Gateway attachment และวาง endpoint ต่อ AZ ทำให้ routing สมมาตรและทนต่อการเสีย AZ ส่วน Flow Logs ให้ metadata สำหรับสอบสวน"
+      }
+    },
+    "review": {
+      "decisiveClue": "ต้องใช้ certified third-party appliance ที่ scale ได้, อีก division ต้องการ managed stateful + domain filtering, routing สมมาตรหลาย AZ และ flow metadata",
+      "reasoning": "1) ข้อ (1) appliance ของบุคคลที่สามแบบ transparent = GWLB ห้ามแทนด้วยบริการอื่น (B) 2) ข้อ (2) managed stateful + domain filtering = Network Firewall ไม่ใช่ SG/NACL (A) 3) ข้อ (3) stateful inspection ผ่าน Transit Gateway ต้องเปิด appliance mode เพื่อให้ขาไปและขากลับผ่าน AZ เดียวกัน (C ปิดไว้) 4) D รวมทั้งสามข้อ",
+      "references": [
+        {
+          "title": "What is a Gateway Load Balancer?",
+          "url": "https://docs.aws.amazon.com/elasticloadbalancing/latest/gateway/introduction.html"
+        },
+        {
+          "title": "AWS Network Firewall deployment architectures",
+          "url": "https://docs.aws.amazon.com/network-firewall/latest/developerguide/architectures.html"
+        },
+        {
+          "title": "Transit gateway appliance mode",
+          "url": "https://docs.aws.amazon.com/vpc/latest/tgw/transit-gateway-appliance-scenario.html"
+        }
+      ]
+    }
+  },
+  "sources": [
+    "https://docs.aws.amazon.com/elasticloadbalancing/latest/gateway/introduction.html",
+    "https://docs.aws.amazon.com/network-firewall/latest/developerguide/architectures.html",
+    "https://docs.aws.amazon.com/vpc/latest/tgw/transit-gateway-appliance-scenario.html"
+  ]
+}

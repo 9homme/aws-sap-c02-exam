@@ -1,0 +1,60 @@
+{
+  "id": "pro-13",
+  "scope": "full",
+  "verdict": "FIX",
+  "originalCorrectIds": [
+    "A"
+  ],
+  "verifiedCorrectIds": [
+    "A"
+  ],
+  "issues": [
+    "options: ตัวลวงเดิมผิดอย่างชัดเจน (อ้างความสามารถที่บริการไม่มี) ทำให้ตอบได้จากการจำชื่อบริการ ไม่ใช่ระดับ SAP-C02 Professional; เขียนใหม่ให้แต่ละตัวลวงทำงานได้จริงบางส่วนแต่ตกเงื่อนไขหนึ่งข้อ",
+    "prompt: ลบประโยค boilerplate (architecture review board / workable for the stated environment)",
+    "review.reasoning: เดิมคัดลอก requirement ภาษาอังกฤษมาต่อกัน ไม่ได้อธิบายการตัดตัวเลือก"
+  ],
+  "changes": {
+    "prompt": "A regulated bank operates 140 application accounts grouped by environment. A central networking account owns a transit gateway and several shared subnets; application accounts are created weekly. The network team wants application VPCs to attach to central transit routing without giving product accounts administrator rights in the network account. Separately, security mandates identical baseline resources in every enrolled account and region. Product teams should be allowed to launch only an approved set of infrastructure products, while the platform group controls the template versions. The management account is not permitted to become a shared runtime hosting account. The solution must meet all of the following requirements: (1) Cross-account network resource sharing must preserve central resource ownership; (2) Baseline infrastructure must deploy automatically across specified accounts and regions; (3) Product teams should self-service only approved infrastructure templates under controlled permissions. Which solution meets these requirements with the LEAST operational overhead?",
+    "options": {
+      "A": {
+        "text": "Share the transit gateway using AWS RAM, deploy baselines through CloudFormation StackSets using organization integration, and publish controlled products in AWS Service Catalog.",
+        "explanation": "ถูก: RAM แชร์ transit gateway โดยเจ้าของยังเป็น networking account บัญชีปลายทางแค่สร้าง attachment ได้ StackSets แบบ service-managed พร้อม automatic deployment ลง baseline ให้บัญชีใน OU และ Region ที่กำหนดรวมถึงบัญชีใหม่ ส่วน Service Catalog ให้ทีมเลือกเฉพาะ product/version ที่อนุมัติผ่าน launch constraint จึงไม่ต้องให้สิทธิ์สร้าง resource ทั้งหมดโดยตรง"
+      },
+      "B": {
+        "text": "Share the transit gateway and shared subnets with AWS RAM and deploy the baseline with service-managed StackSets. Let product teams deploy any CloudFormation template from a central S3 bucket by using an IAM role that has permissions to create all required resources.",
+        "explanation": "ตกข้อ (3): การแชร์เครือข่ายและ baseline ถูกต้อง แต่การให้ deploy template ใดก็ได้ด้วย role ที่สร้าง resource ได้ทั้งหมด ไม่ได้จำกัดให้ใช้เฉพาะ template ที่อนุมัติ และ platform group คุมเวอร์ชันไม่ได้ ทีมจึงสร้าง infrastructure นอกมาตรฐานได้"
+      },
+      "C": {
+        "text": "Create a transit gateway in each application account and peer it with the central transit gateway. Deploy the baseline with service-managed StackSets, and publish approved products in shared AWS Service Catalog portfolios.",
+        "explanation": "ตกข้อ (1): StackSets และ Service Catalog ถูกต้อง แต่การสร้าง transit gateway ในทุกบัญชีกระจาย routing ไปให้ทีมโปรดักต์เป็นเจ้าของ แทนที่จะคงความเป็นเจ้าของไว้ที่ networking account ต้องดูแล peering และ static routes จำนวนมากเมื่อมีบัญชีใหม่ทุกสัปดาห์"
+      },
+      "D": {
+        "text": "Share the transit gateway using AWS RAM and publish approved infrastructure products in AWS Service Catalog. Add the baseline resources as a mandatory Service Catalog product that each account owner launches after the account is created.",
+        "explanation": "ตกข้อ (2): RAM และ Service Catalog ถูกต้อง แต่ baseline ที่ต้องรอเจ้าของบัญชีกด launch เองไม่ใช่การ deploy อัตโนมัติ บัญชีใหม่ทุกสัปดาห์อาจขาด baseline หรือถูกลบภายหลังได้ ต่างจาก StackSets automatic deployment ที่จัดการจากส่วนกลาง"
+      }
+    },
+    "review": {
+      "decisiveClue": "แชร์ TGW โดยคงความเป็นเจ้าของส่วนกลาง, baseline อัตโนมัติทุกบัญชี/Region, ทีมเลือกได้เฉพาะ template ที่อนุมัติ",
+      "reasoning": "1) จับคู่ requirement กับบริการ: แชร์ resource ข้ามบัญชีโดยไม่โอนความเป็นเจ้าของ = AWS RAM, baseline ที่บังคับลงทุกบัญชี = StackSets automatic deployment, self-service ที่จำกัดเฉพาะของที่อนุมัติ = Service Catalog 2) ตัวลวงแต่ละข้อเปลี่ยนชิ้นเดียว: C ทิ้ง RAM ไปสร้าง TGW รายบัญชี, D ให้ baseline เป็นการกดเอง, B เปิดให้ deploy template ใดก็ได้ 3) A เป็นข้อเดียวที่ทั้งสามชิ้นทำหน้าที่ของตัวเองครบ",
+      "references": [
+        {
+          "title": "Sharing transit gateways with AWS RAM",
+          "url": "https://docs.aws.amazon.com/vpc/latest/tgw/tgw-transit-gateways.html"
+        },
+        {
+          "title": "StackSets automatic deployment for Organizations",
+          "url": "https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/stacksets-orgs-manage-auto-deployment.html"
+        },
+        {
+          "title": "Service Catalog launch constraints",
+          "url": "https://docs.aws.amazon.com/servicecatalog/latest/adminguide/constraints-launch.html"
+        }
+      ]
+    }
+  },
+  "sources": [
+    "https://docs.aws.amazon.com/vpc/latest/tgw/tgw-transit-gateways.html",
+    "https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/stacksets-orgs-manage-auto-deployment.html",
+    "https://docs.aws.amazon.com/servicecatalog/latest/adminguide/constraints-launch.html"
+  ]
+}

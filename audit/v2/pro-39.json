@@ -1,0 +1,60 @@
+{
+  "id": "pro-39",
+  "scope": "full",
+  "verdict": "FIX",
+  "originalCorrectIds": [
+    "B"
+  ],
+  "verifiedCorrectIds": [
+    "B"
+  ],
+  "issues": [
+    "options: ตัวลวงเดิมผิดอย่างชัดเจน (อ้างความสามารถที่บริการไม่มี) ทำให้ตอบได้จากการจำชื่อบริการ ไม่ใช่ระดับ SAP-C02 Professional; เขียนใหม่ให้แต่ละตัวลวงทำงานได้จริงบางส่วนแต่ตกเงื่อนไขหนึ่งข้อ",
+    "prompt: ลบประโยค boilerplate (architecture review board / workable for the stated environment)",
+    "review.reasoning: เดิมคัดลอก requirement ภาษาอังกฤษมาต่อกัน ไม่ได้อธิบายการตัดตัวเลือก"
+  ],
+  "changes": {
+    "prompt": "A security incident review discovered three separate gaps. The team cannot reliably answer who changed a security group policy last week, cannot see whether application request latency breached its threshold at midnight, and has no connection metadata showing accepted or rejected flows between a suspicious EC2 instance and another subnet. In addition, the regulator requires evidence of how the instance security group configuration changed over a month. An engineer proposed using a single service to answer every question, but the board requires a traceable source for each type of evidence with central retention and controlled access. The solution must meet all of the following requirements: (1) Identify callers and timestamps of AWS API changes and preserve resource configuration change history; (2) Collect application metrics and alert on request latency violations; (3) Record network-flow metadata for investigation without claiming to capture full packet payloads. Which solution meets these requirements with the LEAST operational overhead?",
+    "options": {
+      "A": {
+        "text": "Enable an organization CloudTrail trail, AWS Config recording, and CloudWatch metrics and alarms. Configure VPC Traffic Mirroring from every instance to a packet-capture appliance for network investigations.",
+        "explanation": "ตกข้อ (3) ด้านความเหมาะสม: สามส่วนแรกถูกต้อง แต่ Traffic Mirroring คัดลอก packet ทั้งหมดรวม payload ไปยัง appliance ซึ่งต้องดูแลเครื่องและพื้นที่เก็บ และมีค่าใช้จ่ายสูง โจทย์ต้องการเพียง metadata ของ flow ที่ accept/reject ซึ่ง VPC Flow Logs ให้ได้ตรงกว่า"
+      },
+      "B": {
+        "text": "Enable organization CloudTrail events, AWS Config history, CloudWatch metrics/alarms, and VPC Flow Logs delivered to controlled log destinations.",
+        "explanation": "ถูก: CloudTrail บอกว่าใครเรียก API อะไรเมื่อไร Config เก็บ configuration items ของ security group ทั้งเดือนเพื่อแสดงสถานะก่อน/หลัง CloudWatch เก็บ metric latency และแจ้งเตือนด้วย alarms VPC Flow Logs บันทึก metadata ของ flow (IP, port, ACCEPT/REJECT) โดยไม่เก็บ payload ทั้งหมดส่งไป log archive ที่คุมสิทธิ์และ retention"
+      },
+      "C": {
+        "text": "Enable an organization CloudTrail trail and use CloudTrail event history to reconstruct both API callers and the full security group configuration history. Use CloudWatch metrics and alarms, and enable VPC Flow Logs.",
+        "explanation": "ตกข้อ (1): CloudTrail ให้ข้อมูลผู้เรียกและ parameter ของ API แต่ไม่ได้เก็บ configuration state ของ resource ในแต่ละช่วงเวลา การประกอบสถานะย้อนหลังจาก API calls ทำได้ยากและเสี่ยงตกหล่น regulator ต้องการ configuration history ซึ่งเป็นหน้าที่ของ AWS Config"
+      },
+      "D": {
+        "text": "Enable AWS Config recording to show both the configuration history and the IAM principal that made each change, use CloudWatch metrics and alarms, and enable VPC Flow Logs.",
+        "explanation": "ตกข้อ (1): Config บันทึกการเปลี่ยนแปลงของ configuration แต่ไม่ใช่แหล่งข้อมูลหลักว่าใครเรียก API ข้อมูลผู้เรียกมาจาก CloudTrail ซึ่ง Config อ้างถึงได้เมื่อ CloudTrail เปิดอยู่ หากไม่เปิด organization trail จึงตอบคำถามว่าใครเปลี่ยน security group ไม่ได้"
+      }
+    },
+    "review": {
+      "decisiveClue": "คำถาม 4 ประเภท: ใครเปลี่ยน API, configuration เปลี่ยนอย่างไรทั้งเดือน, latency ของแอป, metadata ของ network flow",
+      "reasoning": "1) จับคู่หลักฐานกับแหล่งข้อมูล: ผู้เรียก API = CloudTrail, configuration history = AWS Config, metrics/alarms = CloudWatch, flow metadata = VPC Flow Logs 2) C ใช้ CloudTrail แทน Config และ D ใช้ Config แทน CloudTrail ซึ่งแต่ละตัวให้ข้อมูลคนละมุม 3) A ใช้ packet capture ซึ่งเกินความต้องการและหนักกว่า Flow Logs 4) B ใช้แหล่งข้อมูลถูกต้องครบทุกประเภท",
+      "references": [
+        {
+          "title": "What is AWS CloudTrail?",
+          "url": "https://docs.aws.amazon.com/awscloudtrail/latest/userguide/cloudtrail-user-guide.html"
+        },
+        {
+          "title": "How AWS Config works",
+          "url": "https://docs.aws.amazon.com/config/latest/developerguide/how-does-config-work.html"
+        },
+        {
+          "title": "Logging IP traffic using VPC Flow Logs",
+          "url": "https://docs.aws.amazon.com/vpc/latest/userguide/flow-logs.html"
+        }
+      ]
+    }
+  },
+  "sources": [
+    "https://docs.aws.amazon.com/awscloudtrail/latest/userguide/cloudtrail-user-guide.html",
+    "https://docs.aws.amazon.com/config/latest/developerguide/how-does-config-work.html",
+    "https://docs.aws.amazon.com/vpc/latest/userguide/flow-logs.html"
+  ]
+}

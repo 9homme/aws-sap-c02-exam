@@ -1,0 +1,13 @@
+{
+  "id": "w8-37",
+  "scope": "explanations",
+  "verdict": "PASS",
+  "verifiedCorrectIds": [
+    "C"
+  ],
+  "issues": [],
+  "changes": {},
+  "sources": [
+    "https://docs.aws.amazon.com/cognito/latest/developerguide/developer-authenticated-identities.html"
+  ]
+}

@@ -1,0 +1,19 @@
+{
+  "id": "course-57",
+  "scope": "explanations",
+  "verdict": "FIX",
+  "verifiedCorrectIds": [
+    "A"
+  ],
+  "issues": [
+    "review.reasoning: ไม่ได้ผูกกับ 3 drivers ในคำตอบ (cost, speed/agility, risk) ครบตามที่ถามว่า 'ทำไมลูกค้าถึง migrate'"
+  ],
+  "changes": {
+    "review": {
+      "reasoning": "โจทย์ถามเหตุผลหลักที่ลูกค้าย้ายขึ้น cloud ตัวเลือก A ครอบคลุมครบ 3 drivers: (1) ลดต้นทุน เช่นเลิกลงทุน/ดูแล data center เอง (2) เพิ่มความเร็วและ agility เปิด resource ได้ในไม่กี่นาทีแทนรอซื้อฮาร์ดแวร์ (3) ลดความเสี่ยง เช่นระบบเดิมหมดอายุ support หรือ hardware ล้าสมัย ข้อ B, C, D ตัดทิ้งเพราะลดเหตุผลเหลือเรื่องเดียวหรือเป็นเป้าหมายที่ไม่จริง ข้อควรระวัง: ประโยชน์ต้องพิสูจน์ด้วย business case เพราะ lift-and-shift ที่ไม่ optimize อาจยังไม่ถูกลงทันที"
+    }
+  },
+  "sources": [
+    "https://docs.aws.amazon.com/prescriptive-guidance/latest/large-migration-guide/phases.html"
+  ]
+}

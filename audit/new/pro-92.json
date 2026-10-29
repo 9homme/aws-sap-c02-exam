@@ -1,0 +1,83 @@
+{
+  "id": "pro-92",
+  "sourceCategory": "professional",
+  "sourceLabel": "AI-authored · Professional multi-requirement",
+  "sourceDetail": "Original multi-constraint scenario — ลดต้นทุน Athena จาก small files ใน S3",
+  "coreEligible": true,
+  "emerging": false,
+  "domain": "3",
+  "task": "Continuous improvement",
+  "topic": "ลดต้นทุน Athena จาก small files ใน S3",
+  "type": "multiple-choice",
+  "selectCount": 1,
+  "prompt": "A SaaS company collects application logs from 3,000 servers. Each server's agent uploads a small gzip-compressed JSON file to an Amazon S3 bucket every minute, which creates more than 4 million objects per day under prefixes organized by server name. Security and support engineers query the logs with Amazon Athena, usually filtering on a date range, a service name, and a few columns such as status code and latency. Queries over one day of data now take several minutes and scan almost the entire dataset, and the monthly Athena bill has tripled. The company wants to reduce query cost and latency while continuing to use SQL in Athena, and it wants new logs to be queryable within 15 minutes of arrival. The data lake already uses AWS Lake Formation permissions on the AWS Glue Data Catalog tables, and those permissions must continue to apply. The engineering team prefers managed services and does not want to run its own ingestion fleet or a data warehouse for this use case. The agents can be reconfigured to send records to a different AWS endpoint. Which solution will meet these requirements MOST cost-effectively?",
+  "options": [
+    {
+      "id": "A",
+      "text": "Load the log files into an Amazon Redshift provisioned cluster every 15 minutes with COPY commands, and have the engineers query the logs in Redshift instead of Athena. Use automatic table optimization to choose sort keys for the date and service columns.",
+      "explanation": "ไม่ผ่าน: Redshift query เร็วได้ แต่เป็น data warehouse ที่ต้องจ่าย cluster ตลอดเวลาซึ่งโจทย์ไม่ต้องการ และวิศวกรต้องย้ายจาก Athena ไปใช้ Redshift ทั้ง permissions ของ Lake Formation บน Glue tables ก็ไม่ครอบคลุมตารางที่โหลดเข้า Redshift โดยอัตโนมัติ"
+    },
+    {
+      "id": "B",
+      "text": "Create an Athena capacity reservation with enough data processing units for the peak query load, assign the engineers' workgroup to the reservation, and keep the existing file layout and table definition. Use workgroup query limits to stop runaway queries.",
+      "explanation": "ไม่ผ่านด้านต้นทุน: capacity reservation ช่วยเรื่อง concurrency และทำให้ค่าใช้จ่ายคาดเดาได้ แต่ยังต้องอ่านไฟล์เล็กหลายล้านไฟล์และสแกนข้อมูลเกือบทั้งหมดเหมือนเดิม ต้นเหตุเรื่อง layout จึงไม่ถูกแก้ และมักแพงกว่าการลดข้อมูลที่ต้องสแกน"
+    },
+    {
+      "id": "C",
+      "text": "Send the logs to Amazon Data Firehose instead of directly to S3, enable record format conversion to Apache Parquet by using the Glue table schema, use dynamic partitioning by date and service name with buffering of up to 15 minutes, and run a one-time AWS Glue job to compact and repartition the historical files. Keep the Lake Formation permissions on the Glue tables.",
+      "explanation": "ถูก: Firehose รวม records เป็นไฟล์ขนาดใหญ่ แปลงเป็น Parquet แบบ columnar และแบ่ง partition ตามวันที่และ service จึงลดจำนวนไฟล์และข้อมูลที่ Athena ต้องสแกนอย่างมาก query ที่กรองวันที่และเลือกไม่กี่คอลัมน์จึงถูกและเร็วขึ้น buffering ไม่เกิน 15 นาทีตรงกับความสดที่ต้องการ งาน Glue ครั้งเดียวจัดข้อมูลเก่า และ permissions ของ Lake Formation บน Glue tables ยังใช้ได้ต่อ"
+    },
+    {
+      "id": "D",
+      "text": "Enable S3 Intelligent-Tiering on the log bucket, add an S3 Lifecycle rule that expires objects after 1 year, and enable Athena query result reuse for repeated queries. Add a partition projection on the server name prefix so that queries can filter by server. Define the resources in AWS CloudFormation templates for repeatable deployment. Review the design with the architecture board before rollout.",
+      "explanation": "ไม่ผ่าน: Intelligent-Tiering ลดค่าจัดเก็บแต่ไม่ลดค่า Athena ที่คิดตามข้อมูลที่สแกน และไม่แก้ปัญหาไฟล์เล็กหรือการไม่มี partition ส่วน query result reuse ช่วยเฉพาะ query ที่เหมือนกันทุกประการภายในเวลาที่กำหนด"
+    }
+  ],
+  "correctIds": [
+    "C"
+  ],
+  "rationale": "1) ค่า Athena คิดตามข้อมูลที่สแกน และไฟล์เล็กจำนวนมากทำให้ช้า ต้นเหตุจึงอยู่ที่ format และ layout 2) Redshift (A) เปลี่ยนเครื่องมือและเพิ่มค่า warehouse 3) capacity reservation (B) และ Intelligent-Tiering (D) ไม่ลดข้อมูลที่สแกน 4) Firehose แปลงเป็น Parquet และทำ dynamic partitioning ทำให้ไฟล์ใหญ่ขึ้นและสแกนน้อยลงโดยใช้ Athena และ Lake Formation เดิม C จึงคุ้มค่าที่สุด",
+  "wrongAnswerHelp": "Start with the explicit business constraint, then eliminate choices that solve a different layer of the architecture or add unnecessary operational work.",
+  "references": [
+    "https://docs.aws.amazon.com/firehose/latest/dev/record-format-conversion.html",
+    "https://docs.aws.amazon.com/firehose/latest/dev/dynamic-partitioning.html",
+    "https://docs.aws.amazon.com/athena/latest/ug/performance-tuning.html"
+  ],
+  "products": [
+    "Kinesis Data Firehose",
+    "Athena",
+    "S3",
+    "AWS Glue",
+    "Lake Formation"
+  ],
+  "requirements": [
+    "Reduce Athena query cost and latency on log data",
+    "Logs arrive continuously as small JSON files",
+    "Keep querying with SQL in Athena"
+  ],
+  "review": {
+    "decisiveClue": "ไฟล์ JSON เล็กหลายล้านไฟล์ต่อวัน, query กรองวันที่/service, ต้องใช้ Athena ต่อและเห็นข้อมูลใหม่ใน 15 นาที, คง Lake Formation, ต้นทุนต่ำสุด",
+    "reasoning": "1) ค่า Athena คิดตามข้อมูลที่สแกน และไฟล์เล็กจำนวนมากทำให้ช้า ต้นเหตุจึงอยู่ที่ format และ layout 2) Redshift (A) เปลี่ยนเครื่องมือและเพิ่มค่า warehouse 3) capacity reservation (B) และ Intelligent-Tiering (D) ไม่ลดข้อมูลที่สแกน 4) Firehose แปลงเป็น Parquet และทำ dynamic partitioning ทำให้ไฟล์ใหญ่ขึ้นและสแกนน้อยลงโดยใช้ Athena และ Lake Formation เดิม C จึงคุ้มค่าที่สุด",
+    "options": {
+      "A": "ไม่ผ่าน: Redshift query เร็วได้ แต่เป็น data warehouse ที่ต้องจ่าย cluster ตลอดเวลาซึ่งโจทย์ไม่ต้องการ และวิศวกรต้องย้ายจาก Athena ไปใช้ Redshift ทั้ง permissions ของ Lake Formation บน Glue tables ก็ไม่ครอบคลุมตารางที่โหลดเข้า Redshift โดยอัตโนมัติ",
+      "B": "ไม่ผ่านด้านต้นทุน: capacity reservation ช่วยเรื่อง concurrency และทำให้ค่าใช้จ่ายคาดเดาได้ แต่ยังต้องอ่านไฟล์เล็กหลายล้านไฟล์และสแกนข้อมูลเกือบทั้งหมดเหมือนเดิม ต้นเหตุเรื่อง layout จึงไม่ถูกแก้ และมักแพงกว่าการลดข้อมูลที่ต้องสแกน",
+      "C": "ถูก: Firehose รวม records เป็นไฟล์ขนาดใหญ่ แปลงเป็น Parquet แบบ columnar และแบ่ง partition ตามวันที่และ service จึงลดจำนวนไฟล์และข้อมูลที่ Athena ต้องสแกนอย่างมาก query ที่กรองวันที่และเลือกไม่กี่คอลัมน์จึงถูกและเร็วขึ้น buffering ไม่เกิน 15 นาทีตรงกับความสดที่ต้องการ งาน Glue ครั้งเดียวจัดข้อมูลเก่า และ permissions ของ Lake Formation บน Glue tables ยังใช้ได้ต่อ",
+      "D": "ไม่ผ่าน: Intelligent-Tiering ลดค่าจัดเก็บแต่ไม่ลดค่า Athena ที่คิดตามข้อมูลที่สแกน และไม่แก้ปัญหาไฟล์เล็กหรือการไม่มี partition ส่วน query result reuse ช่วยเฉพาะ query ที่เหมือนกันทุกประการภายในเวลาที่กำหนด"
+    },
+    "references": [
+      {
+        "title": "Convert input data format in Amazon Data Firehose",
+        "url": "https://docs.aws.amazon.com/firehose/latest/dev/record-format-conversion.html"
+      },
+      {
+        "title": "Dynamic partitioning in Amazon Data Firehose",
+        "url": "https://docs.aws.amazon.com/firehose/latest/dev/dynamic-partitioning.html"
+      },
+      {
+        "title": "Performance tuning in Athena",
+        "url": "https://docs.aws.amazon.com/athena/latest/ug/performance-tuning.html"
+      }
+    ],
+    "reviewedAt": "2026-10-29"
+  }
+}

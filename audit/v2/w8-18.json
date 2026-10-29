@@ -1,0 +1,26 @@
+{
+  "id": "w8-18",
+  "scope": "explanations",
+  "verdict": "FIX",
+  "verifiedCorrectIds": [
+    "C"
+  ],
+  "issues": [
+    "options.D.explanation: vague ('ไม่ได้สร้างหนึ่งตัวต่อ AZ'); should say an IGW is Regional/already highly available, attaches to a VPC (one per VPC), so it is not the weak point",
+    "options.C.explanation: omits that the second NAT must sit in a public subnet of the other AZ"
+  ],
+  "changes": {
+    "options": {
+      "C": {
+        "explanation": "สร้าง NAT gateway ตัวที่สองใน public subnet ของอีก AZ แล้วแก้ route table ของแต่ละ private subnet ให้ default route ไป NAT ใน AZ ตัวเอง ถ้า AZ หนึ่งล่ม อีก AZ ยังออก internet ได้ นี่คือจุดอ่อนเดียวของ design เดิม"
+      },
+      "D": {
+        "explanation": "Internet gateway เป็น Regional และ HA อยู่แล้ว ผูกกับ VPC ได้ครั้งละหนึ่งตัวต่อ VPC ไม่ได้ผูกกับ subnet/AZ จึงสร้างตัวที่สองแล้วแนบกับ subnet ไม่ได้ และไม่ได้แก้จุดอ่อนจริง คือ zonal NAT gateway ตัวเดียว"
+      }
+    }
+  },
+  "sources": [
+    "https://docs.aws.amazon.com/vpc/latest/userguide/nat-gateway-basics.html",
+    "https://docs.aws.amazon.com/vpc/latest/userguide/working-with-igw.html"
+  ]
+}

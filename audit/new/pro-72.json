@@ -1,0 +1,76 @@
+{
+  "id": "pro-72",
+  "sourceCategory": "professional",
+  "sourceLabel": "AI-authored · Professional multi-requirement",
+  "sourceDetail": "Original multi-constraint scenario — desktop GPU สำหรับงาน CAD ที่ต้องการ performance",
+  "coreEligible": true,
+  "emerging": false,
+  "domain": "4",
+  "task": "Migration and modernization",
+  "topic": "desktop GPU สำหรับงาน CAD ที่ต้องการ performance",
+  "type": "multiple-choice",
+  "selectCount": 1,
+  "prompt": "An architecture firm wants to replace the workstations of 80 designers who use GPU-accelerated 3D CAD and rendering software. The designers work from offices in two nearby cities and from home, and they complain that the current remote access solution feels laggy when they rotate large models. Each designer opens multi-gigabyte project files that are shared with other designers through SMB file shares with Windows ACLs, and several designers often work on the same project at the same time. The firm wants each designer to keep a persistent personal desktop with the CAD plugins that they install. The infrastructure team prefers a managed desktop service but will accept Amazon EC2 if it is clearly faster. Both offices are about 15 ms from the nearest AWS Region. Budget has been approved for GPU instances, and the firm's main goal is the best interactive experience and the fastest file opening times. The firm already has a Site-to-Site VPN connection from each office to a VPC in that Region and an Active Directory domain that the file servers use for permissions. Designers sometimes render overnight and need the same desktop and files the next morning. Which solution will provide the BEST performance for the designers?",
+  "options": [
+    {
+      "id": "A",
+      "text": "Deploy Amazon WorkSpaces Personal with GraphicsPro.g4dn bundles in the Region closest to both offices, use the Amazon DCV streaming protocol, and store project files on an Amazon FSx for Windows File Server Multi-AZ file system with SSD storage in the same Region and VPC, joined to the firm's Active Directory.",
+      "explanation": "ถูก: GraphicsPro.g4dn มี NVIDIA GPU สำหรับงาน 3D และ DCV ออกแบบมาสำหรับ streaming กราฟิกที่ latency ต่ำและปรับตามเครือข่าย FSx for Windows แบบ SSD อยู่ Region และ VPC เดียวกับ desktop จึงเปิดไฟล์ขนาดใหญ่ผ่าน SMB ได้เร็ว รองรับ Windows ACLs และการทำงานร่วมกัน ส่วน WorkSpaces Personal เก็บ plugins ของแต่ละคนไว้"
+    },
+    {
+      "id": "B",
+      "text": "Deploy Amazon WorkSpaces Personal with Performance bundles in the closest Region, and keep the project files on the existing file servers in the offices so that designers access them over the Site-to-Site VPN connection. Join the WorkSpaces to the firm's Active Directory so that the existing share permissions continue to apply.",
+      "explanation": "ไม่ผ่านด้าน performance: Performance bundle ไม่มี GPU จึงหมุนโมเดล 3D ได้ช้า และการเปิดไฟล์หลาย GB จาก file server ในสำนักงานผ่าน VPN ทำให้ทุกการอ่านต้องข้าม WAN ซึ่งยิ่งช้ากว่าการวางไฟล์ไว้ใกล้ desktop"
+    },
+    {
+      "id": "C",
+      "text": "Launch Amazon EC2 G5 instances for the designers in the closest Region, connect with Remote Desktop Protocol over AWS Client VPN, and store project files on an Amazon FSx for Windows File Server HDD file system in another Region for lower storage cost.",
+      "explanation": "ไม่ผ่าน: G5 มี GPU แรง แต่ RDP ไม่ได้ออกแบบมาสำหรับ streaming กราฟิก 3D ที่ลื่นเท่า DCV และการวาง FSx แบบ HDD ไว้อีก Region ทำให้ทุกการเปิดไฟล์มี latency ข้าม Region และ throughput ต่ำ ขัดกับเป้าหมายเปิดไฟล์ให้เร็วที่สุด"
+    },
+    {
+      "id": "D",
+      "text": "Deploy Amazon WorkSpaces Personal with GraphicsPro.g4dn bundles, and store the project files in Amazon S3 that designers access through an S3 File Gateway deployed in each office. Join the WorkSpaces to the firm's Active Directory and use the DCV streaming protocol for the desktops.",
+      "explanation": "ไม่ผ่าน: GPU bundle ถูกต้อง แต่ desktop อยู่ใน AWS ขณะที่ File Gateway อยู่ในสำนักงาน ไฟล์จึงต้องวิ่งจาก desktop ย้อนกลับไปที่สำนักงานแล้วไป S3 อีกครั้ง และ File Gateway ไม่ได้ออกแบบสำหรับการแก้ไขไฟล์เดียวกันพร้อมกันจากหลายที่ด้วย file locking แบบ Windows"
+    }
+  ],
+  "correctIds": [
+    "A"
+  ],
+  "rationale": "1) งาน 3D ต้องใช้ GPU จึงตัด Performance bundle (B) 2) streaming protocol สำคัญ: DCV เหมาะกับกราฟิกมากกว่า RDP (C) 3) ไฟล์ต้องอยู่ใกล้ desktop: FSx SSD ใน Region/VPC เดียวกันเร็วกว่า file server ในสำนักงาน (B), FSx HDD อีก Region (C) หรือ File Gateway ที่สำนักงาน (D) 4) A รวม GPU bundle, DCV และ FSx for Windows SSD ใกล้ desktop จึงให้ performance สูงสุด",
+  "wrongAnswerHelp": "Start with the explicit business constraint, then eliminate choices that solve a different layer of the architecture or add unnecessary operational work.",
+  "references": [
+    "https://docs.aws.amazon.com/workspaces/latest/adminguide/amazon-workspaces-bundles.html",
+    "https://docs.aws.amazon.com/fsx/latest/WindowsGuide/performance.html"
+  ],
+  "products": [
+    "EC2",
+    "FSx for Windows File Server",
+    "Amazon WorkSpaces Personal"
+  ],
+  "requirements": [
+    "GPU-accelerated CAD with low input latency",
+    "Shared access to multi-GB project files over SMB",
+    "Designers work from two cities"
+  ],
+  "review": {
+    "decisiveClue": "งาน 3D ต้องการ GPU และ streaming ที่ลื่น, ไฟล์หลาย GB ผ่าน SMB/Windows ACLs ใช้ร่วมกัน, desktop ส่วนตัว, เป้าหมายคือ performance",
+    "reasoning": "1) งาน 3D ต้องใช้ GPU จึงตัด Performance bundle (B) 2) streaming protocol สำคัญ: DCV เหมาะกับกราฟิกมากกว่า RDP (C) 3) ไฟล์ต้องอยู่ใกล้ desktop: FSx SSD ใน Region/VPC เดียวกันเร็วกว่า file server ในสำนักงาน (B), FSx HDD อีก Region (C) หรือ File Gateway ที่สำนักงาน (D) 4) A รวม GPU bundle, DCV และ FSx for Windows SSD ใกล้ desktop จึงให้ performance สูงสุด",
+    "options": {
+      "A": "ถูก: GraphicsPro.g4dn มี NVIDIA GPU สำหรับงาน 3D และ DCV ออกแบบมาสำหรับ streaming กราฟิกที่ latency ต่ำและปรับตามเครือข่าย FSx for Windows แบบ SSD อยู่ Region และ VPC เดียวกับ desktop จึงเปิดไฟล์ขนาดใหญ่ผ่าน SMB ได้เร็ว รองรับ Windows ACLs และการทำงานร่วมกัน ส่วน WorkSpaces Personal เก็บ plugins ของแต่ละคนไว้",
+      "B": "ไม่ผ่านด้าน performance: Performance bundle ไม่มี GPU จึงหมุนโมเดล 3D ได้ช้า และการเปิดไฟล์หลาย GB จาก file server ในสำนักงานผ่าน VPN ทำให้ทุกการอ่านต้องข้าม WAN ซึ่งยิ่งช้ากว่าการวางไฟล์ไว้ใกล้ desktop",
+      "C": "ไม่ผ่าน: G5 มี GPU แรง แต่ RDP ไม่ได้ออกแบบมาสำหรับ streaming กราฟิก 3D ที่ลื่นเท่า DCV และการวาง FSx แบบ HDD ไว้อีก Region ทำให้ทุกการเปิดไฟล์มี latency ข้าม Region และ throughput ต่ำ ขัดกับเป้าหมายเปิดไฟล์ให้เร็วที่สุด",
+      "D": "ไม่ผ่าน: GPU bundle ถูกต้อง แต่ desktop อยู่ใน AWS ขณะที่ File Gateway อยู่ในสำนักงาน ไฟล์จึงต้องวิ่งจาก desktop ย้อนกลับไปที่สำนักงานแล้วไป S3 อีกครั้ง และ File Gateway ไม่ได้ออกแบบสำหรับการแก้ไขไฟล์เดียวกันพร้อมกันจากหลายที่ด้วย file locking แบบ Windows"
+    },
+    "references": [
+      {
+        "title": "Bundles and images for WorkSpaces Personal",
+        "url": "https://docs.aws.amazon.com/workspaces/latest/adminguide/amazon-workspaces-bundles.html"
+      },
+      {
+        "title": "Amazon FSx for Windows File Server performance",
+        "url": "https://docs.aws.amazon.com/fsx/latest/WindowsGuide/performance.html"
+      }
+    ],
+    "reviewedAt": "2026-10-29"
+  }
+}

@@ -1,0 +1,82 @@
+{
+  "id": "pro-86",
+  "sourceCategory": "professional",
+  "sourceLabel": "AI-authored · Professional multi-requirement",
+  "sourceDetail": "Original multi-constraint scenario — งานรายงาน 10 นาทีเกินเวลารอของ API ให้ส่งมอบเร็วที่สุด",
+  "coreEligible": true,
+  "emerging": false,
+  "domain": "2",
+  "task": "New solution design",
+  "topic": "งานรายงาน 10 นาทีเกินเวลารอของ API ให้ส่งมอบเร็วที่สุด",
+  "type": "multiple-choice",
+  "selectCount": 1,
+  "prompt": "A finance company provides an internal reporting API on Amazon API Gateway REST APIs. A new regulatory report takes up to 10 minutes to generate because it aggregates data from several systems through a sequence of steps that are already implemented as three separate AWS Lambda functions. Clients currently call the API synchronously and receive HTTP 504 errors after the API Gateway integration timeout. The business owner requires that clients receive a job ID immediately, poll a status endpoint, and download the finished report from an Amazon S3 presigned URL. Failed steps must be retried automatically, and operators need to see which step failed for each job. The feature must be delivered within the current 2-week sprint, and the team does not have time to re-platform the workload or to build and test a custom job-tracking service. The team is comfortable with Amazon States Language and already uses AWS CloudFormation. Report requests arrive at a rate of only a few hundred per day, and each job must keep its status for 30 days for audit purposes. Which solution will meet these requirements in the LEAST amount of time?",
+  "options": [
+    {
+      "id": "A",
+      "text": "Create an AWS Step Functions Standard workflow that runs the three existing Lambda functions with Retry and Catch rules and writes the report to Amazon S3. Add an API Gateway method with a direct service integration that calls StartExecution and returns the execution ARN as the job ID, and a status method that calls DescribeExecution and returns the presigned URL from the execution output.",
+      "explanation": "ถูก: ใช้ Lambda functions เดิมเป็นขั้นตอนใน workflow โดยไม่ต้องเขียนระบบติดตามงานเอง Step Functions เก็บสถานะทุก execution, ทำ Retry ต่อขั้นตอน และแสดงว่าขั้นไหนล้มเหลวใน console API Gateway เรียก StartExecution ได้โดยตรงจึงตอบ job ID ทันที และ DescribeExecution ให้สถานะสำหรับ polling ทั้งหมดสร้างด้วย CloudFormation ได้ภายใน sprint"
+    },
+    {
+      "id": "B",
+      "text": "Have the API send each request to an Amazon SQS queue and return the message ID, process the queue with a new orchestrator Lambda function that calls the three functions in order, track job status in a new DynamoDB table, and add a status Lambda function behind a new API method.",
+      "explanation": "ทำงานได้แต่ใช้เวลามากกว่า: ต้องเขียน orchestrator, ตาราง status, logic retry ต่อขั้นตอน และ status API ใหม่ทั้งหมด ซึ่งคือ custom job-tracking service ที่ทีมไม่มีเวลาสร้างและทดสอบ และ orchestrator ยังติดเวลาสูงสุดของ Lambda ถ้าขั้นตอนรวมใช้เวลานาน"
+    },
+    {
+      "id": "C",
+      "text": "Request a quota increase for the API Gateway integration timeout, chain the three Lambda functions inside one function that runs for up to 10 minutes, and keep the synchronous API so that clients receive the report in the same response. Add retries inside the function code for each downstream call.",
+      "explanation": "ไม่ผ่าน: แม้ timeout ของ REST API แบบ Regional จะขอเพิ่มได้ แต่ยังเป็นการให้ client รอแบบ synchronous นาน 10 นาที ซึ่งขัดกับข้อกำหนดให้ได้ job ID ทันที และไม่มีการ retry ต่อขั้นตอนหรือการมองเห็นว่าขั้นไหนล้มเหลว"
+    },
+    {
+      "id": "D",
+      "text": "Rebuild the report generation as a long-running container service on Amazon ECS with AWS Fargate behind an Application Load Balancer, store job status in Amazon RDS, and expose job submission and status endpoints from the new service. Point the existing API Gateway method to the load balancer through a VPC link.",
+      "explanation": "ไม่ผ่าน: ทำงานได้แต่เป็นการ re-platform ที่ต้องสร้าง service, database และ endpoints ใหม่ ใช้เวลานานเกิน sprint และทีมระบุว่าไม่มีเวลาทำ ทั้งยังต้องเขียน retry และการติดตามสถานะเอง"
+    }
+  ],
+  "correctIds": [
+    "A"
+  ],
+  "rationale": "1) ต้องตอบ job ID ทันที ตัด synchronous API ที่ขยาย timeout (C) 2) ห้าม re-platform ตัด ECS service ใหม่ (D) 3) SQS + orchestrator + DynamoDB (B) ทำได้แต่ต้องสร้าง job-tracking service เองทั้งหมด 4) Step Functions ใช้ Lambda เดิมเป็นขั้นตอน มี Retry/Catch และ execution history ในตัว ส่วน API Gateway เรียก StartExecution/DescribeExecution ได้โดยตรง A จึงเร็วที่สุด",
+  "wrongAnswerHelp": "Start with the explicit business constraint, then eliminate choices that solve a different layer of the architecture or add unnecessary operational work.",
+  "references": [
+    "https://docs.aws.amazon.com/step-functions/latest/dg/integrate-services.html",
+    "https://docs.aws.amazon.com/step-functions/latest/dg/tutorial-api-gateway.html",
+    "https://docs.aws.amazon.com/step-functions/latest/dg/concepts-error-handling.html"
+  ],
+  "products": [
+    "Step Functions",
+    "SQS (Simple Queue Service)",
+    "S3",
+    "API Gateway"
+  ],
+  "requirements": [
+    "Report jobs run up to 10 minutes",
+    "Clients get an immediate job ID and poll status",
+    "Deliver within the current sprint without re-platforming"
+  ],
+  "review": {
+    "decisiveClue": "รายงานใช้ 10 นาที, client ต้องได้ job ID ทันทีและ poll สถานะ, retry ต่อขั้นตอนและเห็นขั้นที่ล้ม, ต้องเสร็จใน 2 สัปดาห์, ไม่ re-platform",
+    "reasoning": "1) ต้องตอบ job ID ทันที ตัด synchronous API ที่ขยาย timeout (C) 2) ห้าม re-platform ตัด ECS service ใหม่ (D) 3) SQS + orchestrator + DynamoDB (B) ทำได้แต่ต้องสร้าง job-tracking service เองทั้งหมด 4) Step Functions ใช้ Lambda เดิมเป็นขั้นตอน มี Retry/Catch และ execution history ในตัว ส่วน API Gateway เรียก StartExecution/DescribeExecution ได้โดยตรง A จึงเร็วที่สุด",
+    "options": {
+      "A": "ถูก: ใช้ Lambda functions เดิมเป็นขั้นตอนใน workflow โดยไม่ต้องเขียนระบบติดตามงานเอง Step Functions เก็บสถานะทุก execution, ทำ Retry ต่อขั้นตอน และแสดงว่าขั้นไหนล้มเหลวใน console API Gateway เรียก StartExecution ได้โดยตรงจึงตอบ job ID ทันที และ DescribeExecution ให้สถานะสำหรับ polling ทั้งหมดสร้างด้วย CloudFormation ได้ภายใน sprint",
+      "B": "ทำงานได้แต่ใช้เวลามากกว่า: ต้องเขียน orchestrator, ตาราง status, logic retry ต่อขั้นตอน และ status API ใหม่ทั้งหมด ซึ่งคือ custom job-tracking service ที่ทีมไม่มีเวลาสร้างและทดสอบ และ orchestrator ยังติดเวลาสูงสุดของ Lambda ถ้าขั้นตอนรวมใช้เวลานาน",
+      "C": "ไม่ผ่าน: แม้ timeout ของ REST API แบบ Regional จะขอเพิ่มได้ แต่ยังเป็นการให้ client รอแบบ synchronous นาน 10 นาที ซึ่งขัดกับข้อกำหนดให้ได้ job ID ทันที และไม่มีการ retry ต่อขั้นตอนหรือการมองเห็นว่าขั้นไหนล้มเหลว",
+      "D": "ไม่ผ่าน: ทำงานได้แต่เป็นการ re-platform ที่ต้องสร้าง service, database และ endpoints ใหม่ ใช้เวลานานเกิน sprint และทีมระบุว่าไม่มีเวลาทำ ทั้งยังต้องเขียน retry และการติดตามสถานะเอง"
+    },
+    "references": [
+      {
+        "title": "Learn about service integrations in Step Functions",
+        "url": "https://docs.aws.amazon.com/step-functions/latest/dg/integrate-services.html"
+      },
+      {
+        "title": "Creating a Step Functions API using API Gateway",
+        "url": "https://docs.aws.amazon.com/step-functions/latest/dg/tutorial-api-gateway.html"
+      },
+      {
+        "title": "Handling errors in Step Functions workflows",
+        "url": "https://docs.aws.amazon.com/step-functions/latest/dg/concepts-error-handling.html"
+      }
+    ],
+    "reviewedAt": "2026-10-29"
+  }
+}

@@ -1,0 +1,19 @@
+{
+  "id": "course-14",
+  "scope": "explanations",
+  "verdict": "FIX",
+  "verifiedCorrectIds": [
+    "B"
+  ],
+  "issues": [
+    "review.reasoning: generic ('ผู้รับที่ได้รับอนุญาต'); omits permission levels, who can be shared with, invitation expiry and required permission"
+  ],
+  "changes": {
+    "review": {
+      "reasoning": "ใช้ Share ของ Well-Architected Tool แชร์ workload เดียวกันให้ AWS account, IAM user, Organization หรือ OU โดยเลือกสิทธิ์ Read-only หรือ Contributor (แก้คำตอบและโน้ตได้ ส่วนอื่นอ่านอย่างเดียว) ผู้รับต้องมีสิทธิ์ wellarchitected:UpdateShareInvitation เพื่อตอบรับ และ invitation หมดอายุใน 7 วัน การแชร์ทำได้เฉพาะใน Region เดียวกัน วิธีนี้ทุกคนเห็น answers/findings ชุดเดียวกัน ต่างจากการเปิดสาธารณะหรือส่ง credential"
+    }
+  },
+  "sources": [
+    "https://docs.aws.amazon.com/wellarchitected/latest/userguide/workloads-sharing.html"
+  ]
+}

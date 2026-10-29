@@ -1,0 +1,13 @@
+{
+  "id": "course-64",
+  "scope": "explanations",
+  "verdict": "PASS",
+  "verifiedCorrectIds": [
+    "D"
+  ],
+  "issues": [],
+  "changes": {},
+  "sources": [
+    "https://docs.aws.amazon.com/prescriptive-guidance/latest/large-migration-guide/phases.html"
+  ]
+}

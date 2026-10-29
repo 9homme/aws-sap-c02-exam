@@ -1,0 +1,20 @@
+{
+  "id": "course-45",
+  "scope": "explanations",
+  "verdict": "FIX",
+  "verifiedCorrectIds": [
+    "A"
+  ],
+  "issues": [
+    "review.reviewStatus/caveat: 'ambiguous' flag is stale. It was written about an older recap wording that implied native CodeDeploy canary on EC2. In the actual prompt and option A the canary is built explicitly (separate EC2 group + ALB weighted forward + alarm-driven revert), which is technically valid and does not claim native canary; B, C, D are clearly wrong. Removing the flag."
+  ],
+  "changes": {
+    "review": {
+      "reviewStatus": null
+    }
+  },
+  "sources": [
+    "https://docs.aws.amazon.com/codedeploy/latest/userguide/primary-components.html",
+    "https://docs.aws.amazon.com/codedeploy/latest/userguide/deployment-configurations.html"
+  ]
+}

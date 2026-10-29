@@ -1,0 +1,21 @@
+{
+  "id": "csv-23",
+  "scope": "explanations",
+  "verdict": "FIX",
+  "verifiedCorrectIds": [
+    "A"
+  ],
+  "issues": [
+    "options.A.explanation: อ้างอิงวนว่า 'managed' ไม่ระบุสิ่งที่ AWS ดูแลจริง (API server, etcd, หลาย AZ) และไม่ผูกกับคำว่า always"
+  ],
+  "changes": {
+    "options": {
+      "A": {
+        "explanation": "EKS รัน Kubernetes control plane (API server, etcd) ใน account ของ AWS กระจายหลาย AZ ให้เสมอ ไม่ว่า data plane จะเป็น EC2, Fargate หรือ hybrid nodes คุณไม่ต้อง patch หรือ scale เอง จึงตรงกับคำว่า always managed ส่วนอย่างอื่นขึ้นกับรูปแบบที่เลือก"
+      }
+    }
+  },
+  "sources": [
+    "https://docs.aws.amazon.com/eks/latest/userguide/eks-architecture.html"
+  ]
+}

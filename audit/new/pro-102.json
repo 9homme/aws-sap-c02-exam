@@ -1,0 +1,82 @@
+{
+  "id": "pro-102",
+  "sourceCategory": "professional",
+  "sourceLabel": "AI-authored · Professional multi-requirement",
+  "sourceDetail": "Original multi-constraint scenario — หา PII และช่องโหว่ทั่วองค์กรให้เร็วที่สุดก่อน audit",
+  "coreEligible": true,
+  "emerging": false,
+  "domain": "3",
+  "task": "Continuous improvement",
+  "topic": "หา PII และช่องโหว่ทั่วองค์กรให้เร็วที่สุดก่อน audit",
+  "type": "multiple-choice",
+  "selectCount": 1,
+  "prompt": "A healthcare company has 2,000 Amazon S3 buckets spread across 80 AWS accounts in an organization in AWS Organizations. An external audit starts next week, and the auditors want evidence of which buckets contain personal health information, such as patient names, medical record numbers, and national ID numbers, along with a report of software vulnerabilities in the company's Amazon EC2 instances and container images in Amazon ECR. The security team has a delegated administrator account for security services but has not enabled Amazon Macie or Amazon Inspector yet. The team has three engineers and no time to build custom scanners. The auditors need a single place where the security team can show prioritized findings from all accounts. The company also wants ongoing visibility after the audit without manual effort. Some buckets contain hundreds of terabytes, so scanning every object in every bucket in a week is not realistic, but the team must show coverage across all buckets. The security tooling account already aggregates GuardDuty findings. Which solution will meet these requirements in the LEAST amount of time?",
+  "options": [
+    {
+      "id": "A",
+      "text": "Write AWS Glue jobs that read objects from every bucket and use Amazon Comprehend Medical to detect personal health information, write AWS Lambda functions that scan the EC2 instances and images for vulnerable packages, and store the results in an Amazon S3 bucket for the auditors.",
+      "explanation": "ไม่ผ่านด้านเวลา: ทำได้ในทางเทคนิค แต่เป็น custom scanners ที่ทีมไม่มีเวลาสร้างและทดสอบ การอ่านทุก object ในหลายร้อย TB ก็ใช้เวลาและต้นทุนสูง และไม่มีที่รวม findings ที่จัดลำดับความสำคัญให้ auditor"
+    },
+    {
+      "id": "B",
+      "text": "Enable Amazon Macie for the organization from the delegated administrator account and create one-time sensitive data discovery jobs that scan every object in all 2,000 buckets, and enable Amazon Inspector for EC2 and ECR scanning in all accounts. Export the results of both services to Amazon S3 for the auditors. Validate the change in a staging environment before production.",
+      "explanation": "ช่วยได้แต่ไม่เร็วที่สุด: Macie และ Inspector ถูกต้อง แต่ job ที่สแกนทุก object ในทุก bucket ที่มีขนาดหลายร้อย TB ใช้เวลานานและแพงเกินกรอบหนึ่งสัปดาห์ และไม่มีที่รวม findings สำหรับ auditor"
+    },
+    {
+      "id": "C",
+      "text": "Enable Amazon GuardDuty S3 Protection and Malware Protection for the organization to identify buckets with sensitive data, enable Amazon Inspector for EC2 and ECR, and export the findings to Amazon S3 for the auditors. Use Amazon Athena to build a report for each account.",
+      "explanation": "ไม่ผ่าน: GuardDuty ตรวจพฤติกรรมที่น่าสงสัยและ malware ไม่ได้จำแนกข้อมูลส่วนบุคคลใน object จึงไม่ตอบคำถามว่า bucket ใดมี personal health information และการ export ไป S3 ไม่ใช่มุมมอง findings ที่รวมศูนย์"
+    },
+    {
+      "id": "D",
+      "text": "From the delegated administrator account, enable Amazon Macie for the organization with automated sensitive data discovery and custom data identifiers for medical record numbers, enable Amazon Inspector for EC2 and ECR scanning with auto-enable for all accounts, and aggregate both services' findings in AWS Security Hub CSPM.",
+      "explanation": "ถูก: automated sensitive data discovery ของ Macie สุ่มตัวอย่าง objects ทั่วทุก bucket อย่างต่อเนื่อง จึงให้ภาพรวม sensitivity ของทั้ง 2,000 buckets ได้ภายในไม่กี่วันโดยไม่ต้องสแกนทุก object custom data identifiers จับรูปแบบหมายเลขเวชระเบียน Inspector สแกน EC2 และ ECR images อัตโนมัติเมื่อเปิด Security Hub รวม findings ทุกบัญชีให้ auditor ดูในที่เดียว และทำงานต่อเนื่องหลัง audit"
+    }
+  ],
+  "correctIds": [
+    "D"
+  ],
+  "rationale": "1) ไม่มีเวลาสร้าง scanner เอง ตัด Glue/Lambda (A) 2) GuardDuty (C) ไม่ได้จำแนกข้อมูลส่วนบุคคล 3) ระหว่าง Macie สองแบบ: full discovery jobs ทุก object (B) ใช้เวลานานกับข้อมูลหลายร้อย TB ส่วน automated sensitive data discovery สุ่มตัวอย่างทุก bucket ได้ภาพรวมเร็ว 4) Inspector สำหรับ EC2/ECR และ Security Hub รวม findings D จึงเร็วที่สุด",
+  "wrongAnswerHelp": "Start with the explicit business constraint, then eliminate choices that solve a different layer of the architecture or add unnecessary operational work.",
+  "references": [
+    "https://docs.aws.amazon.com/macie/latest/user/discovery-asdd.html",
+    "https://docs.aws.amazon.com/inspector/latest/user/what-is-inspector.html",
+    "https://docs.aws.amazon.com/securityhub/latest/userguide/securityhub-internal-providers.html"
+  ],
+  "products": [
+    "Macie",
+    "Inspector",
+    "S3",
+    "Security Hub"
+  ],
+  "requirements": [
+    "Find PII across 2,000 buckets within a week",
+    "Report vulnerable EC2 and container images",
+    "Centralized findings for auditors"
+  ],
+  "review": {
+    "decisiveClue": "audit สัปดาห์หน้า, ต้องรู้ว่า bucket ใดมี PHI ครอบคลุมทุก bucket, รายงานช่องโหว่ EC2/ECR, ไม่มีเวลาสร้าง scanner, ต้องมีที่รวม findings",
+    "reasoning": "1) ไม่มีเวลาสร้าง scanner เอง ตัด Glue/Lambda (A) 2) GuardDuty (C) ไม่ได้จำแนกข้อมูลส่วนบุคคล 3) ระหว่าง Macie สองแบบ: full discovery jobs ทุก object (B) ใช้เวลานานกับข้อมูลหลายร้อย TB ส่วน automated sensitive data discovery สุ่มตัวอย่างทุก bucket ได้ภาพรวมเร็ว 4) Inspector สำหรับ EC2/ECR และ Security Hub รวม findings D จึงเร็วที่สุด",
+    "options": {
+      "A": "ไม่ผ่านด้านเวลา: ทำได้ในทางเทคนิค แต่เป็น custom scanners ที่ทีมไม่มีเวลาสร้างและทดสอบ การอ่านทุก object ในหลายร้อย TB ก็ใช้เวลาและต้นทุนสูง และไม่มีที่รวม findings ที่จัดลำดับความสำคัญให้ auditor",
+      "B": "ช่วยได้แต่ไม่เร็วที่สุด: Macie และ Inspector ถูกต้อง แต่ job ที่สแกนทุก object ในทุก bucket ที่มีขนาดหลายร้อย TB ใช้เวลานานและแพงเกินกรอบหนึ่งสัปดาห์ และไม่มีที่รวม findings สำหรับ auditor",
+      "C": "ไม่ผ่าน: GuardDuty ตรวจพฤติกรรมที่น่าสงสัยและ malware ไม่ได้จำแนกข้อมูลส่วนบุคคลใน object จึงไม่ตอบคำถามว่า bucket ใดมี personal health information และการ export ไป S3 ไม่ใช่มุมมอง findings ที่รวมศูนย์",
+      "D": "ถูก: automated sensitive data discovery ของ Macie สุ่มตัวอย่าง objects ทั่วทุก bucket อย่างต่อเนื่อง จึงให้ภาพรวม sensitivity ของทั้ง 2,000 buckets ได้ภายในไม่กี่วันโดยไม่ต้องสแกนทุก object custom data identifiers จับรูปแบบหมายเลขเวชระเบียน Inspector สแกน EC2 และ ECR images อัตโนมัติเมื่อเปิด Security Hub รวม findings ทุกบัญชีให้ auditor ดูในที่เดียว และทำงานต่อเนื่องหลัง audit"
+    },
+    "references": [
+      {
+        "title": "Performing automated sensitive data discovery with Macie",
+        "url": "https://docs.aws.amazon.com/macie/latest/user/discovery-asdd.html"
+      },
+      {
+        "title": "What is Amazon Inspector?",
+        "url": "https://docs.aws.amazon.com/inspector/latest/user/what-is-inspector.html"
+      },
+      {
+        "title": "Integrations with Security Hub CSPM",
+        "url": "https://docs.aws.amazon.com/securityhub/latest/userguide/securityhub-internal-providers.html"
+      }
+    ],
+    "reviewedAt": "2026-10-29"
+  }
+}

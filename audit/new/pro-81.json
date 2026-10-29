@@ -1,0 +1,82 @@
+{
+  "id": "pro-81",
+  "sourceCategory": "professional",
+  "sourceLabel": "AI-authored · Professional multi-requirement",
+  "sourceDetail": "Original multi-constraint scenario — ลด cold start ของ Lambda ช่วง spike ที่คาดเวลาได้",
+  "coreEligible": true,
+  "emerging": false,
+  "domain": "3",
+  "task": "Continuous improvement",
+  "topic": "ลด cold start ของ Lambda ช่วง spike ที่คาดเวลาได้",
+  "type": "multiple-choice",
+  "selectCount": 1,
+  "prompt": "A brokerage runs its quote API on Amazon API Gateway REST APIs with AWS Lambda functions written in Java 21. Each function loads a large dependency graph at startup, and a cold start takes 4–6 seconds. Traffic is low overnight, but at market open at 09:30 local time it jumps from about 50 to more than 1,000 concurrent requests within a few seconds, and it stays high for about 90 minutes. During this window, the p99 latency rises above 5 seconds, and customers complain that quotes time out. The business requirement is p99 latency under 200 ms from the moment the market opens. The architecture team wants to keep the existing API Gateway and Lambda design and does not want to re-platform the service to containers or EC2. The account's Lambda concurrency quota has already been raised to 3,000. The team accepts paying for pre-warmed capacity during trading hours if that is what it takes to meet the latency goal. Monitoring already publishes the ProvisionedConcurrencyUtilization and Duration metrics to Amazon CloudWatch. The team also wants the solution to adjust automatically if the trading schedule changes on public holidays. Which solution will provide the BEST performance at market open?",
+  "options": [
+    {
+      "id": "A",
+      "text": "Increase the memory size of each function to 10,240 MB so that Lambda allocates more CPU to initialization, and set a reserved concurrency of 1,500 on each function so that capacity is always available at market open. Publish a new version of each function after the change and update the API Gateway integrations to use it.",
+      "explanation": "ไม่ผ่านด้าน performance: memory มากขึ้นช่วยให้ initialization เร็วขึ้นบ้าง แต่ทุก environment ใหม่ยังต้อง cold start และ reserved concurrency เป็นเพียงการกันโควตา ไม่ได้สร้าง environment ที่พร้อมใช้ล่วงหน้า ช่วงเปิดตลาดจึงยังมี latency หลายวินาที"
+    },
+    {
+      "id": "B",
+      "text": "Enable Lambda SnapStart on published versions of the functions so that new execution environments resume from a cached snapshot, and point API Gateway to an alias of the latest published version. Use priming hooks in the function code to load the dependency graph before the snapshot is taken.",
+      "explanation": "ช่วยได้มากแต่ยังไม่ดีที่สุด: SnapStart ลดเวลา initialization ของ Java ลงอย่างมาก แต่ environment ใหม่ยังต้อง restore snapshot และ Lambda เพิ่ม concurrency ด้วยอัตราจำกัดต่อ function เมื่อ traffic กระโดดเป็นพันภายในไม่กี่วินาที request ส่วนหนึ่งยังต้องรอ และ SnapStart ใช้ร่วมกับ provisioned concurrency ไม่ได้"
+    },
+    {
+      "id": "C",
+      "text": "Move the quote logic into a Spring Boot service on an Amazon EC2 Auto Scaling group behind an Application Load Balancer, use scheduled scaling to add instances before 09:30, and point the API Gateway integration to the load balancer. Use the same Java code base packaged as a long-running service and monitor latency with CloudWatch.",
+      "explanation": "ไม่ผ่าน: อาจให้ latency ต่ำได้ แต่เป็นการ re-platform ไป EC2 ซึ่งทีมระบุว่าไม่ต้องการ และต้องดูแล instances, patching และ scaling เอง ขัดกับ requirement ที่ให้คง API Gateway และ Lambda"
+    },
+    {
+      "id": "D",
+      "text": "Publish versions of the functions and configure provisioned concurrency on their aliases, use Application Auto Scaling scheduled actions to raise provisioned concurrency to about 1,200 shortly before 09:30 and lower it after the trading peak, and add target tracking on ProvisionedConcurrencyUtilization to handle unexpected bursts.",
+      "explanation": "ถูก: provisioned concurrency สร้าง execution environments ที่ initialize เสร็จแล้วก่อน request มาถึง จึงตอบได้ในระดับมิลลิวินาทีตั้งแต่วินาทีแรกที่เปิดตลาด และไม่ติดอัตราการ scale ของ on-demand scheduled scaling ทำให้จ่ายเฉพาะช่วงเวลาซื้อขาย target tracking บน utilization เพิ่ม capacity เมื่อ traffic สูงกว่าที่คาด ยังคงสถาปัตยกรรม API Gateway และ Lambda เดิม"
+    }
+  ],
+  "correctIds": [
+    "D"
+  ],
+  "rationale": "1) ต้องคงสถาปัตยกรรมเดิม ตัด EC2 (C) 2) เพิ่ม memory และ reserved concurrency (A) ไม่ได้กำจัด cold start 3) SnapStart (B) ลด cold start ได้มาก แต่ยังมี restore และอัตราการ scale ของ on-demand เมื่อ traffic กระโดดทันที 4) provisioned concurrency ที่เพิ่มด้วย scheduled scaling ก่อนเวลาเปิดตลาด ทำให้ environments พร้อมใช้ล่วงหน้า จึงให้ performance ดีที่สุด D",
+  "wrongAnswerHelp": "Start with the explicit business constraint, then eliminate choices that solve a different layer of the architecture or add unnecessary operational work.",
+  "references": [
+    "https://docs.aws.amazon.com/lambda/latest/dg/provisioned-concurrency.html",
+    "https://docs.aws.amazon.com/lambda/latest/dg/snapstart.html",
+    "https://docs.aws.amazon.com/lambda/latest/dg/scaling-behavior.html"
+  ],
+  "products": [
+    "Lambda",
+    "Auto Scaling",
+    "CloudWatch",
+    "API Gateway"
+  ],
+  "requirements": [
+    "p99 latency under 200 ms at market open",
+    "Traffic jumps 20× within seconds at a known time",
+    "Keep the Lambda/API Gateway architecture"
+  ],
+  "review": {
+    "decisiveClue": "Java cold start 4–6 วินาที, spike 20 เท่าภายในไม่กี่วินาทีที่เวลารู้ล่วงหน้า, p99 < 200 ms ตั้งแต่เปิดตลาด, คง Lambda/API Gateway",
+    "reasoning": "1) ต้องคงสถาปัตยกรรมเดิม ตัด EC2 (C) 2) เพิ่ม memory และ reserved concurrency (A) ไม่ได้กำจัด cold start 3) SnapStart (B) ลด cold start ได้มาก แต่ยังมี restore และอัตราการ scale ของ on-demand เมื่อ traffic กระโดดทันที 4) provisioned concurrency ที่เพิ่มด้วย scheduled scaling ก่อนเวลาเปิดตลาด ทำให้ environments พร้อมใช้ล่วงหน้า จึงให้ performance ดีที่สุด D",
+    "options": {
+      "A": "ไม่ผ่านด้าน performance: memory มากขึ้นช่วยให้ initialization เร็วขึ้นบ้าง แต่ทุก environment ใหม่ยังต้อง cold start และ reserved concurrency เป็นเพียงการกันโควตา ไม่ได้สร้าง environment ที่พร้อมใช้ล่วงหน้า ช่วงเปิดตลาดจึงยังมี latency หลายวินาที",
+      "B": "ช่วยได้มากแต่ยังไม่ดีที่สุด: SnapStart ลดเวลา initialization ของ Java ลงอย่างมาก แต่ environment ใหม่ยังต้อง restore snapshot และ Lambda เพิ่ม concurrency ด้วยอัตราจำกัดต่อ function เมื่อ traffic กระโดดเป็นพันภายในไม่กี่วินาที request ส่วนหนึ่งยังต้องรอ และ SnapStart ใช้ร่วมกับ provisioned concurrency ไม่ได้",
+      "C": "ไม่ผ่าน: อาจให้ latency ต่ำได้ แต่เป็นการ re-platform ไป EC2 ซึ่งทีมระบุว่าไม่ต้องการ และต้องดูแล instances, patching และ scaling เอง ขัดกับ requirement ที่ให้คง API Gateway และ Lambda",
+      "D": "ถูก: provisioned concurrency สร้าง execution environments ที่ initialize เสร็จแล้วก่อน request มาถึง จึงตอบได้ในระดับมิลลิวินาทีตั้งแต่วินาทีแรกที่เปิดตลาด และไม่ติดอัตราการ scale ของ on-demand scheduled scaling ทำให้จ่ายเฉพาะช่วงเวลาซื้อขาย target tracking บน utilization เพิ่ม capacity เมื่อ traffic สูงกว่าที่คาด ยังคงสถาปัตยกรรม API Gateway และ Lambda เดิม"
+    },
+    "references": [
+      {
+        "title": "Configuring provisioned concurrency for a function",
+        "url": "https://docs.aws.amazon.com/lambda/latest/dg/provisioned-concurrency.html"
+      },
+      {
+        "title": "Improving startup performance with Lambda SnapStart",
+        "url": "https://docs.aws.amazon.com/lambda/latest/dg/snapstart.html"
+      },
+      {
+        "title": "Lambda scaling behavior",
+        "url": "https://docs.aws.amazon.com/lambda/latest/dg/scaling-behavior.html"
+      }
+    ],
+    "reviewedAt": "2026-10-29"
+  }
+}

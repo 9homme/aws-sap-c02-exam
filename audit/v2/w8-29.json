@@ -1,0 +1,14 @@
+{
+  "id": "w8-29",
+  "scope": "explanations",
+  "verdict": "PASS",
+  "verifiedCorrectIds": [
+    "D"
+  ],
+  "issues": [],
+  "changes": {},
+  "sources": [
+    "https://docs.aws.amazon.com/memorydb/latest/devguide/what-is-memorydb.html",
+    "https://docs.aws.amazon.com/memorydb/latest/devguide/snapshots-seeding-redis.html"
+  ]
+}

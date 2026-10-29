@@ -1,0 +1,63 @@
+{
+  "id": "original-02",
+  "scope": "full",
+  "verdict": "FIX",
+  "originalCorrectIds": [
+    "A"
+  ],
+  "verifiedCorrectIds": [
+    "C"
+  ],
+  "issues": [
+    "prompt: เดิมตัวลวง (Config snapshot, VPC Flow Logs) เป็นข้อมูลคนละประเภทชัดเจน ไม่ใช่ระดับ Professional; เพิ่ม requirement immutability และตัวลวงที่ทำงานได้บางส่วน",
+    "correctIds: ย้ายจาก A เป็น C เพื่อลด answer-letter bias"
+  ],
+  "changes": {
+    "prompt": "A company has 160 AWS accounts in an organization in AWS Organizations with all features enabled. The security team uses a dedicated Security Tooling account that is registered as the delegated administrator for AWS CloudTrail, and a dedicated Log Archive account. Auditors require that management and data events for every current and future account be delivered as CloudTrail log files to an Amazon S3 bucket in the Log Archive account. Administrators in member accounts must not be able to stop, modify, or delete this logging, and the log files must be tamper-evident and immutable for 7 years. The company wants the least operational overhead. Which solution meets these requirements?",
+    "correctIds": [
+      "C"
+    ],
+    "rationale": "An organization trail covers all current and future accounts and cannot be modified by member accounts; log file validation plus S3 Object Lock in compliance mode makes the archived logs tamper-evident and immutable.",
+    "options": {
+      "A": {
+        "text": "Use AWS CloudFormation StackSets with service-managed permissions and automatic deployment to create a trail in every member account that delivers to the Log Archive bucket. Attach an SCP that denies cloudtrail:StopLogging and cloudtrail:DeleteTrail.",
+        "explanation": "ทำได้บางส่วนแต่ไม่ดีที่สุด: StackSets auto-deployment ครอบคลุมบัญชีใหม่ได้ และ SCP กันการหยุด trail ได้ แต่ต้องดูแล trail 160 ชุด, stack drift และ SCP เพิ่ม และยังไม่ได้ทำให้ log ไม่ถูกแก้ไข (ไม่มี Object Lock หรือ log file validation) จึงมี operational overhead มากกว่า organization trail"
+      },
+      "B": {
+        "text": "Create an organization trail in the management account that delivers log files to an S3 bucket in the management account with SSE-S3 encryption, and replicate the bucket to the Log Archive account each day.",
+        "explanation": "ไม่ผ่าน: organization trail ถูกต้อง แต่ส่ง log ไปเก็บใน management account ซึ่งขัดหลักแยก Log Archive และต้องดูแล replication เพิ่ม SSE-S3 เข้ารหัสได้แต่ไม่ได้ทำให้ log immutable หรือพิสูจน์การแก้ไขได้ การ replicate รายวันยังทำให้สำเนาใน Log Archive ล่าช้า"
+      },
+      "C": {
+        "text": "From the delegated administrator account, create an organization trail for management and data events with log file integrity validation enabled. Deliver the logs to an S3 bucket in the Log Archive account that has S3 Object Lock in compliance mode with a 7-year default retention and a bucket policy that allows only the CloudTrail service principal for the organization trail to write.",
+        "explanation": "ถูก: organization trail ครอบคลุมทุกบัญชีรวมถึงบัญชีใหม่โดยอัตโนมัติ และ member account มองเห็นแต่แก้หรือลบ trail นี้ไม่ได้ delegated administrator สร้างได้ (trail ยังเป็นของ management account) log file validation ทำให้ตรวจการแก้ไขได้ ส่วน Object Lock compliance mode ป้องกันการลบหรือเขียนทับตลอด 7 ปีแม้แต่ root"
+      },
+      "D": {
+        "text": "Create an Amazon EventBridge rule in every account that forwards all AWS API events to a central event bus in the Log Archive account, and use Amazon Data Firehose to write the events to an S3 bucket with versioning enabled.",
+        "explanation": "ไม่ผ่าน: EventBridge ได้รับ CloudTrail events บางประเภทเท่านั้น และไม่ใช่ CloudTrail log files ที่ auditor ต้องการ rule อยู่ในแต่ละ member account ผู้ดูแลบัญชีจึงลบได้ ส่วน versioning ก็ไม่ได้ป้องกันการลบแบบ compliance เหมือน Object Lock"
+      }
+    },
+    "review": {
+      "decisiveClue": "ทุกบัญชีปัจจุบัน/อนาคต, member admin หยุดหรือแก้ไม่ได้, log ต้อง tamper-evident และ immutable 7 ปี, overhead ต่ำสุด",
+      "reasoning": "1) 'ทุกบัญชีรวมบัญชีอนาคต' และ 'member หยุดไม่ได้' ชี้ไปที่ organization trail ซึ่ง member account แก้หรือลบไม่ได้ จึงไม่ต้องดูแล trail รายบัญชีแบบ A 2) ปลายทางต้องเป็น Log Archive ตรง ๆ ไม่ใช่ management account (B) 3) tamper-evident = เปิด log file integrity validation ส่วน immutable 7 ปี = S3 Object Lock compliance mode ที่มี default retention 4) EventBridge (D) ไม่ใช่ CloudTrail log files และ rule อยู่ใน member account จึงถูกปิดได้ ดังนั้น C ครบทุกเงื่อนไขด้วย overhead ต่ำสุด",
+      "references": [
+        {
+          "title": "Creating a trail for an organization",
+          "url": "https://docs.aws.amazon.com/awscloudtrail/latest/userguide/creating-trail-organization.html"
+        },
+        {
+          "title": "CloudTrail log file integrity validation",
+          "url": "https://docs.aws.amazon.com/awscloudtrail/latest/userguide/cloudtrail-log-file-validation-intro.html"
+        },
+        {
+          "title": "S3 Object Lock",
+          "url": "https://docs.aws.amazon.com/AmazonS3/latest/userguide/object-lock.html"
+        }
+      ]
+    }
+  },
+  "sources": [
+    "https://docs.aws.amazon.com/awscloudtrail/latest/userguide/creating-trail-organization.html",
+    "https://docs.aws.amazon.com/awscloudtrail/latest/userguide/cloudtrail-log-file-validation-intro.html",
+    "https://docs.aws.amazon.com/AmazonS3/latest/userguide/object-lock.html"
+  ]
+}

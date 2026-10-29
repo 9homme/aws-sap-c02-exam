@@ -1,0 +1,65 @@
+{
+  "id": "pro-36",
+  "scope": "full",
+  "verdict": "FIX",
+  "originalCorrectIds": [
+    "C"
+  ],
+  "verifiedCorrectIds": [
+    "C"
+  ],
+  "issues": [
+    "options: ตัวลวงเดิมผิดอย่างชัดเจน (อ้างความสามารถที่บริการไม่มี) ทำให้ตอบได้จากการจำชื่อบริการ ไม่ใช่ระดับ SAP-C02 Professional; เขียนใหม่ให้แต่ละตัวลวงทำงานได้จริงบางส่วนแต่ตกเงื่อนไขหนึ่งข้อ",
+    "prompt: ลบประโยค boilerplate (architecture review board / workable for the stated environment)",
+    "review.reasoning: เดิมคัดลอก requirement ภาษาอังกฤษมาต่อกัน ไม่ได้อธิบายการตัดตัวเลือก"
+  ],
+  "changes": {
+    "prompt": "A bank must encrypt ordinary S3 and RDS workload data with centrally auditable key policies while supporting service-integrated envelope encryption. A separate signing application is governed by a contractual requirement to operate dedicated HSM devices under a customer-managed cryptographic environment and uses specialized PKCS#11 operations. Database connection passwords must rotate automatically without application teams writing and scheduling their own password-update Lambda functions for common supported engines. The deployment team also stores hundreds of nonsecret configuration flags and a small number of parameters that rarely change. The security board will not approve replacing every category with one tool merely because its name contains the word 'key'. The solution must meet all of the following requirements: (1) Use service-integrated encryption key governance for common AWS storage and databases; (2) Provide dedicated HSM capabilities for the specialized signing workload; (3) Automate supported database credential rotation and keep ordinary configuration in an appropriate parameter store. Which solution meets these requirements with the LEAST operational overhead?",
+    "options": {
+      "A": {
+        "text": "Use AWS KMS customer managed keys for S3 and RDS encryption, create KMS asymmetric signing keys for the signing application, use AWS Secrets Manager rotation for database passwords, and store configuration in Systems Manager Parameter Store.",
+        "explanation": "ตกข้อ (2): KMS รองรับ asymmetric signing ได้จริง แต่ HSM ของ KMS เป็นแบบ multi-tenant ที่ AWS จัดการ ไม่ใช่ dedicated HSM ภายใต้การควบคุมของลูกค้าตามสัญญา และ KMS ไม่มี PKCS#11 interface ที่แอป signing ใช้ ส่วนอื่นของตัวเลือกถูกต้อง"
+      },
+      "B": {
+        "text": "Use AWS KMS for S3 and RDS encryption and AWS CloudHSM for the signing application. Store database passwords as Systems Manager Parameter Store SecureString parameters and have each application team update them on a schedule.",
+        "explanation": "ตกข้อ (3): KMS และ CloudHSM ถูกที่แล้ว แต่ Parameter Store ไม่มี managed rotation สำหรับรหัสผ่าน database ทีมแอปต้องเขียนและตั้งเวลาการเปลี่ยนรหัสเอง ซึ่งโจทย์ห้าม Secrets Manager มี managed rotation สำหรับ RDS และ engines ที่รองรับ"
+      },
+      "C": {
+        "text": "Use AWS KMS for integrated service encryption, CloudHSM for the specialized HSM signing requirement, Secrets Manager for rotation, and Systems Manager Parameter Store for ordinary configuration.",
+        "explanation": "ถูก: KMS ผสานกับ S3/RDS แบบ envelope encryption และคุมด้วย key policy ที่ audit ได้ผ่าน CloudTrail CloudHSM ให้ HSM แบบ single-tenant ที่ลูกค้าคุม crypto users และรองรับ PKCS#11 Secrets Manager หมุนรหัสผ่าน database อัตโนมัติ (รวมถึง managed rotation ของ RDS) ส่วน Parameter Store เก็บ configuration ที่ไม่เป็นความลับได้ในราคาต่ำ"
+      },
+      "D": {
+        "text": "Create an AWS KMS custom key store backed by an AWS CloudHSM cluster and use its KMS keys for the signing application and the S3 and RDS data. Store all database passwords and configuration flags in AWS Secrets Manager with rotation enabled.",
+        "explanation": "ตกข้อ (2)(3): custom key store รองรับเฉพาะ symmetric encryption KMS keys และแอปยังเรียกผ่าน KMS API ไม่ใช่ PKCS#11 จึงไม่ตอบงาน signing ส่วนการเก็บ configuration ที่ไม่เป็นความลับหลายร้อยรายการใน Secrets Manager เพิ่มค่าใช้จ่ายรายความลับโดยไม่จำเป็น Parameter Store เหมาะกว่า"
+      }
+    },
+    "review": {
+      "decisiveClue": "encryption ที่ผสานกับบริการ AWS, dedicated HSM + PKCS#11 สำหรับ signing, หมุนรหัส database อัตโนมัติ, config ทั่วไปใน parameter store",
+      "reasoning": "1) แยกตามชนิดงาน: service encryption = KMS, dedicated HSM/PKCS#11 = CloudHSM, credential rotation = Secrets Manager, config ธรรมดา = Parameter Store 2) KMS asymmetric keys (A) และ custom key store (D) ไม่ใช่ dedicated HSM ที่เรียกด้วย PKCS#11 3) Parameter Store ไม่มี managed rotation (B) 4) C ใช้แต่ละบริการตรงหน้าที่ ไม่ได้ใช้เครื่องมือเดียวแทนทุกอย่างตามที่ security board เตือน",
+      "references": [
+        {
+          "title": "AWS KMS concepts",
+          "url": "https://docs.aws.amazon.com/kms/latest/developerguide/overview.html"
+        },
+        {
+          "title": "What is AWS CloudHSM?",
+          "url": "https://docs.aws.amazon.com/cloudhsm/latest/userguide/introduction.html"
+        },
+        {
+          "title": "Rotate AWS Secrets Manager secrets",
+          "url": "https://docs.aws.amazon.com/secretsmanager/latest/userguide/rotating-secrets.html"
+        },
+        {
+          "title": "AWS KMS custom key stores",
+          "url": "https://docs.aws.amazon.com/kms/latest/developerguide/key-store-overview.html"
+        }
+      ]
+    }
+  },
+  "sources": [
+    "https://docs.aws.amazon.com/kms/latest/developerguide/overview.html",
+    "https://docs.aws.amazon.com/cloudhsm/latest/userguide/introduction.html",
+    "https://docs.aws.amazon.com/secretsmanager/latest/userguide/rotating-secrets.html",
+    "https://docs.aws.amazon.com/kms/latest/developerguide/key-store-overview.html"
+  ]
+}

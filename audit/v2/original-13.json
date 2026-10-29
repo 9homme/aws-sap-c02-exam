@@ -1,0 +1,62 @@
+{
+  "id": "original-13",
+  "scope": "full",
+  "verdict": "FIX",
+  "originalCorrectIds": [
+    "A"
+  ],
+  "verifiedCorrectIds": [
+    "B"
+  ],
+  "issues": [
+    "prompt: เดิมตัวลวง (spreadsheet, IAM access keys, EC2 ตัวเดียว) ไม่สมเหตุสมผล; เพิ่ม Security Hub/SCP/GuardDuty เป็นตัวลวงที่ต้องแยก detection, prevention และ remediation"
+  ],
+  "changes": {
+    "prompt": "A company has 200 AWS accounts in an organization in AWS Organizations. The security team must detect security groups that allow unrestricted inbound SSH (0.0.0.0/0 on port 22) and accounts that do not have Amazon EBS encryption by default enabled. Supported violations must be remediated automatically, the configuration must apply to new accounts as they join, and the security team needs one aggregated compliance view. AWS Config is already recording in all accounts. The company wants the solution that requires the least custom code. Which solution meets these requirements?",
+    "correctIds": [
+      "B"
+    ],
+    "rationale": "Organization conformance packs deploy AWS Config managed rules with automatic remediation through AWS managed Systems Manager Automation runbooks across all current and new accounts, with an aggregator for central compliance.",
+    "options": {
+      "A": {
+        "text": "Enable AWS Security Hub CSPM across the organization with the AWS Foundational Security Best Practices standard, and create an Amazon EventBridge rule in each account that invokes a custom AWS Lambda function to fix failed findings.",
+        "explanation": "ทำได้แต่ต้องเขียน code: Security Hub ตรวจพบปัญหาทั้งสองได้ผ่าน controls ที่ใช้ Config แต่การแก้ไขอัตโนมัติต้องสร้าง EventBridge rule และ Lambda function เองในทุกบัญชี ทำให้มี custom code และงานดูแลมากกว่า Config remediation ที่ใช้ runbook สำเร็จรูป"
+      },
+      "B": {
+        "text": "From the AWS Config delegated administrator account, deploy an organization conformance pack that contains the restricted-ssh and ec2-ebs-encryption-by-default managed rules with automatic remediation actions that use AWS managed Systems Manager Automation runbooks, and use a Config aggregator for the compliance view.",
+        "explanation": "ถูก: organization conformance pack ปรับใช้ rule ทั้งชุดกับทุกบัญชีรวมถึงบัญชีใหม่ และกำหนด remediation ด้วย runbook ที่ AWS จัดเตรียม เช่น AWS-DisableIncomingSSHOnPort22 และ AWSConfigRemediation-EnableEbsEncryptionByDefault จึงไม่ต้องเขียน code Config aggregator ให้มุมมอง compliance รวม ต้องเตรียม IAM role ให้ automation ทำงานในแต่ละบัญชี"
+      },
+      "C": {
+        "text": "Attach an SCP that denies ec2:AuthorizeSecurityGroupIngress when the request contains 0.0.0.0/0 on port 22, and an SCP that denies ec2:RunInstances unless EBS encryption by default is enabled.",
+        "explanation": "ไม่ผ่าน: SCP เป็นการป้องกันล่วงหน้า แต่ไม่มี condition key สำหรับตรวจ CIDR หรือ port ของ ingress rule และไม่มี key ที่บอกว่าบัญชีเปิด EBS encryption by default อยู่หรือไม่ ทั้ง SCP ไม่ได้แก้ resource ที่ผิดอยู่แล้ว และไม่ให้ compliance view"
+      },
+      "D": {
+        "text": "Enable Amazon GuardDuty across the organization and use its findings to identify and remediate security groups with open SSH and unencrypted volumes.",
+        "explanation": "ไม่ผ่าน: GuardDuty วิเคราะห์ภัยคุกคามจาก logs เช่น การ brute force SSH หรือพฤติกรรมผิดปกติ แต่ไม่ได้ประเมินการตั้งค่า resource ว่าถูกต้องตาม rule และไม่มี remediation ในตัว จึงตอบโจทย์ configuration compliance ไม่ได้"
+      }
+    },
+    "review": {
+      "decisiveClue": "ตรวจ configuration ผิด + แก้อัตโนมัติ, 200 บัญชีรวมบัญชีใหม่, มุมมองรวม, Config เปิดอยู่แล้ว, custom code น้อยที่สุด",
+      "reasoning": "1) โจทย์เป็น configuration compliance (มี security group เปิดกว้าง, บัญชีไม่เปิด EBS default encryption) ไม่ใช่ threat detection จึงตัด GuardDuty (D) 2) ต้องแก้ resource ที่ผิดอยู่แล้ว SCP (C) ป้องกันได้เฉพาะ action ในอนาคตและไม่มี condition keys ที่ต้องใช้ 3) ระหว่าง Security Hub + Lambda (A) กับ Config conformance pack: conformance pack มี remediation ผ่าน managed runbooks ไม่ต้องเขียน code และปรับใช้ทั้งองค์กรรวมบัญชีใหม่ 4) aggregator ให้มุมมองรวม B จึงใช้ custom code น้อยที่สุด",
+      "references": [
+        {
+          "title": "Organization conformance packs",
+          "url": "https://docs.aws.amazon.com/config/latest/developerguide/conformance-pack-organization-apis.html"
+        },
+        {
+          "title": "Remediating noncompliant resources with AWS Config",
+          "url": "https://docs.aws.amazon.com/config/latest/developerguide/remediation.html"
+        },
+        {
+          "title": "restricted-ssh managed rule",
+          "url": "https://docs.aws.amazon.com/config/latest/developerguide/restricted-ssh.html"
+        }
+      ]
+    }
+  },
+  "sources": [
+    "https://docs.aws.amazon.com/config/latest/developerguide/conformance-pack-organization-apis.html",
+    "https://docs.aws.amazon.com/config/latest/developerguide/remediation.html",
+    "https://docs.aws.amazon.com/config/latest/developerguide/restricted-ssh.html"
+  ]
+}

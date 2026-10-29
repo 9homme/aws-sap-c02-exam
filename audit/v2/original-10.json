@@ -1,0 +1,57 @@
+{
+  "id": "original-10",
+  "scope": "full",
+  "verdict": "FIX",
+  "originalCorrectIds": [
+    "A"
+  ],
+  "verifiedCorrectIds": [
+    "C"
+  ],
+  "issues": [
+    "prompt: เดิมตัวลวง (RDS read replica ของ DynamoDB, Glacier, Lambda memory) ไม่สมเหตุสมผล; เพิ่ม ElastiCache และ strongly consistent requirement ให้ต้องแยก DAX"
+  ],
+  "changes": {
+    "prompt": "An ecommerce company stores its product catalog in an Amazon DynamoDB table that is read by a Java microservice on Amazon ECS. During promotions, 95% of reads target fewer than 2,000 popular items, read latency rises to tens of milliseconds, and read capacity costs grow sharply. Catalog data can be up to a few seconds stale. A separate inventory-check path in the same service uses strongly consistent reads and must always return the latest committed value. The company wants microsecond read latency for catalog lookups, lower DynamoDB read costs, and minimal application code changes. Which solution meets these requirements?",
+    "correctIds": [
+      "C"
+    ],
+    "rationale": "DAX is a DynamoDB-compatible in-memory cache that provides microsecond reads for hot items with only a client change, while strongly consistent reads pass through to DynamoDB.",
+    "options": {
+      "A": {
+        "text": "Deploy an Amazon ElastiCache (Redis OSS) cluster. Update the microservice to check the cache first, write cache entries after reading from DynamoDB, and invalidate entries when catalog items change.",
+        "explanation": "ทำงานได้แต่ไม่ใช่ minimal code changes: ต้องเขียน cache-aside logic, การตั้ง TTL, การ invalidate เมื่อข้อมูลเปลี่ยน และจัดการ consistency เอง ElastiCache ให้ latency ต่ำได้ แต่ DAX ทำหน้าที่เดียวกันสำหรับ DynamoDB ด้วยการเปลี่ยน client เท่านั้น"
+      },
+      "B": {
+        "text": "Switch the table to on-demand capacity mode so that it scales automatically during promotions.",
+        "explanation": "ไม่ผ่าน: on-demand ช่วยรับ throughput ที่คาดเดาไม่ได้โดยไม่ต้องตั้ง capacity แต่ไม่ลด latency ของการอ่านลงระดับ microsecond และยังคิดค่าบริการทุก read ที่เข้า table จึงไม่ลดต้นทุนจาก hot keys"
+      },
+      "C": {
+        "text": "Create a DynamoDB Accelerator (DAX) cluster in the VPC, replace the DynamoDB client in the microservice with the DAX client, and keep using eventually consistent reads for catalog lookups while the inventory path continues to issue strongly consistent reads.",
+        "explanation": "ถูก: DAX เป็น in-memory cache ที่เข้ากันกับ DynamoDB API จึงเปลี่ยนแค่ client hot items ถูกตอบจาก cache ระดับ microsecond และลด read ที่เข้า table ส่วน strongly consistent reads จะถูกส่งผ่านไปยัง DynamoDB โดยไม่ cache จึงยังได้ค่าล่าสุดสำหรับ inventory ต้องวาง DAX ใน VPC และกำหนด TTL ให้สอดคล้องกับความ stale ที่ยอมรับได้"
+      },
+      "D": {
+        "text": "Create a global secondary index that projects only the catalog attributes and direct all catalog reads to the index.",
+        "explanation": "ไม่ผ่าน: GSI ช่วยเมื่อต้องการ query ด้วย key ใหม่ แต่ hot items ยังถูกอ่านจาก storage ของ DynamoDB ทุกครั้ง latency ไม่ลดลงระดับ microsecond และต้องจ่าย write และ storage ของ index เพิ่ม ทั้ง GSI รองรับเฉพาะ eventually consistent reads"
+      }
+    },
+    "review": {
+      "decisiveClue": "hot keys จำนวนน้อย, ยอม stale ได้ไม่กี่วินาที, ต้องการ microsecond latency และลด read cost โดยแก้ code น้อยที่สุด, inventory ต้อง strongly consistent",
+      "reasoning": "1) microsecond latency สำหรับ hot keys ต้องใช้ in-memory cache จึงตัด on-demand (B) และ GSI (D) ที่ยังอ่านจาก table 2) ระหว่าง ElastiCache กับ DAX: DAX ใช้ DynamoDB API เดิม เปลี่ยนแค่ client จึงตรงกับ minimal code changes ส่วน ElastiCache ต้องเขียน cache logic เอง (A) 3) DAX ส่ง strongly consistent reads ผ่านไปยัง DynamoDB โดยไม่ cache เส้นทาง inventory จึงยังได้ค่าล่าสุด C จึงครบทุกข้อ",
+      "references": [
+        {
+          "title": "In-memory acceleration with DynamoDB Accelerator (DAX)",
+          "url": "https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/DAX.html"
+        },
+        {
+          "title": "DAX and DynamoDB consistency models",
+          "url": "https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/DAX.consistency.html"
+        }
+      ]
+    }
+  },
+  "sources": [
+    "https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/DAX.html",
+    "https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/DAX.consistency.html"
+  ]
+}

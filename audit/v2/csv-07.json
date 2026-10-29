@@ -1,0 +1,21 @@
+{
+  "id": "csv-07",
+  "scope": "explanations",
+  "verdict": "FIX",
+  "verifiedCorrectIds": [
+    "B"
+  ],
+  "issues": [
+    "options.A.explanation: vague ('ไม่ใช่ตัวปรับจำนวน... ในตัวเลือกนี้'); should say RDS is data tier and what its scaling covers."
+  ],
+  "changes": {
+    "options": {
+      "A": {
+        "explanation": "RDS เป็น managed database ที่ scale ได้บางมิติ (storage autoscaling, read replica, Aurora Serverless) แต่เป็น data tier ไม่ได้เพิ่ม-ลดจำนวน compute ที่รับ request ของแอปตาม traffic spike จึงไม่ใช่ตัวแทน elasticity ของ application tier ในโจทย์นี้"
+      }
+    }
+  },
+  "sources": [
+    "https://docs.aws.amazon.com/autoscaling/ec2/userguide/what-is-amazon-ec2-auto-scaling.html"
+  ]
+}

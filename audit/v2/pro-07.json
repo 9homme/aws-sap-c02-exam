@@ -1,0 +1,18 @@
+{
+  "id": "pro-07",
+  "scope": "full",
+  "verdict": "PASS",
+  "originalCorrectIds": [
+    "A"
+  ],
+  "verifiedCorrectIds": [
+    "A"
+  ],
+  "issues": [],
+  "changes": {},
+  "sources": [
+    "https://docs.aws.amazon.com/AmazonECS/latest/developerguide/fargate-tasks-services.html",
+    "https://docs.aws.amazon.com/AmazonECS/latest/developerguide/efs-volumes.html",
+    "https://docs.aws.amazon.com/lambda/latest/dg/gettingstarted-limits.html"
+  ]
+}

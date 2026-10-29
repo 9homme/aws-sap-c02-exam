@@ -1,0 +1,13 @@
+{
+  "id": "course-69",
+  "scope": "explanations",
+  "verdict": "PASS",
+  "verifiedCorrectIds": [
+    "A"
+  ],
+  "issues": [],
+  "changes": {},
+  "sources": [
+    "https://docs.aws.amazon.com/migrationhub-orchestrator/latest/userguide/what-is-orchestrator.html"
+  ]
+}

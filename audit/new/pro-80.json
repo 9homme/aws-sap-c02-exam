@@ -1,0 +1,84 @@
+{
+  "id": "pro-80",
+  "sourceCategory": "professional",
+  "sourceLabel": "AI-authored · Professional multi-requirement",
+  "sourceDetail": "Original multi-constraint scenario — RDS SQL Server ด้วย Windows authentication และ key ใน HSM",
+  "coreEligible": true,
+  "emerging": false,
+  "domain": "2",
+  "task": "New solution design",
+  "topic": "RDS SQL Server ด้วย Windows authentication และ key ใน HSM",
+  "type": "multiple-choice",
+  "selectCount": 1,
+  "prompt": "A bank is migrating a core reporting database from on-premises SQL Server to Amazon RDS for SQL Server Multi-AZ. Today, applications and analysts connect with Windows authentication by using accounts in the bank's Active Directory, and no application stores a database password. The bank's AWS environment already uses an AWS Managed Microsoft AD directory that has a forest trust with the on-premises forest. A new regulation requires that the keys that protect the database storage, automated backups, and snapshots be generated and stored in a single-tenant hardware security module that the bank controls, with the ability to make the data unreadable by disconnecting the HSM. The database master user password must rotate automatically and must never appear in application configuration. The bank wants to keep using RDS rather than operate SQL Server on Amazon EC2. The security team also requires that every use of the encryption keys be logged for audit. Analysts connect from on-premises workstations over AWS Direct Connect. Which solution will meet these requirements in the MOST secure way?",
+  "options": [
+    {
+      "id": "A",
+      "text": "Create SQL Server logins for each application and analyst, store the passwords in AWS Systems Manager Parameter Store SecureString parameters, encrypt the DB instance with the default aws/rds KMS key, and rotate the passwords quarterly with a script.",
+      "explanation": "ไม่ผ่าน: การเปลี่ยนเป็น SQL logins ทำให้แอปต้องเก็บ password ซึ่งขัดกับปัจจุบันที่ไม่มีแอปใดเก็บ password Parameter Store ไม่มี managed rotation และ key aws/rds เป็น AWS managed key ที่ไม่ได้อยู่ใน HSM ที่ธนาคารควบคุม"
+    },
+    {
+      "id": "B",
+      "text": "Create the RDS for SQL Server DB instance joined to the existing AWS Managed Microsoft AD for Windows authentication, encrypt it with a KMS key from an AWS KMS custom key store that is backed by an AWS CloudHSM cluster the bank controls, and let RDS manage the master user password in AWS Secrets Manager with automatic rotation.",
+      "explanation": "ถูก: RDS for SQL Server รองรับ Windows authentication ผ่าน Managed AD และ trust ทำให้ผู้ใช้จาก forest on premises ใช้ได้โดยไม่มี password ในแอป KMS key จาก custom key store ถูกสร้างและเก็บใน CloudHSM cluster ที่ธนาคารควบคุม การตัดการเชื่อมต่อ key store ทำให้ไม่สามารถใช้ key เพื่อถอดรหัสข้อมูลได้ ส่วน Secrets Manager ที่ RDS จัดการหมุน master password ให้อัตโนมัติ"
+    },
+    {
+      "id": "C",
+      "text": "Create the RDS for SQL Server DB instance joined to the existing AWS Managed Microsoft AD for Windows authentication, encrypt it with a customer managed KMS key with automatic key rotation enabled, and store the master user password in AWS Secrets Manager.",
+      "explanation": "ใกล้เคียงแต่ไม่ผ่านข้อกำหนด HSM: Windows authentication และ Secrets Manager ถูกต้อง แต่ customer managed key มาตรฐานอยู่ใน HSM ที่ใช้ร่วมกันของ KMS ไม่ใช่ single-tenant HSM ที่ธนาคารควบคุมและตัดการเชื่อมต่อได้เอง"
+    },
+    {
+      "id": "D",
+      "text": "Enable the Transparent Data Encryption option on the RDS for SQL Server DB instance and configure SQL Server Extensible Key Management to store the TDE keys directly in an AWS CloudHSM cluster, and join the DB instance to the Managed Microsoft AD. Store the master user password in AWS Secrets Manager.",
+      "explanation": "ไม่ผ่าน: RDS for SQL Server ไม่เปิดให้ติดตั้ง EKM provider เพื่อเก็บ TDE key ใน CloudHSM โดยตรง (TDE ของ RDS ใช้ certificate ที่ RDS จัดการ) วิธีนี้ทำได้เฉพาะ SQL Server บน EC2 ซึ่งธนาคารไม่ต้องการ และ TDE ไม่ได้ครอบคลุม master password rotation"
+    }
+  ],
+  "correctIds": [
+    "B"
+  ],
+  "rationale": "1) Windows auth ทำได้ด้วย RDS ที่ join Managed AD และใช้ trust กับ forest on premises ส่วน SQL logins (A) เพิ่ม password ในแอป 2) key ต้องอยู่ใน single-tenant HSM: customer managed key ปกติ (C) อยู่ใน HSM ที่ใช้ร่วมกัน ส่วน EKM กับ CloudHSM (D) ใช้กับ RDS ไม่ได้ 3) KMS custom key store ที่ backed by CloudHSM ใช้เข้ารหัส RDS ได้และตัดการเชื่อมต่อได้ 4) Secrets Manager ที่ RDS จัดการหมุน master password อัตโนมัติ B จึงปลอดภัยที่สุด",
+  "wrongAnswerHelp": "Start with the explicit business constraint, then eliminate choices that solve a different layer of the architecture or add unnecessary operational work.",
+  "references": [
+    "https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/USER_SQLServerWinAuth.html",
+    "https://docs.aws.amazon.com/kms/latest/developerguide/keystore-cloudhsm.html",
+    "https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/rds-secrets-manager.html"
+  ],
+  "products": [
+    "RDS",
+    "KMS (Key Management Service)",
+    "CloudHSM",
+    "Secrets Manager",
+    "Parameter Store",
+    "AWS Managed Microsoft AD"
+  ],
+  "requirements": [
+    "RDS for SQL Server uses Windows authentication with corporate users",
+    "Encryption keys reside in a customer-controlled single-tenant HSM",
+    "No database passwords embedded in apps"
+  ],
+  "review": {
+    "decisiveClue": "Windows auth ด้วย AD เดิม, key ต้องอยู่ใน single-tenant HSM ที่ธนาคารคุมและตัดได้, master password หมุนอัตโนมัติ, ต้องใช้ RDS",
+    "reasoning": "1) Windows auth ทำได้ด้วย RDS ที่ join Managed AD และใช้ trust กับ forest on premises ส่วน SQL logins (A) เพิ่ม password ในแอป 2) key ต้องอยู่ใน single-tenant HSM: customer managed key ปกติ (C) อยู่ใน HSM ที่ใช้ร่วมกัน ส่วน EKM กับ CloudHSM (D) ใช้กับ RDS ไม่ได้ 3) KMS custom key store ที่ backed by CloudHSM ใช้เข้ารหัส RDS ได้และตัดการเชื่อมต่อได้ 4) Secrets Manager ที่ RDS จัดการหมุน master password อัตโนมัติ B จึงปลอดภัยที่สุด",
+    "options": {
+      "A": "ไม่ผ่าน: การเปลี่ยนเป็น SQL logins ทำให้แอปต้องเก็บ password ซึ่งขัดกับปัจจุบันที่ไม่มีแอปใดเก็บ password Parameter Store ไม่มี managed rotation และ key aws/rds เป็น AWS managed key ที่ไม่ได้อยู่ใน HSM ที่ธนาคารควบคุม",
+      "B": "ถูก: RDS for SQL Server รองรับ Windows authentication ผ่าน Managed AD และ trust ทำให้ผู้ใช้จาก forest on premises ใช้ได้โดยไม่มี password ในแอป KMS key จาก custom key store ถูกสร้างและเก็บใน CloudHSM cluster ที่ธนาคารควบคุม การตัดการเชื่อมต่อ key store ทำให้ไม่สามารถใช้ key เพื่อถอดรหัสข้อมูลได้ ส่วน Secrets Manager ที่ RDS จัดการหมุน master password ให้อัตโนมัติ",
+      "C": "ใกล้เคียงแต่ไม่ผ่านข้อกำหนด HSM: Windows authentication และ Secrets Manager ถูกต้อง แต่ customer managed key มาตรฐานอยู่ใน HSM ที่ใช้ร่วมกันของ KMS ไม่ใช่ single-tenant HSM ที่ธนาคารควบคุมและตัดการเชื่อมต่อได้เอง",
+      "D": "ไม่ผ่าน: RDS for SQL Server ไม่เปิดให้ติดตั้ง EKM provider เพื่อเก็บ TDE key ใน CloudHSM โดยตรง (TDE ของ RDS ใช้ certificate ที่ RDS จัดการ) วิธีนี้ทำได้เฉพาะ SQL Server บน EC2 ซึ่งธนาคารไม่ต้องการ และ TDE ไม่ได้ครอบคลุม master password rotation"
+    },
+    "references": [
+      {
+        "title": "Using Windows Authentication with RDS for SQL Server",
+        "url": "https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/USER_SQLServerWinAuth.html"
+      },
+      {
+        "title": "AWS CloudHSM key stores",
+        "url": "https://docs.aws.amazon.com/kms/latest/developerguide/keystore-cloudhsm.html"
+      },
+      {
+        "title": "Password management with Amazon RDS and AWS Secrets Manager",
+        "url": "https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/rds-secrets-manager.html"
+      }
+    ],
+    "reviewedAt": "2026-10-29"
+  }
+}

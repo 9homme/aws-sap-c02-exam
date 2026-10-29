@@ -1,0 +1,25 @@
+{
+  "id": "course-18",
+  "scope": "explanations",
+  "verdict": "FIX",
+  "verifiedCorrectIds": [
+    "B"
+  ],
+  "issues": [
+    "options.C.explanation: used outdated area name 'Detective Controls'; current Security pillar area is 'Detection'.",
+    "review.reasoning: did not list the actual Security best-practice areas or say why the other options fail."
+  ],
+  "changes": {
+    "options": {
+      "C": {
+        "explanation": "เหตุผลที่ตัดตัวเลือกนี้: Compute/Storage/Database เป็นหมวดประเภทบริการของ AWS ไม่ใช่ practice areas ของ Security pillar ซึ่งได้แก่ Security foundations, Identity and access management, Detection, Infrastructure protection, Data protection, Incident response และ Application security"
+      }
+    },
+    "review": {
+      "reasoning": "Security pillar แบ่งเป็นหลาย best practice areas ได้แก่ Security foundations, Identity and access management, Detection, Infrastructure protection, Data protection, Incident response และ Application security ตัวเลือก B (IAM, data protection, incident response) เป็นสามใน area เหล่านี้ ส่วน A เป็น metric ด้าน performance, C เป็นหมวดบริการ, D เป็นเครื่องมือด้าน cost จึงไม่ใช่ area ของ Security ข้อควรจำคือสามหัวข้อใน B ไม่ใช่รายการทั้งหมด และควบคุมสิทธิ์อย่างเดียวไม่ทดแทนการเข้ารหัสหรือแผนรับมือเหตุ"
+    }
+  },
+  "sources": [
+    "https://docs.aws.amazon.com/wellarchitected/latest/framework/security.html"
+  ]
+}

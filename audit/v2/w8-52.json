@@ -1,0 +1,15 @@
+{
+  "id": "w8-52",
+  "scope": "explanations",
+  "verdict": "PASS",
+  "verifiedCorrectIds": [
+    "B"
+  ],
+  "issues": [],
+  "changes": {},
+  "sources": [
+    "https://docs.aws.amazon.com/lambda/latest/dg/gettingstarted-limits.html",
+    "https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/Concepts.MultiAZSingleStandby.html",
+    "https://docs.aws.amazon.com/lambda/latest/dg/with-sqs.html"
+  ]
+}

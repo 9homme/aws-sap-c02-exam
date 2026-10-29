@@ -1,0 +1,60 @@
+{
+  "id": "pro-24",
+  "scope": "full",
+  "verdict": "FIX",
+  "originalCorrectIds": [
+    "C"
+  ],
+  "verifiedCorrectIds": [
+    "C"
+  ],
+  "issues": [
+    "options: ตัวลวงเดิมผิดอย่างชัดเจน (อ้างความสามารถที่บริการไม่มี) ทำให้ตอบได้จากการจำชื่อบริการ ไม่ใช่ระดับ SAP-C02 Professional; เขียนใหม่ให้แต่ละตัวลวงทำงานได้จริงบางส่วนแต่ตกเงื่อนไขหนึ่งข้อ",
+    "prompt: ลบประโยค boilerplate (architecture review board / workable for the stated environment)",
+    "review.reasoning: เดิมคัดลอก requirement ภาษาอังกฤษมาต่อกัน ไม่ได้อธิบายการตัดตัวเลือก"
+  ],
+  "changes": {
+    "prompt": "A research organization is converting a scientific analysis application from one large EC2 instance into a fleet of Linux workers running across three Availability Zones. Workers need concurrent read and write access to a POSIX file hierarchy and must see updated files without a separate download step. Some workers may be terminated by Auto Scaling after a job completes, so the persistent data cannot be coupled to the lifetime of any one EC2 instance. The data team also archives completed immutable outputs to object storage for long retention. The architect must distinguish a shared operational filesystem from an object archive and local block volumes. The solution must meet all of the following requirements: (1) Support concurrent shared POSIX filesystem operations for Linux workers across Availability Zones; (2) Persist active files independently of worker replacement or termination; (3) Store completed immutable outputs cost-effectively as objects. Which solution meets these requirements with the LEAST operational overhead?",
+    "options": {
+      "A": {
+        "text": "Create an io2 Amazon EBS volume with Multi-Attach enabled, attach it to all worker instances, and copy completed outputs to Amazon S3.",
+        "explanation": "ตกข้อ (1): Multi-Attach ใช้ได้เฉพาะ instance ใน AZ เดียวกับ volume และต้องใช้ cluster-aware file system เพื่อป้องกันข้อมูลเสียหายเมื่อหลายเครื่องเขียนพร้อมกัน จึงไม่รองรับ workers ทั้งสาม AZ แม้ S3 จะเหมาะกับ archive"
+      },
+      "B": {
+        "text": "Store active and completed files in Amazon S3 and mount the bucket on each worker with Mountpoint for Amazon S3.",
+        "explanation": "ตกข้อ (1): S3 ทนทานและไม่ผูกกับ instance แต่ Mountpoint for Amazon S3 ไม่รองรับ POSIX semantics ครบ เช่น การแก้ไขบางส่วนของไฟล์เดิม การ rename แบบ atomic หรือ file locking จึงไม่เหมาะกับงานที่หลาย workers อ่านเขียนไฟล์เดียวกันพร้อมกัน"
+      },
+      "C": {
+        "text": "Use Amazon EFS for the active shared Linux filesystem and Amazon S3 for immutable archived outputs; mount EFS from each eligible worker.",
+        "explanation": "ถูก: EFS เป็น NFS file system ระดับ Region ที่ workers ทุก AZ mount ได้พร้อมกัน รองรับ POSIX permissions/locking และข้อมูลไม่หายเมื่อ instance ถูก terminate ส่วนผลลัพธ์ที่ไม่เปลี่ยนแล้วย้ายไป S3 ซึ่งถูกกว่าและใช้ lifecycle ไปยัง storage class ราคาต่ำได้ ต้องสร้าง mount target ในแต่ละ AZ และเลือก throughput mode ให้เหมาะ"
+      },
+      "D": {
+        "text": "Use Amazon EFS for both the active files and the completed outputs, and configure an EFS lifecycle policy that moves completed files to the EFS Archive storage class.",
+        "explanation": "ตกข้อ (3): EFS ตอบข้อ (1)(2) ได้ และ EFS Archive ลดต้นทุนไฟล์ที่ไม่ค่อยเข้าถึง แต่ผลลัพธ์ยังเป็นไฟล์ใน file system ไม่ใช่ object storage ตามที่ทีม data ต้องการ และไม่ได้ใช้ storage class ระยะยาวของ S3 ที่ถูกกว่าสำหรับการเก็บรักษานาน"
+      }
+    },
+    "review": {
+      "decisiveClue": "workers หลาย AZ ต้องอ่านเขียน POSIX พร้อมกัน, ข้อมูลต้องไม่ผูกกับอายุ instance, ผลลัพธ์ที่เสร็จแล้วเก็บเป็น object",
+      "reasoning": "1) แยกชนิด storage: block (EBS) ผูก AZ, file (EFS) ใช้ร่วมกันหลาย AZ, object (S3) เหมาะกับ archive 2) ข้อ (1) ตัด EBS Multi-Attach (A) ที่จำกัด AZ เดียว และ Mountpoint for S3 (B) ที่ไม่ใช่ POSIX เต็มรูปแบบ 3) ข้อ (3) ต้องเป็น object storage ตัด EFS Archive (D) 4) C ใช้ EFS สำหรับงานที่กำลังทำและ S3 สำหรับ archive จึงครบ",
+      "references": [
+        {
+          "title": "What is Amazon EFS?",
+          "url": "https://docs.aws.amazon.com/efs/latest/ug/whatisefs.html"
+        },
+        {
+          "title": "Mountpoint for Amazon S3 file system behavior",
+          "url": "https://docs.aws.amazon.com/AmazonS3/latest/userguide/mountpoint.html"
+        },
+        {
+          "title": "Attach a volume to multiple instances with EBS Multi-Attach",
+          "url": "https://docs.aws.amazon.com/ebs/latest/userguide/ebs-volumes-multi.html"
+        }
+      ]
+    }
+  },
+  "sources": [
+    "https://docs.aws.amazon.com/efs/latest/ug/whatisefs.html",
+    "https://docs.aws.amazon.com/AmazonS3/latest/userguide/mountpoint.html",
+    "https://docs.aws.amazon.com/ebs/latest/userguide/ebs-volumes-multi.html"
+  ]
+}

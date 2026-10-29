@@ -1,3 +1,5 @@
+import { sourceGroupFor } from "./source-groups.ts";
+
 type StudyQuestion = {
   id: string;
   domain: string;
@@ -8,15 +10,17 @@ type StudyQuestion = {
 type StudyFilters = {
   domain: string;
   source: string;
+  group?: string;
   includeEmerging: boolean;
 };
 
-export const STUDY_SIZES = [10, 25, 50, 75] as const;
+export const STUDY_SIZES = [10, 25, 50, 75, 100, 150, 200] as const;
 
 export function filterStudyQuestions<T extends StudyQuestion>(bank: T[], filters: StudyFilters): T[] {
   return bank.filter((question) =>
     (filters.includeEmerging || !question.emerging)
     && (filters.domain === "all" || question.domain === filters.domain)
+    && (!filters.group || filters.group === "all" || sourceGroupFor(question.sourceCategory) === filters.group)
     && (filters.source === "all" || question.sourceCategory === filters.source),
   );
 }

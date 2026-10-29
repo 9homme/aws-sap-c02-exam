@@ -1,0 +1,13 @@
+{
+  "id": "w8-10",
+  "scope": "explanations",
+  "verdict": "PASS",
+  "verifiedCorrectIds": [
+    "B"
+  ],
+  "issues": [],
+  "changes": {},
+  "sources": [
+    "https://docs.aws.amazon.com/autoscaling/ec2/userguide/as-using-sqs-queue.html"
+  ]
+}

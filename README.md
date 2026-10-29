@@ -1,34 +1,43 @@
 # Architect Lab — SAP-C02 Practice
 
-A browser-based AWS Certified Solutions Architect – Professional practice site.
+A browser-based AWS Solutions Architect Professional quiz app with 332 questions, Thai answer explanations, study mode, a 75-question timed mock, saved attempts, and a searchable Thai study Bible.
 
-## What it includes
-
-- 225 source-labelled questions from the supplied Week 8 practice bank, CSV quiz bank, Weeks 5–7 course material, plus carefully marked original and optional emerging-AI questions.
-- Study mode with 10, 25, 50, or 75 questions, immediate correction, and concise rationale. Filtered question counts are shown before starting; unavailable sizes are disabled instead of silently shortened, with an explicit option to practice all questions in a smaller pool.
-- Every answer option has a teaching explanation in Study feedback and submitted mock reviews. Selected wrong choices and correct choices open automatically; other options can be expanded for comparison. Explanations are app-authored additions to the captured material.
-- A 75-question, 180-minute full mock that uses the SAP-C02 domain mix.
-- Saved in-progress attempts, past results, missed-question practice, and topic/domain performance summaries.
-- A searchable Thai SAP-C02 study bible with 28 sidebar topics, beginner-friendly AWS product explanations, service comparisons, exam traps, decision rules, and a 21-day preparation plan.
-- Responsive navigation, touch-friendly quiz controls, scrollable comparison tables, and a mobile topic drawer.
-
-All progress is stored only in the browser's local storage on the device being used.
-
-The original-scenario source contains 15 supplementary questions; a full mock draws 75 questions across eligible sources. The Week 8 captured source contains the full 75-question practice-exam record.
-
-Teaching content is maintained in `content/option-explanations.mjs` and included by the bank generator. Visible answer-key notes preserve historical context: the imported Transit Gateway subnet key is corrected, and the Object Lock and Security Hub questions accept documented alternative single answers. Current-service caveats link to AWS documentation; the original CSV and Markdown captures remain unchanged.
-
-Bookmark `/exam` for the practice dashboard and `/bible` for the Thai study Bible. Both routes support direct loading and browser Back/Forward navigation.
-The included Vercel SPA rewrite keeps both bookmarked routes working when opened directly or refreshed.
-
-## Development
+## Run locally
 
 ```bash
-node scripts/generate-question-bank.mjs
 npm install
 npm run dev
 ```
 
-Run the production check with `npm run build`, or all automated checks with `npm test`.
+Open `/exam` for quizzes or `/bible` for the study Bible. Progress is saved in this browser's local storage.
 
-The question data is generated in [public/question-bank.json](public/question-bank.json). Original and emerging-AI items are explicitly labelled in the interface so they can be filtered or excluded from core mock scoring.
+## App files
+
+- `app/` — quiz, answer review, study Bible interface, and styles.
+- `src/` — app entry point, question selection, grading, and saved-answer migration.
+- `public/question-bank.json` — the single source for all questions, options, answer keys, Thai explanations, references, and source provenance. Edit this file directly to update quiz content.
+- `content/aws-sap-c02-thai-exam-bible.md` — the study Bible.
+- `tests/` — app behavior and question-bank integrity checks.
+- `scripts/emit-worker.mjs` — creates the hosting worker during production builds.
+- `vite.config.ts`, `vercel.json`, `.openai/hosting.json` — build and hosting configuration.
+
+Builds copy the existing question bank without rewriting it or generating review reports. Per-question review records live in `audit/v2/<id>.json` (summary in `audit/status.tsv`); `python3 audit/tools/apply.py` merges them into `public/question-bank.json` and refuses prompt, option-text, or answer changes for recorded Skill Builder and course questions.
+
+## Checks and production
+
+```bash
+npm test
+npm run lint
+npm run build
+npm start
+```
+
+`npm test` includes a production build. Deploy the resulting `dist/` folder. Tests check answer grading, source filters, saved-answer migration, Thai explanations, and coverage of all 94 Bible products/features.
+
+## Question sources and answer caveats
+
+The bank contains 136 AWS Skill Builder captures (75 Week 8 questions and 61 earlier assessment questions), 69 app-authored course recaps, and 127 AI-authored questions (15 original, 107 Professional scenarios, and five optional emerging cases). AI-authored questions are not official AWS exam questions. Emerging cases are excluded by default.
+
+Original source wording, corrected keys, accepted alternative answers, and ambiguity warnings remain in the question bank and answer-review UI. The 22 legacy ambiguous/historical flags have not all been independently verified against current AWS documentation; passing structural checks does not establish technical accuracy of every answer.
+
+Historical scores use the current bank. The saved-answer migration preserves outcomes for the 69 course recaps after their answer-slot rotation and discloses changed distractor wording. Keep question IDs and option IDs stable when editing content to preserve saved attempts.

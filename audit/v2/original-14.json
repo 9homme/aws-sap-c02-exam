@@ -1,0 +1,64 @@
+{
+  "id": "original-14",
+  "scope": "full",
+  "verdict": "FIX",
+  "originalCorrectIds": [
+    "A"
+  ],
+  "verifiedCorrectIds": [
+    "C"
+  ],
+  "issues": [
+    "prompt: เดิมเป็นบริบท historical ของ Snowball Edge ซึ่งไม่รับลูกค้าใหม่แล้ว และตัวลวง (CloudFront upload, Route 53, Elastic IP) ไม่เกี่ยวข้อง; เขียนใหม่ให้ใช้บริการปัจจุบันและคำนวณ bandwidth ตาม pattern SAP-C02",
+    "reviewStatus: ลบ historical เพราะโจทย์ใหม่ไม่พึ่งบริการที่ปิดรับลูกค้าแล้ว"
+  ],
+  "changes": {
+    "prompt": "A company must migrate 400 TB of project files from an on-premises NFS file server to Amazon S3 within 10 weeks. Users keep modifying files until the cutover weekend. The data center has a 10 Gbps AWS Direct Connect connection with about 6 Gbps of unused capacity, and the network team requires transfer traffic to be limited to 2 Gbps during business hours. The migration must verify data integrity, preserve file metadata such as timestamps, avoid the public internet, and copy only changed files in the final sync. The company has never used AWS Snowball and wants the least operational overhead. Which solution meets these requirements?",
+    "correctIds": [
+      "C"
+    ],
+    "rationale": "AWS DataSync over Direct Connect with a VPC endpoint provides managed, verified, metadata-preserving incremental transfers with bandwidth limits; the available network capacity meets the deadline without physical devices.",
+    "options": {
+      "A": {
+        "text": "Run the AWS CLI aws s3 sync command from several on-premises servers over the internet with S3 Transfer Acceleration enabled, and schedule the scripts with cron.",
+        "explanation": "ไม่ผ่าน: Transfer Acceleration ใช้ public internet ไปยัง edge location ซึ่งขัดกับข้อกำหนดเลี่ยง internet และการทำงานผ่าน script หลายเครื่องต้องจัดการ bandwidth throttling, retry, การตรวจ integrity และ metadata เอง จึงมี operational overhead สูง"
+      },
+      "B": {
+        "text": "Deploy an Amazon S3 File Gateway on premises and use a copy tool to move the files from the NFS server to the gateway's NFS share, letting the gateway upload the files to S3.",
+        "explanation": "ไม่ผ่านที่สุด: S3 File Gateway ออกแบบเพื่อให้แอป on premises เข้าถึง S3 ผ่าน file share อย่างต่อเนื่อง การใช้เป็นเครื่องมือ migration 400 TB ต้องผ่าน local cache ที่อาจเป็นคอขวด และยังต้องใช้ copy tool อื่นจัดการ incremental sync, การตรวจสอบ และการจำกัด bandwidth เอง"
+      },
+      "C": {
+        "text": "Deploy an AWS DataSync agent on premises and activate it with a DataSync interface VPC endpoint that is reached over a Direct Connect private virtual interface, and create a task from the NFS location to the S3 location. Configure task scheduling, a bandwidth limit for business hours, data verification, and repeat the task incrementally until the final cutover sync.",
+        "explanation": "ถูก: DataSync เป็น managed transfer service ที่ตรวจ integrity, เก็บ metadata, ส่งเฉพาะไฟล์ที่เปลี่ยน และตั้ง bandwidth limit ได้ เมื่อใช้ VPC endpoint ผ่าน Direct Connect traffic จะไม่ผ่าน internet ที่ 6 Gbps ใช้เวลาประมาณ 6–7 วันสำหรับ 400 TB ในทางทฤษฎี จึงทันใน 10 สัปดาห์แม้ต้องจำกัด bandwidth ช่วงเวลางาน"
+      },
+      "D": {
+        "text": "Order multiple AWS Snowball Edge Storage Optimized devices, copy the files to the devices, and ship them to AWS. Use DataSync afterward for the final changes.",
+        "explanation": "ไม่ผ่าน: AWS Snowball Edge ไม่เปิดให้ลูกค้าใหม่แล้ว และบริษัทนี้ไม่เคยใช้มาก่อน อีกทั้ง network ที่มีพอส่ง 400 TB ทันกำหนดได้อยู่แล้ว การขนส่งอุปกรณ์จึงเพิ่มขั้นตอนและงานจัดการโดยไม่จำเป็น สำหรับโครงการใหม่ AWS แนะนำ DataSync หรือ AWS Data Transfer Terminal แทน"
+      }
+    },
+    "review": {
+      "decisiveClue": "400 TB ใน 10 สัปดาห์ผ่าน Direct Connect ที่ว่าง 6 Gbps, จำกัด 2 Gbps ในเวลางาน, ตรวจ integrity/metadata, ไม่ผ่าน internet, incremental final sync, ไม่เคยใช้ Snowball",
+      "reasoning": "1) คำนวณก่อน: 6 Gbps ≈ 65 TB/วัน 400 TB จึงใช้ราว 1 สัปดาห์ แม้จำกัดช่วงเวลางานก็ทัน 10 สัปดาห์ จึงไม่ต้องใช้อุปกรณ์ขนส่ง (D) ซึ่ง Snowball ก็ไม่รับลูกค้าใหม่แล้ว 2) ต้องไม่ผ่าน internet ตัด Transfer Acceleration (A) 3) ต้องการ integrity, metadata, incremental และ bandwidth schedule แบบ managed ซึ่ง DataSync ทำได้ในตัว ส่วน File Gateway (B) เป็น hybrid access ไม่ใช่เครื่องมือ migration 4) C จึงเหมาะที่สุด",
+      "references": [
+        {
+          "title": "What is AWS DataSync?",
+          "url": "https://docs.aws.amazon.com/datasync/latest/userguide/what-is-datasync.html"
+        },
+        {
+          "title": "Using AWS DataSync with VPC endpoints",
+          "url": "https://docs.aws.amazon.com/datasync/latest/userguide/choose-service-endpoint.html"
+        },
+        {
+          "title": "AWS Snowball Edge availability change",
+          "url": "https://docs.aws.amazon.com/snowball/latest/developer-guide/snowball-edge-availability-change.html"
+        }
+      ],
+      "reviewStatus": null
+    }
+  },
+  "sources": [
+    "https://docs.aws.amazon.com/datasync/latest/userguide/what-is-datasync.html",
+    "https://docs.aws.amazon.com/datasync/latest/userguide/choose-service-endpoint.html",
+    "https://docs.aws.amazon.com/snowball/latest/developer-guide/snowball-edge-availability-change.html"
+  ]
+}

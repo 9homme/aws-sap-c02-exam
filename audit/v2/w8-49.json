@@ -1,0 +1,33 @@
+{
+  "id": "w8-49",
+  "scope": "explanations",
+  "verdict": "FIX",
+  "verifiedCorrectIds": [
+    "A"
+  ],
+  "issues": [
+    "options.A.explanation: บอกแค่ 'ตรงรูปแบบต้นทุน' ไม่ระบุว่าทำไมถูกกว่า (gateway endpoint ไม่มีค่า hourly/data processing, ข้อมูลเล็กจึงจ่าย replication/storage น้อย) และไม่เตือนเรื่อง versioning กับ object เดิมที่ต้อง Batch Replication",
+    "options.B.explanation: ไม่ชี้ว่า prompt ไม่ได้ระบุ trigger/โค้ดของ Lambda และ CRR เป็น native ที่ทำ replication พร้อม retry ให้ ส่วน Lambda ต้องเขียนเอง จ่ายค่า invoke เพิ่ม และจัดการ object เดิม/ความล้มเหลวเอง",
+    "options.D.explanation: 'ราคาซับซ้อน' คลุมเครือ ควรระบุว่า EFS แพงกว่า S3 ต่อ GB และต้องเปลี่ยนวิธีเข้าถึงจาก S3 API เป็น file mount"
+  ],
+  "changes": {
+    "options": {
+      "A": {
+        "explanation": "ข้อมูลเล็กและแก้ไขไม่บ่อย จึงจ่าย CRR (transfer ข้าม Region เฉพาะ object ที่เปลี่ยน) กับ storage สำเนาเล็กเพียงครั้งเดียว แล้วอ่านซ้ำผ่าน gateway endpoint ที่ไม่มีค่าใช้จ่ายเพิ่ม ต้องเปิด versioning และใช้ Batch Replication สำหรับ object เดิม"
+      },
+      "B": {
+        "explanation": "แนวคิด local copy เดียวกับ A และอ่านผ่าน gateway endpoint ได้ แต่โจทย์ไม่ได้ให้ trigger ต้องเขียน Lambda, จัดการ retry/object เดิม/ความล้มเหลวเอง และเสียค่า invoke เพิ่ม ขณะที่ CRR เป็นฟีเจอร์ managed ที่ทำให้ในตัว จึงคุ้มค่าและเสี่ยงน้อยกว่า"
+      },
+      "D": {
+        "explanation": "EFS สองชุดแพงกว่า S3 ต่อ GB มาก และต้องจ่าย DataSync เพิ่ม อีกทั้งต้องเปลี่ยนแอปจากอ่าน S3 API เป็น mount file system ทั้งที่ข้อมูลเล็กและอ่านอย่างเดียว จึงไม่ใช่ทางที่ประหยัดสุด"
+      }
+    }
+  },
+  "sources": [
+    "https://docs.aws.amazon.com/AmazonS3/latest/userguide/replication.html",
+    "https://docs.aws.amazon.com/AmazonS3/latest/userguide/replication-requirements.html",
+    "https://docs.aws.amazon.com/AmazonS3/latest/userguide/s3-batch-replication-existing-config.html",
+    "https://docs.aws.amazon.com/vpc/latest/privatelink/gateway-endpoints.html",
+    "https://docs.aws.amazon.com/AmazonS3/latest/userguide/privatelink-interface-endpoints.html"
+  ]
+}

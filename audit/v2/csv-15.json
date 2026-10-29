@@ -1,0 +1,13 @@
+{
+  "id": "csv-15",
+  "scope": "explanations",
+  "verdict": "PASS",
+  "verifiedCorrectIds": [
+    "A"
+  ],
+  "issues": [],
+  "changes": {},
+  "sources": [
+    "https://docs.aws.amazon.com/cost-management/latest/userguide/ce-what-is.html"
+  ]
+}

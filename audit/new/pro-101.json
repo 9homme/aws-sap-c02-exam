@@ -1,0 +1,82 @@
+{
+  "id": "pro-101",
+  "sourceCategory": "professional",
+  "sourceLabel": "AI-authored · Professional multi-requirement",
+  "sourceDetail": "Original multi-constraint scenario — เชื่อม 3 VPC ที่ส่งข้อมูลมากด้วยต้นทุนต่ำสุด",
+  "coreEligible": true,
+  "emerging": false,
+  "domain": "2",
+  "task": "New solution design",
+  "topic": "เชื่อม 3 VPC ที่ส่งข้อมูลมากด้วยต้นทุนต่ำสุด",
+  "type": "multiple-choice",
+  "selectCount": 1,
+  "prompt": "A genomics company runs three VPCs in the same AWS Region in the same AWS account: an ingestion VPC, a processing VPC, and an analytics VPC. The VPCs have non-overlapping CIDR ranges and exchange about 200 TB of data per month over many TCP and HTTPS connections between EC2 instances and internal load balancers. Most of the instances that communicate are in the same Availability Zones. The company has no plans to add VPCs or to connect on-premises networks for at least 3 years, and none of the VPCs needs to route traffic through another VPC. The workloads use security groups to control which instances may communicate. The network team currently routes this traffic through a transit gateway and was surprised by the monthly data processing charge. The CFO has asked for the lowest-cost connectivity that keeps the traffic private and does not require application changes. The network team is comfortable managing a small number of route table entries. The VPCs are all owned by the same account, and the team wants to keep using security group references between workloads. Which solution will meet these requirements MOST cost-effectively?",
+  "options": [
+    {
+      "id": "A",
+      "text": "Keep the transit gateway, but consolidate the three attachments into a single transit gateway route table and enable appliance mode so that traffic stays in the same Availability Zone and avoids cross-AZ charges. Monitor the attachment bytes with CloudWatch metrics to confirm the savings.",
+      "explanation": "ไม่ผ่าน: การปรับ route table และ appliance mode ไม่ลดค่า data processing ของ Transit Gateway ที่คิดต่อ GB สำหรับทุก byte ที่ผ่าน 200 TB ต่อเดือนจึงยังเป็นค่าใช้จ่ายสูง และ appliance mode มีไว้เพื่อ routing สมมาตรผ่าน appliance ไม่ใช่การลดค่าใช้จ่าย"
+    },
+    {
+      "id": "B",
+      "text": "Create a VPC Lattice service network, register the internal load balancers and instances as targets of Lattice services, and associate the three VPCs with the service network. Update the clients to call the Lattice service DNS names, and then delete the transit gateway attachments.",
+      "explanation": "ไม่ผ่าน: VPC Lattice เหมาะกับการเชื่อม services ข้ามบัญชีและ CIDR ที่ทับกันพร้อม auth policies แต่คิดค่าบริการต่อ service ต่อชั่วโมงและต่อ GB ที่ประมวลผล และต้องปรับให้แอปเรียกผ่านชื่อ Lattice ซึ่งทั้งแพงกว่าและเปลี่ยนวิธีเรียกของแอป"
+    },
+    {
+      "id": "C",
+      "text": "Create three VPC peering connections between the VPC pairs, add routes for each peer's CIDR range to the relevant route tables, update the security groups to reference the peered security groups, and delete the transit gateway attachments and the transit gateway.",
+      "explanation": "ถูก: VPC peering ไม่มีค่าบริการรายชั่วโมงหรือค่า data processing ต่อ GB traffic ภายใน AZ เดียวกันผ่าน peering ไม่มีค่า data transfer ส่วนข้าม AZ คิดอัตราปกติ เมื่อมีเพียง 3 VPC ที่ไม่ต้อง transitive routing และไม่ขยาย การดูแล 3 connections จึงง่ายและถูกที่สุด security groups อ้างถึงกันข้าม peering ได้ใน Region เดียวกัน"
+    },
+    {
+      "id": "D",
+      "text": "Expose each internal load balancer as an AWS PrivateLink endpoint service and create interface VPC endpoints in the consuming VPCs for every service, then delete the transit gateway attachments. Place Network Load Balancers in front of the instances that do not already have a load balancer.",
+      "explanation": "ไม่ผ่าน: PrivateLink เหมาะกับการเปิด service ทางเดียวหรือเมื่อ CIDR ทับกัน แต่ต้องใช้ NLB และ interface endpoints ที่คิดต่อชั่วโมงและต่อ GB รวมถึงต้องเปลี่ยนแอปให้เรียก endpoint ใหม่ traffic ระหว่าง instances โดยตรงก็ไม่ได้ครอบคลุมทั้งหมด"
+    }
+  ],
+  "correctIds": [
+    "C"
+  ],
+  "rationale": "1) ค่าใช้จ่ายหลักคือค่าต่อ GB ที่ผ่าน hub หรือ endpoint: Transit Gateway (A), Lattice (B) และ PrivateLink (D) ล้วนคิดต่อ GB 2) ไม่ต้อง transitive routing, CIDR ไม่ทับ และมีแค่ 3 VPC จึงไม่ต้องใช้ hub 3) VPC peering ไม่มีค่า data processing และ traffic ใน AZ เดียวกันไม่มีค่า data transfer 4) C จึงถูกที่สุดโดยไม่ต้องแก้แอป",
+  "wrongAnswerHelp": "Start with the explicit business constraint, then eliminate choices that solve a different layer of the architecture or add unnecessary operational work.",
+  "references": [
+    "https://docs.aws.amazon.com/vpc/latest/peering/what-is-vpc-peering.html",
+    "https://aws.amazon.com/transit-gateway/pricing/",
+    "https://aws.amazon.com/vpc/lattice/pricing/"
+  ],
+  "products": [
+    "VPC Peering",
+    "Transit Gateway",
+    "VPC Lattice",
+    "AWS PrivateLink"
+  ],
+  "requirements": [
+    "Three VPCs exchange 200 TB/month",
+    "No transitive routing or new VPCs planned",
+    "Lowest data-transfer cost"
+  ],
+  "review": {
+    "decisiveClue": "3 VPC ส่งข้อมูล 200 TB/เดือน, ไม่ขยาย, ไม่ต้อง transitive routing, CIDR ไม่ทับ, ห้ามแก้แอป, ต้นทุนต่ำสุด",
+    "reasoning": "1) ค่าใช้จ่ายหลักคือค่าต่อ GB ที่ผ่าน hub หรือ endpoint: Transit Gateway (A), Lattice (B) และ PrivateLink (D) ล้วนคิดต่อ GB 2) ไม่ต้อง transitive routing, CIDR ไม่ทับ และมีแค่ 3 VPC จึงไม่ต้องใช้ hub 3) VPC peering ไม่มีค่า data processing และ traffic ใน AZ เดียวกันไม่มีค่า data transfer 4) C จึงถูกที่สุดโดยไม่ต้องแก้แอป",
+    "options": {
+      "A": "ไม่ผ่าน: การปรับ route table และ appliance mode ไม่ลดค่า data processing ของ Transit Gateway ที่คิดต่อ GB สำหรับทุก byte ที่ผ่าน 200 TB ต่อเดือนจึงยังเป็นค่าใช้จ่ายสูง และ appliance mode มีไว้เพื่อ routing สมมาตรผ่าน appliance ไม่ใช่การลดค่าใช้จ่าย",
+      "B": "ไม่ผ่าน: VPC Lattice เหมาะกับการเชื่อม services ข้ามบัญชีและ CIDR ที่ทับกันพร้อม auth policies แต่คิดค่าบริการต่อ service ต่อชั่วโมงและต่อ GB ที่ประมวลผล และต้องปรับให้แอปเรียกผ่านชื่อ Lattice ซึ่งทั้งแพงกว่าและเปลี่ยนวิธีเรียกของแอป",
+      "C": "ถูก: VPC peering ไม่มีค่าบริการรายชั่วโมงหรือค่า data processing ต่อ GB traffic ภายใน AZ เดียวกันผ่าน peering ไม่มีค่า data transfer ส่วนข้าม AZ คิดอัตราปกติ เมื่อมีเพียง 3 VPC ที่ไม่ต้อง transitive routing และไม่ขยาย การดูแล 3 connections จึงง่ายและถูกที่สุด security groups อ้างถึงกันข้าม peering ได้ใน Region เดียวกัน",
+      "D": "ไม่ผ่าน: PrivateLink เหมาะกับการเปิด service ทางเดียวหรือเมื่อ CIDR ทับกัน แต่ต้องใช้ NLB และ interface endpoints ที่คิดต่อชั่วโมงและต่อ GB รวมถึงต้องเปลี่ยนแอปให้เรียก endpoint ใหม่ traffic ระหว่าง instances โดยตรงก็ไม่ได้ครอบคลุมทั้งหมด"
+    },
+    "references": [
+      {
+        "title": "What is VPC peering?",
+        "url": "https://docs.aws.amazon.com/vpc/latest/peering/what-is-vpc-peering.html"
+      },
+      {
+        "title": "AWS Transit Gateway pricing",
+        "url": "https://aws.amazon.com/transit-gateway/pricing/"
+      },
+      {
+        "title": "Amazon VPC Lattice pricing",
+        "url": "https://aws.amazon.com/vpc/lattice/pricing/"
+      }
+    ],
+    "reviewedAt": "2026-10-29"
+  }
+}

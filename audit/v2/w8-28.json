@@ -1,0 +1,22 @@
+{
+  "id": "w8-28",
+  "scope": "explanations",
+  "verdict": "FIX",
+  "verifiedCorrectIds": [
+    "D"
+  ],
+  "issues": [
+    "options.D.explanation: option text says 'encrypted snapshot of a root volume' from an unencrypted root; in practice a snapshot of an unencrypted volume stays unencrypted and must be copied (or the AMI copied) with encryption - not noted"
+  ],
+  "changes": {
+    "options": {
+      "D": {
+        "explanation": "สร้าง AMI ที่ root volume เข้ารหัสแล้ว launch เครื่องใหม่พร้อมเปิด hibernation ตั้งแต่ตอน launch เพื่อ resume จาก RAM state ได้เร็วกว่า cold boot ในทางปฏิบัติต้องสร้างสำเนา snapshot/AMI แบบเข้ารหัส และเลือก instance ที่รองรับ พร้อม root volume ใหญ่พอสำหรับ RAM"
+      }
+    }
+  },
+  "sources": [
+    "https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/hibernating-prerequisites.html",
+    "https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/AMIEncryption.html"
+  ]
+}

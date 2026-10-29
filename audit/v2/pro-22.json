@@ -1,0 +1,60 @@
+{
+  "id": "pro-22",
+  "scope": "full",
+  "verdict": "FIX",
+  "originalCorrectIds": [
+    "B"
+  ],
+  "verifiedCorrectIds": [
+    "B"
+  ],
+  "issues": [
+    "options: ตัวลวงเดิมผิดอย่างชัดเจน (อ้างความสามารถที่บริการไม่มี) ทำให้ตอบได้จากการจำชื่อบริการ ไม่ใช่ระดับ SAP-C02 Professional; เขียนใหม่ให้แต่ละตัวลวงทำงานได้จริงบางส่วนแต่ตกเงื่อนไขหนึ่งข้อ",
+    "prompt: ลบประโยค boilerplate (architecture review board / workable for the stated environment)",
+    "review.reasoning: เดิมคัดลอก requirement ภาษาอังกฤษมาต่อกัน ไม่ได้อธิบายการตัดตัวเลือก"
+  ],
+  "changes": {
+    "prompt": "An enterprise hosts a multi-team payments platform on upstream Kubernetes in its own data centers. The teams have invested in Kubernetes CRDs, admission controllers, Helm charts, and common manifests. They are moving execution to AWS but want to preserve the Kubernetes deployment API and maintain their controller integrations. Container images must be stored in a private registry with controlled cross-account pull permissions. Security requires encrypted private node-to-control-plane traffic paths where supported, and the platform group accepts responsibility for Kubernetes configuration. A separate greenfield microservice has no Kubernetes dependencies, but this migration must favor the lowest application-orchestration changes. The solution must meet all of the following requirements: (1) Preserve Kubernetes API semantics and existing manifests/controllers for the migrated platform; (2) Use a private, managed container registry with explicit IAM/repository permissions; (3) Minimize replatforming of existing workload automation while keeping compute launch choices flexible. Which solution meets these requirements with the LEAST operational overhead?",
+    "options": {
+      "A": {
+        "text": "Migrate the platform to Amazon ECS on AWS Fargate, convert the Helm charts and manifests into ECS task definitions, replace the admission controllers with AWS Lambda functions, and store images in private Amazon ECR repositories.",
+        "explanation": "ตกข้อ (1)(3): ECS และ ECR เป็นบริการ managed ที่ดี แต่ ECS ไม่ใช่ Kubernetes API การแปลง Helm charts, CRDs และ admission controllers เป็นงาน replatform ขนาดใหญ่ที่โจทย์ต้องการเลี่ยง เหมาะกับ greenfield service ที่ไม่ผูกกับ Kubernetes มากกว่า"
+      },
+      "B": {
+        "text": "Run the migrated platform on Amazon EKS and use private Amazon ECR repositories for images; choose compatible EC2 node groups or Fargate profiles according to workload needs.",
+        "explanation": "ถูก: EKS เป็น Kubernetes ที่ผ่านการรับรอง conformance จึงใช้ manifests, Helm charts, CRDs และ admission webhooks เดิมได้ AWS ดูแล control plane ให้ ECR เป็น private registry ที่คุมสิทธิ์ด้วย IAM และ repository policy รวมถึง cross-account pull ส่วน managed node groups หรือ Fargate profiles ให้เลือก compute ตาม workload โดย Fargate มีข้อจำกัด เช่น ไม่รองรับ DaemonSets"
+      },
+      "C": {
+        "text": "Run the platform on Amazon EKS with managed node groups, and run a self-managed Harbor container registry on Amazon EC2 instances to store the images and control pull permissions.",
+        "explanation": "ตกข้อ (2): EKS ตอบเรื่อง Kubernetes API แล้ว แต่ Harbor บน EC2 เป็น registry ที่บริษัทต้องดูแลเอง (patch, HA, storage, backup) และสิทธิ์ไม่ได้ผูกกับ IAM โดยตรง ขณะที่โจทย์ต้องการ managed private registry ที่ใช้ IAM/repository permissions"
+      },
+      "D": {
+        "text": "Run upstream Kubernetes on Amazon EC2 with kOps, operate the control plane across three Availability Zones, and store images in private Amazon ECR repositories.",
+        "explanation": "ตกข้อ (3): kOps รักษา Kubernetes API และ ECR ตอบข้อ (2) แต่ทีมต้องดูแล control plane, etcd, การ upgrade และ HA เอง ซึ่งเพิ่ม operational overhead โดยไม่มี requirement ที่ต้องควบคุม control plane เอง EKS ให้ความเข้ากันได้เดียวกันแบบ managed"
+      }
+    },
+    "review": {
+      "decisiveClue": "ต้องคง Kubernetes API, manifests และ controllers เดิม, registry ต้องเป็น managed private ที่คุมด้วย IAM, replatform น้อยที่สุด",
+      "reasoning": "1) ข้อ (1) ต้องเป็น Kubernetes จึงตัด ECS (A) ซึ่งเหมาะกับ greenfield service ในโจทย์มากกว่า 2) ระหว่าง Kubernetes แบบ managed กับ self-managed: kOps (D) ได้ API เหมือนกันแต่ต้องดูแล control plane เอง 3) registry ต้องเป็น managed และใช้ IAM ตัด Harbor บน EC2 (C) 4) B ใช้ EKS + ECR และเลือก node groups/Fargate ตาม workload จึงครบทุกข้อ",
+      "references": [
+        {
+          "title": "What is Amazon EKS?",
+          "url": "https://docs.aws.amazon.com/eks/latest/userguide/what-is-eks.html"
+        },
+        {
+          "title": "Private repository policies in Amazon ECR",
+          "url": "https://docs.aws.amazon.com/AmazonECR/latest/userguide/repository-policies.html"
+        },
+        {
+          "title": "Amazon EKS on AWS Fargate considerations",
+          "url": "https://docs.aws.amazon.com/eks/latest/userguide/fargate.html"
+        }
+      ]
+    }
+  },
+  "sources": [
+    "https://docs.aws.amazon.com/eks/latest/userguide/what-is-eks.html",
+    "https://docs.aws.amazon.com/AmazonECR/latest/userguide/repository-policies.html",
+    "https://docs.aws.amazon.com/eks/latest/userguide/fargate.html"
+  ]
+}

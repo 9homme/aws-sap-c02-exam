@@ -1,0 +1,34 @@
+{
+  "id": "csv-56",
+  "scope": "explanations",
+  "verdict": "AMBIGUOUS",
+  "verifiedCorrectIds": [
+    "B",
+    "D"
+  ],
+  "issues": [
+    "options.A.explanation: written as a refutation referring to 'เฉลยเดิม', inconsistent with correctIds A,B,D and confusing for the learner; must explain why A is the expected answer and where it is debatable",
+    "review.decisiveClue/reasoning: say A is unsupported, contradicting recorded key A+B+D",
+    "options.C.explanation: does not name the actual blueprint types",
+    "Recorded key may be wrong: AWS docs note 'Users cannot edit blueprints and workflows created by Lake Formation', so A ('You can customize workflows') is debatable; only B and D are clearly supported. Recorded key kept as A,B,D."
+  ],
+  "changes": {
+    "options": {
+      "A": {
+        "explanation": "คำตอบที่บันทึกไว้คือข้อนี้ เพราะตอนสร้างจาก blueprint ปรับค่าได้ เช่น source, exclude pattern, table prefix และ schedule. แต่ AWS docs ระบุว่า user แก้ blueprint/workflow ที่ Lake Formation สร้างไม่ได้ จึงเป็นข้อที่ถกเถียงได้ ให้จำว่าข้อสอบนี้ถือว่า true."
+      },
+      "C": {
+        "explanation": "ผิด เพราะ Lake Formation มี blueprint ให้ใช้เลย 3 แบบ คือ Database snapshot, Incremental database และ Log file (CloudTrail, ELB, ALB logs). ข้อความว่า \"ไม่มี blueprint เริ่มต้น\" จึงเป็นเท็จ."
+      }
+    },
+    "review": {
+      "decisiveClue": "Select THREE ที่ว่าด้วย blueprint สร้าง Glue workflow และตั้ง on demand/schedule ได้ รวมถึงข้อความ customize workflows",
+      "reasoning": "Blueprint ของ Lake Formation สร้าง AWS Glue workflow (crawlers, jobs, triggers) ให้อัตโนมัติ จึงถูก B. Workflow ตั้งให้รัน on demand หรือ schedule ซ้ำได้ จึงถูก D. มี blueprint ให้ใช้อยู่แล้วจึงตัด C และ blueprint ไม่ใช่ที่เก็บข้อมูลจึงตัด E. เหลือ A ซึ่งข้อสอบบันทึกว่า true (ปรับค่าตอนสร้างได้) แม้ docs ระบุว่าแก้ workflow ที่สร้างแล้วไม่ได้.",
+      "caveat": "คำตอบที่บันทึกคือ A+B+D แต่ A (customize workflows) ขัดกับหมายเหตุใน AWS docs ที่ว่า user แก้ blueprints/workflows ที่ Lake Formation สร้างไม่ได้ ส่วน B และ D ยืนยันได้ชัด ข้อที่เหลือผิดชัดเจน จึงต้องเลือก A เป็นข้อที่สามเพื่อให้ครบ 3 ข้อตามที่ข้อสอบคาดหวัง",
+      "reviewStatus": "ambiguous"
+    }
+  },
+  "sources": [
+    "https://docs.aws.amazon.com/lake-formation/latest/dg/workflows-about.html"
+  ]
+}

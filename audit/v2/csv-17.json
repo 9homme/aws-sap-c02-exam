@@ -1,0 +1,28 @@
+{
+  "id": "csv-17",
+  "scope": "explanations",
+  "verdict": "AMBIGUOUS",
+  "verifiedCorrectIds": [
+    "B",
+    "C"
+  ],
+  "issues": [
+    "options.B.explanation: ไม่ได้ผูกกับคำถาม select-all และไม่บอกข้อจำกัดของ CloudHSM custom key store กับ S3",
+    "review.caveat: เฉลย B+C ยังถกเถียงได้ เพราะ S3 ผูกกับ KMS โดยตรง ส่วน CloudHSM ใช้ได้ทางอ้อมเท่านั้น ควรติดสถานะ ambiguous"
+  ],
+  "changes": {
+    "options": {
+      "B": {
+        "explanation": "CloudHSM เป็น HSM แบบ single-tenant ที่องค์กรคุม key เอง และใช้กับ S3 SSE-KMS ได้ทางอ้อมผ่าน KMS custom key store จึงนับเป็นบริการจัดการ key ที่เพิ่มการควบคุมได้ตามที่โจทย์ select all ถาม แต่ throughput ต่ำกว่าและดูแลเองมากกว่า KMS ปกติ จึงเป็นตัวเลือกรอง ไม่ใช่ทางตรง"
+      }
+    },
+    "review": {
+      "caveat": "เฉลยที่บันทึกไว้คือ B+C ซึ่งถกเถียงได้ เพราะ S3 SSE-KMS ผูกกับ KMS โดยตรง ส่วน CloudHSM ใช้ได้ทางอ้อมผ่าน KMS custom key store ที่มีข้อจำกัดด้าน throughput แต่เมื่อโจทย์ให้ select all เกี่ยวกับบริการจัดการ key เฉลย B+C คือคำตอบที่คาดหวัง: KMS เป็นหลัก และ CloudHSM เมื่อต้องการ HSM เฉพาะขององค์กร",
+      "reviewStatus": "ambiguous"
+    }
+  },
+  "sources": [
+    "https://docs.aws.amazon.com/AmazonS3/latest/userguide/UsingKMSEncryption.html",
+    "https://docs.aws.amazon.com/kms/latest/developerguide/keystore-cloudhsm.html"
+  ]
+}

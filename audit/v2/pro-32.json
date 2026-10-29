@@ -1,0 +1,60 @@
+{
+  "id": "pro-32",
+  "scope": "full",
+  "verdict": "FIX",
+  "originalCorrectIds": [
+    "C"
+  ],
+  "verifiedCorrectIds": [
+    "C"
+  ],
+  "issues": [
+    "options: ตัวลวงเดิมผิดอย่างชัดเจน (อ้างความสามารถที่บริการไม่มี) ทำให้ตอบได้จากการจำชื่อบริการ ไม่ใช่ระดับ SAP-C02 Professional; เขียนใหม่ให้แต่ละตัวลวงทำงานได้จริงบางส่วนแต่ตกเงื่อนไขหนึ่งข้อ",
+    "prompt: ลบประโยค boilerplate (architecture review board / workable for the stated environment)",
+    "review.reasoning: เดิมคัดลอก requirement ภาษาอังกฤษมาต่อกัน ไม่ได้อธิบายการตัดตัวเลือก"
+  ],
+  "changes": {
+    "prompt": "A manufacturer runs a large SQL Server database on premises and wants to move the application to PostgreSQL-compatible managed infrastructure in AWS. The application currently uses SQL Server stored procedures, proprietary data types, and significant business data. The downtime window is limited to a few minutes, so the cutover plan needs an initial bulk movement followed by ongoing change capture while the application continues receiving transactions. Engineers can update converted database code before cutover, but they cannot freeze all writes for several days. The team needs to separate engine schema conversion from transporting changing records. The solution must meet all of the following requirements: (1) Assess and convert incompatible schema and procedural code between heterogeneous database engines; (2) Move initial data and replicate ongoing changes with minimal cutover downtime; (3) Use a managed PostgreSQL-compatible target rather than operating database EC2 hosts. Which solution meets these requirements with the LEAST operational overhead?",
+    "options": {
+      "A": {
+        "text": "Use AWS DMS with a full load plus change data capture task from SQL Server to Amazon Aurora PostgreSQL-Compatible Edition, and let DMS create the target tables and convert the stored procedures during the migration.",
+        "explanation": "ตกข้อ (1): DMS ย้ายข้อมูลและ replicate การเปลี่ยนแปลงได้ดี แต่สร้างเพียงโครงสร้างตารางพื้นฐานและไม่แปลง stored procedures, functions หรือ proprietary data types ระหว่าง engine ต่างชนิด ต้องใช้ AWS SCT หรือ DMS Schema Conversion ประเมินและแปลง code ก่อน"
+      },
+      "B": {
+        "text": "Use AWS SCT to convert the schema and stored procedures to Aurora PostgreSQL, stop all application writes, and run a one-time AWS DMS full-load task before switching the application to Aurora.",
+        "explanation": "ตกข้อ (2): การแปลง schema ถูกต้อง แต่ full load อย่างเดียวต้องหยุด write ตลอดเวลาที่โหลดข้อมูลขนาดใหญ่ ซึ่งอาจนานหลายวัน ขัดกับ downtime ไม่กี่นาที ต้องเพิ่ม CDC เพื่อ replicate การเปลี่ยนแปลงระหว่างที่แอปยังรับ transaction"
+      },
+      "C": {
+        "text": "Use AWS SCT to assess and convert compatible schema/code, AWS DMS for full-load plus CDC migration, and Aurora PostgreSQL as the managed target.",
+        "explanation": "ถูก: SCT (หรือ DMS Schema Conversion) ทำ assessment report และแปลง schema/stored procedures ส่วนที่แปลงอัตโนมัติไม่ได้ให้วิศวกรแก้ก่อน cutover DMS ทำ full load แล้วต่อด้วย CDC จาก transaction log ของ SQL Server ทำให้ cutover ใช้เวลาเพียงช่วงหยุด write สั้น ๆ Aurora PostgreSQL เป็น managed target ไม่ต้องดูแล host ต้องเปิด prerequisites ของ CDC บน SQL Server เช่น MS-CDC หรือ MS-Replication"
+      },
+      "D": {
+        "text": "Use AWS SCT to convert the schema and code, use AWS DMS full load plus CDC, and target a PostgreSQL database that runs on Amazon EC2 instances in two Availability Zones with streaming replication.",
+        "explanation": "ตกข้อ (3): ขั้นตอน migration ถูกต้อง แต่ target บน EC2 ทำให้ทีมต้องดูแล PostgreSQL, replication, failover และ backup เอง ซึ่งโจทย์ต้องการ managed PostgreSQL-compatible target อย่าง Aurora หรือ RDS"
+      }
+    },
+    "review": {
+      "decisiveClue": "SQL Server → PostgreSQL ที่มี stored procedures, downtime ไม่กี่นาทีจึงต้อง full load + CDC, target ต้องเป็น managed",
+      "reasoning": "1) heterogeneous migration มีสองงานแยกกัน: แปลง schema/code และย้ายข้อมูลที่เปลี่ยนตลอดเวลา 2) ข้อ (1) DMS ไม่แปลง stored procedures ตัด A 3) ข้อ (2) downtime ไม่กี่นาทีต้องมี CDC ตัด full load อย่างเดียว (B) 4) ข้อ (3) target ต้อง managed ตัด EC2 (D) C จึงครบ: SCT แปลง, DMS full load + CDC, Aurora PostgreSQL",
+      "references": [
+        {
+          "title": "What is AWS Database Migration Service?",
+          "url": "https://docs.aws.amazon.com/dms/latest/userguide/Welcome.html"
+        },
+        {
+          "title": "What is the AWS Schema Conversion Tool?",
+          "url": "https://docs.aws.amazon.com/SchemaConversionTool/latest/userguide/CHAP_Welcome.html"
+        },
+        {
+          "title": "Using SQL Server as a source for AWS DMS (CDC prerequisites)",
+          "url": "https://docs.aws.amazon.com/dms/latest/userguide/CHAP_Source.SQLServer.html"
+        }
+      ]
+    }
+  },
+  "sources": [
+    "https://docs.aws.amazon.com/dms/latest/userguide/Welcome.html",
+    "https://docs.aws.amazon.com/SchemaConversionTool/latest/userguide/CHAP_Welcome.html",
+    "https://docs.aws.amazon.com/dms/latest/userguide/CHAP_Source.SQLServer.html"
+  ]
+}

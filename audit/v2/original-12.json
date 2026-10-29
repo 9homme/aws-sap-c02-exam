@@ -1,0 +1,57 @@
+{
+  "id": "original-12",
+  "scope": "full",
+  "verdict": "FIX",
+  "originalCorrectIds": [
+    "A"
+  ],
+  "verifiedCorrectIds": [
+    "A"
+  ],
+  "issues": [
+    "prompt: เดิมตัวลวง (เปิด SSH จาก internet, S3 bucket policy ติดตั้ง patch) ไม่ใช่ทางเลือกจริง; เพิ่ม multi-account และ stateful เพื่อให้ต้องแยก Image Builder/Config"
+  ],
+  "changes": {
+    "prompt": "A company runs 3,000 Amazon EC2 instances across 40 AWS accounts in an organization in AWS Organizations and in three AWS Regions. Most instances are long-lived and stateful and are not in Auto Scaling groups. Security policy prohibits inbound SSH and RDP from any network, but outbound HTTPS through a central egress VPC is allowed. Critical operating system patches must be installed within 72 hours of release during maintenance windows that differ by the Environment tag, and the security team needs a single compliance view across all accounts and Regions. New accounts must be included automatically. The company wants the least operational overhead. Which solution meets these requirements?",
+    "correctIds": [
+      "A"
+    ],
+    "rationale": "A Systems Manager Quick Setup patch policy deploys Patch Manager scanning and installation across the organization by schedule and tag, without inbound ports, and centralizes compliance reporting.",
+    "options": {
+      "A": {
+        "text": "Use AWS Systems Manager Quick Setup from a delegated administrator account to create an organization-wide patch policy that targets the organization's accounts and Regions, schedules scans and installs with different schedules by Environment tag, and ensures that instances have the SSM Agent and an instance profile with the required permissions. Review patch compliance centrally.",
+        "explanation": "ถูก: Patch Manager ใช้ SSM Agent ที่เชื่อมออกด้วย HTTPS จึงไม่ต้องเปิด inbound SSH/RDP Quick Setup patch policy ปรับใช้ทั้งองค์กร ครอบคลุมบัญชีใหม่ที่เข้ามาใน target และกำหนดตารางสแกน/ติดตั้งตาม tag ได้ ผล compliance รวมไว้ที่ delegated administrator ทำให้มีมุมมองเดียว ควรทดสอบ patch baseline กับ environment ที่ไม่ใช่ production ก่อน"
+      },
+      "B": {
+        "text": "Build monthly patched AMIs with EC2 Image Builder in each account, and replace instances with new instances launched from the latest AMI during each maintenance window.",
+        "explanation": "ไม่ผ่าน: immutable AMI เหมาะกับ instance ใน Auto Scaling group แต่โจทย์บอกว่าส่วนใหญ่เป็น long-lived และ stateful การแทนที่ instance จึงเสี่ยงข้อมูลและต้องวางแผน cutover ทุกเครื่อง รอบรายเดือนก็ไม่ทัน critical patch ภายใน 72 ชั่วโมง และไม่มี compliance view ข้ามบัญชี"
+      },
+      "C": {
+        "text": "Deploy an Ansible control node in each account and Region, allow inbound SSH from the control node's security group only, and run patch playbooks on a schedule. Send playbook results to a central S3 bucket.",
+        "explanation": "ไม่ผ่าน: แม้จำกัดต้นทางเป็น control node แต่ยังเป็นการเปิด inbound SSH ซึ่ง security policy ห้ามทุก network และต้องดูแล control node 120 ชุด (40 บัญชี × 3 Region) และรายงาน compliance เอง จึงมี overhead สูงกว่า managed service มาก"
+      },
+      "D": {
+        "text": "Deploy the AWS Config managed rule ec2-managedinstance-patch-compliance-status-check across the organization and configure automatic remediation that runs the AWS-RunPatchBaseline document whenever an instance is noncompliant.",
+        "explanation": "ไม่ผ่านที่สุด: rule นี้อ่านสถานะ patch compliance ที่ Patch Manager รายงาน จึงต้องมีการสแกนตั้งค่าอยู่แล้ว การติดตั้ง patch ทันทีที่ rule ประเมินว่า noncompliant ไม่เคารพ maintenance window ที่ต่างกันตาม Environment tag และเป็นการต่อชิ้นส่วนเองมากกว่า patch policy ที่ทำครบในที่เดียว"
+      }
+    },
+    "review": {
+      "decisiveClue": "3,000 instance stateful, 40 บัญชี 3 Region, ห้าม inbound SSH/RDP, patch ใน 72 ชั่วโมงตาม window ต่อ tag, มุมมอง compliance เดียว, บัญชีใหม่อัตโนมัติ",
+      "reasoning": "1) ห้าม inbound management port จึงต้องใช้ agent ที่เชื่อมออก (SSM Agent) ตัด C 2) instance เป็น stateful ไม่ได้อยู่ใน ASG การแทนด้วย AMI ใหม่ (B) ไม่เหมาะและรายเดือนไม่ทัน 72 ชั่วโมง 3) ต้องการ schedule ตาม tag, ครอบคลุมบัญชีใหม่ และ compliance รวม: Quick Setup patch policy ระดับองค์กรทำได้ครบ ส่วน Config remediation (D) เป็นงานตรวจจับที่ไม่เคารพ maintenance window 4) A จึงตอบครบด้วย overhead ต่ำที่สุด",
+      "references": [
+        {
+          "title": "Patch policy configurations in Quick Setup",
+          "url": "https://docs.aws.amazon.com/systems-manager/latest/userguide/quick-setup-patch-manager.html"
+        },
+        {
+          "title": "AWS Systems Manager Patch Manager",
+          "url": "https://docs.aws.amazon.com/systems-manager/latest/userguide/patch-manager.html"
+        }
+      ]
+    }
+  },
+  "sources": [
+    "https://docs.aws.amazon.com/systems-manager/latest/userguide/quick-setup-patch-manager.html",
+    "https://docs.aws.amazon.com/systems-manager/latest/userguide/patch-manager.html"
+  ]
+}

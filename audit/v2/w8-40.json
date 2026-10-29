@@ -1,0 +1,22 @@
+{
+  "id": "w8-40",
+  "scope": "explanations",
+  "verdict": "FIX",
+  "verifiedCorrectIds": [
+    "B"
+  ],
+  "issues": [
+    "options.B.explanation: ไม่ผูกกับข้อกำหนดเรื่อง make changes quickly (stack update)"
+  ],
+  "changes": {
+    "options": {
+      "B": {
+        "explanation": "CloudFormation สร้าง VPC, EC2 และ RDS จาก template ที่เก็บใน source control ได้ซ้ำ ส่วน user data ติดตั้งและตั้งค่า software ตาม runbook ตอนเครื่องเริ่ม จึง automate ครบทั้ง infrastructure และ software และเมื่อต้องการเปลี่ยนในอนาคตก็แก้ template แล้วทำ stack update ได้ overhead ต่ำสุด"
+      }
+    }
+  },
+  "sources": [
+    "https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/user-data.html",
+    "https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks.html"
+  ]
+}

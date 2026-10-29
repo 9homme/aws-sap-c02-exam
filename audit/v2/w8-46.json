@@ -1,0 +1,23 @@
+{
+  "id": "w8-46",
+  "scope": "explanations",
+  "verdict": "FIX",
+  "verifiedCorrectIds": [
+    "D"
+  ],
+  "issues": [
+    "options.B.explanation: เริ่มด้วย 'ทั้ง metric' อ่านไม่เป็นประโยค และไม่ชี้ชัดว่า RequestCountPerTarget ไม่ได้วัด CPU cost ต่อ request ซึ่งเป็นจุดที่โจทย์เน้น (some requests generate significant compute)"
+  ],
+  "changes": {
+    "options": {
+      "B": {
+        "explanation": "RequestCountPerTarget นับจำนวน request ต่อ target ไม่ได้วัดว่าแต่ละ request กิน CPU เท่าไร ซึ่งโจทย์บอกว่าบาง request หนักมาก และ simple scaling ยังต้องรอ cooldown หลังแต่ละ scaling activity จึงแย่ทั้งสองแกนเมื่อเทียบกับ D"
+      }
+    }
+  },
+  "sources": [
+    "https://docs.aws.amazon.com/autoscaling/ec2/userguide/as-scaling-simple-step.html",
+    "https://docs.aws.amazon.com/autoscaling/ec2/userguide/ec2-auto-scaling-scaling-cooldowns.html",
+    "https://docs.aws.amazon.com/elasticloadbalancing/latest/application/load-balancer-cloudwatch-metrics.html"
+  ]
+}

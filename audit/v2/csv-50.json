@@ -1,0 +1,21 @@
+{
+  "id": "csv-50",
+  "scope": "explanations",
+  "verdict": "FIX",
+  "verifiedCorrectIds": [
+    "C"
+  ],
+  "issues": [
+    "options.B.explanation: vague; does not say S3 has no feature called S3 Streams"
+  ],
+  "changes": {
+    "options": {
+      "B": {
+        "explanation": "S3 ไม่มี feature ชื่อ \"S3 Streams\" สำหรับย้าย storage class (เป็น distractor). ชื่อที่คล้ายกันอย่าง Kinesis/DynamoDB Streams เป็นของบริการอื่น ส่วนการย้าย class อัตโนมัติของ S3 ทำผ่าน Lifecycle configuration."
+      }
+    }
+  },
+  "sources": [
+    "https://docs.aws.amazon.com/AmazonS3/latest/userguide/object-lifecycle-mgmt.html"
+  ]
+}

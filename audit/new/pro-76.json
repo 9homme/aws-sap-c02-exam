@@ -1,0 +1,87 @@
+{
+  "id": "pro-76",
+  "sourceCategory": "professional",
+  "sourceLabel": "AI-authored · Professional multi-requirement",
+  "sourceDetail": "Original multi-constraint scenario — failover จาก on premises ไป AWS ด้วย Route 53",
+  "coreEligible": true,
+  "emerging": false,
+  "domain": "2",
+  "task": "New solution design",
+  "topic": "failover จาก on premises ไป AWS ด้วย Route 53",
+  "type": "multiple-choice",
+  "selectCount": 1,
+  "prompt": "A ticketing company runs its public booking website in its own data center behind a pair of load balancers that share one public IP address. The application handles GET and POST requests, including payment submissions. To meet a new availability target, the company built a warm standby copy of the application in AWS behind an Application Load Balancer in us-east-1, with a database that replicates from on premises. The on-premises site must remain the primary site because of data-residency commitments, and AWS must receive traffic only when the on-premises site is unhealthy. When the on-premises site fails, users must be redirected automatically within about 1 minute, and they must keep using the same hostname, www.example.com, which is hosted in Route 53. The operations team wants alarms when a failover happens. The company does not want to change the application or add a new edge service in front of the on-premises site if DNS can meet the requirement. The on-premises load balancers expose a health page at /health that checks the database and payment provider. Which solution will MINIMIZE downtime when the on-premises site fails?",
+  "options": [
+    {
+      "id": "A",
+      "text": "Create an Amazon CloudFront distribution with an origin group that uses the on-premises public IP address as the primary origin and the Application Load Balancer as the secondary origin, and point www.example.com to the distribution. Configure the origin group to fail over on 5xx status codes and connection timeouts.",
+      "explanation": "ไม่ผ่าน: origin failover ของ CloudFront ทำงานเฉพาะ request แบบ GET, HEAD และ OPTIONS เมื่อ origin หลักตอบ error หรือ timeout คำขอ POST เช่นการชำระเงินจะไม่ถูกส่งไป origin สำรอง และยังเพิ่ม edge service ที่โจทย์ไม่ต้องการหาก DNS ทำได้"
+    },
+    {
+      "id": "B",
+      "text": "Create a Route 53 health check for the on-premises public endpoint with a 10-second request interval and a low failure threshold, create a primary failover record for www.example.com that points to the on-premises IP address with that health check and a 60-second TTL, create a secondary failover alias record to the Application Load Balancer with Evaluate Target Health enabled, and create a CloudWatch alarm on the health check status.",
+      "explanation": "ถูก: failover routing ส่ง traffic ไป on premises เป็นหลักและเปลี่ยนไป ALB อัตโนมัติเมื่อ health check ล้มเหลว health check ทุก 10 วินาทีกับ threshold ต่ำและ TTL 60 วินาทีทำให้ผู้ใช้ส่วนใหญ่ย้ายได้ในราว 1 นาที alias ไป ALB ตรวจสุขภาพ target ด้วย ใช้ hostname เดิมและรองรับทุก HTTP method ส่วน CloudWatch alarm แจ้งเมื่อเกิด failover"
+    },
+    {
+      "id": "C",
+      "text": "Create an AWS Global Accelerator standard accelerator with two endpoint groups, one with the on-premises public IP address as an endpoint and one with the Application Load Balancer, and set the traffic dial of the AWS endpoint group to 0% until a failover is needed.",
+      "explanation": "ไม่ผ่าน: endpoint ของ Global Accelerator ต้องเป็นทรัพยากรใน AWS เช่น ALB, NLB, EC2 หรือ Elastic IP จึงใส่ IP สาธารณะของ data center เป็น endpoint ไม่ได้ และการปรับ traffic dial ด้วยมือก็ไม่ใช่การ failover อัตโนมัติ"
+    },
+    {
+      "id": "D",
+      "text": "Create weighted records for www.example.com that send 100% of traffic to the on-premises IP address and 0% to the Application Load Balancer, and have the operations team change the weights when monitoring shows that the on-premises site is down. Lower the TTL of the records to 60 seconds so that changes propagate quickly.",
+      "explanation": "ไม่ผ่าน: weighted records ใช้ได้ แต่การเปลี่ยนน้ำหนักด้วยมือขึ้นกับเวลาที่ทีมรับรู้และลงมือ downtime จึงยาวกว่า 1 นาทีได้ง่าย และไม่มี health check ช่วยตัดสินอัตโนมัติ"
+    }
+  ],
+  "correctIds": [
+    "B"
+  ],
+  "rationale": "1) ต้องเป็นอัตโนมัติ ตัดการเปลี่ยน weight ด้วยมือ (D) 2) Global Accelerator (C) ใส่ endpoint ที่อยู่ on premises ไม่ได้ 3) CloudFront origin failover (A) ไม่ทำงานกับ POST ซึ่งเป็นส่วนสำคัญของระบบจอง 4) Route 53 failover routing + health check interval สั้น + TTL ต่ำ + alias ไป ALB ทำ failover ได้ราว 1 นาทีโดยไม่เปลี่ยนแอป จึงลด downtime ได้มากที่สุด B",
+  "wrongAnswerHelp": "Start with the explicit business constraint, then eliminate choices that solve a different layer of the architecture or add unnecessary operational work.",
+  "references": [
+    "https://docs.aws.amazon.com/Route53/latest/DeveloperGuide/routing-policy-failover.html",
+    "https://docs.aws.amazon.com/Route53/latest/DeveloperGuide/health-checks-creating-values.html",
+    "https://docs.aws.amazon.com/global-accelerator/latest/dg/about-endpoints.html",
+    "https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/high_availability_origin_failover.html"
+  ],
+  "products": [
+    "Route 53",
+    "ALB (Application Load Balancer)",
+    "Global Accelerator",
+    "CloudWatch"
+  ],
+  "requirements": [
+    "On-prem stays primary; AWS is warm standby",
+    "Automatic failover within ~1 minute when on-prem is unhealthy",
+    "Users keep the same hostname"
+  ],
+  "review": {
+    "decisiveClue": "on premises เป็นหลัก AWS เป็น standby, failover อัตโนมัติราว 1 นาที, hostname เดิม, มี POST/payment, ไม่เพิ่ม edge service ถ้า DNS ทำได้",
+    "reasoning": "1) ต้องเป็นอัตโนมัติ ตัดการเปลี่ยน weight ด้วยมือ (D) 2) Global Accelerator (C) ใส่ endpoint ที่อยู่ on premises ไม่ได้ 3) CloudFront origin failover (A) ไม่ทำงานกับ POST ซึ่งเป็นส่วนสำคัญของระบบจอง 4) Route 53 failover routing + health check interval สั้น + TTL ต่ำ + alias ไป ALB ทำ failover ได้ราว 1 นาทีโดยไม่เปลี่ยนแอป จึงลด downtime ได้มากที่สุด B",
+    "options": {
+      "A": "ไม่ผ่าน: origin failover ของ CloudFront ทำงานเฉพาะ request แบบ GET, HEAD และ OPTIONS เมื่อ origin หลักตอบ error หรือ timeout คำขอ POST เช่นการชำระเงินจะไม่ถูกส่งไป origin สำรอง และยังเพิ่ม edge service ที่โจทย์ไม่ต้องการหาก DNS ทำได้",
+      "B": "ถูก: failover routing ส่ง traffic ไป on premises เป็นหลักและเปลี่ยนไป ALB อัตโนมัติเมื่อ health check ล้มเหลว health check ทุก 10 วินาทีกับ threshold ต่ำและ TTL 60 วินาทีทำให้ผู้ใช้ส่วนใหญ่ย้ายได้ในราว 1 นาที alias ไป ALB ตรวจสุขภาพ target ด้วย ใช้ hostname เดิมและรองรับทุก HTTP method ส่วน CloudWatch alarm แจ้งเมื่อเกิด failover",
+      "C": "ไม่ผ่าน: endpoint ของ Global Accelerator ต้องเป็นทรัพยากรใน AWS เช่น ALB, NLB, EC2 หรือ Elastic IP จึงใส่ IP สาธารณะของ data center เป็น endpoint ไม่ได้ และการปรับ traffic dial ด้วยมือก็ไม่ใช่การ failover อัตโนมัติ",
+      "D": "ไม่ผ่าน: weighted records ใช้ได้ แต่การเปลี่ยนน้ำหนักด้วยมือขึ้นกับเวลาที่ทีมรับรู้และลงมือ downtime จึงยาวกว่า 1 นาทีได้ง่าย และไม่มี health check ช่วยตัดสินอัตโนมัติ"
+    },
+    "references": [
+      {
+        "title": "Failover routing",
+        "url": "https://docs.aws.amazon.com/Route53/latest/DeveloperGuide/routing-policy-failover.html"
+      },
+      {
+        "title": "Values that you specify when you create or update health checks",
+        "url": "https://docs.aws.amazon.com/Route53/latest/DeveloperGuide/health-checks-creating-values.html"
+      },
+      {
+        "title": "Endpoints for standard accelerators",
+        "url": "https://docs.aws.amazon.com/global-accelerator/latest/dg/about-endpoints.html"
+      },
+      {
+        "title": "Optimizing high availability with CloudFront origin failover",
+        "url": "https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/high_availability_origin_failover.html"
+      }
+    ],
+    "reviewedAt": "2026-10-29"
+  }
+}

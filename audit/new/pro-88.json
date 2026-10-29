@@ -1,0 +1,85 @@
+{
+  "id": "pro-88",
+  "sourceCategory": "professional",
+  "sourceLabel": "AI-authored · Professional multi-requirement",
+  "sourceDetail": "Original multi-constraint scenario — ย้าย Java services utilization ต่ำไป container ให้ถูกที่สุด",
+  "coreEligible": true,
+  "emerging": false,
+  "domain": "4",
+  "task": "Migration and modernization",
+  "topic": "ย้าย Java services utilization ต่ำไป container ให้ถูกที่สุด",
+  "type": "multiple-choice",
+  "selectCount": 1,
+  "prompt": "A travel company runs 30 stateless Spring Boot services on 60 Amazon EC2 On-Demand instances, two per service for availability. Average CPU utilization is below 10%, and each service needs about 0.5 vCPU and 1 GB of memory most of the time, with short peaks at lunchtime and in the evening. Ten of the services are background workers that process messages from Amazon SQS and can safely be interrupted and retried. The company wants to move all services to containers to reduce cost, and the build pipeline can already produce container images. The platform team has no Kubernetes experience and will not hire for it this year. It wants each service to scale independently, to run in at least two Availability Zones, and to avoid managing container hosts. Baseline usage is steady and predictable over the next 3 years, but the instance families and the compute platform may change. Finance will choose the option with the lowest total monthly cost that meets these requirements. The company has already approved a 3-year compute commitment for the steady portion of usage. Which solution will meet these requirements MOST cost-effectively?",
+  "options": [
+    {
+      "id": "A",
+      "text": "Create an Amazon EKS cluster with managed node groups of On-Demand instances in two Availability Zones, deploy each service as a Kubernetes Deployment with a Horizontal Pod Autoscaler, and store the images in Amazon ECR. Use the Kubernetes Cluster Autoscaler to add nodes during the lunchtime and evening peaks.",
+      "explanation": "ไม่ผ่าน: EKS มีค่า control plane ต่อ cluster และ managed node groups ยังเป็น EC2 hosts ที่ต้องดูแลและจ่ายตาม capacity ที่จองไว้ ทีมไม่มีประสบการณ์ Kubernetes และไม่ได้ใช้ส่วนลดจาก Spot หรือ Savings Plans จึงทั้งแพงกว่าและขัดกับข้อจำกัดด้านทักษะ"
+    },
+    {
+      "id": "B",
+      "text": "Create one AWS Elastic Beanstalk Docker environment per service, each with an Application Load Balancer and an Auto Scaling group with a minimum of two instances in two Availability Zones, and store the images in Amazon ECR. Use managed platform updates to patch the environments.",
+      "explanation": "ไม่ผ่าน: 30 environments หมายถึง 30 ALBs และอย่างน้อย 60 EC2 instances ตลอดเวลา ซึ่งเท่ากับต้นทุนปัจจุบันหรือมากกว่า ยังต้องจ่าย capacity ที่ว่างเพราะ utilization ต่ำ และ Beanstalk ยังใช้ EC2 instances ที่เป็น host ภายใต้การจัดการของบริการ"
+    },
+    {
+      "id": "C",
+      "text": "Run each service as an Amazon ECS service on AWS Fargate with task sizes that match the 0.5 vCPU and 1 GB profile, use target tracking scaling per service, run the ten SQS workers on the FARGATE_SPOT capacity provider, purchase a Compute Savings Plan for the steady baseline, and store the images in Amazon ECR.",
+      "explanation": "ถูก: Fargate คิดเงินตาม vCPU และ memory ของ task จึงจ่ายตามขนาดจริงแทน instance ที่ใช้ไม่ถึง 10% target tracking ปรับจำนวน task ต่อ service ตามช่วง peak Fargate Spot ลดค่า workers ที่ถูกขัดจังหวะได้ และ Compute Savings Plan ครอบคลุม Fargate และยังใช้ได้ถ้าเปลี่ยน instance family หรือ platform ภายหลัง ทีมไม่ต้องดูแล host หรือ Kubernetes"
+    },
+    {
+      "id": "D",
+      "text": "Run the services on an Amazon ECS cluster of EC2 container instances sized for the combined peak load in two Availability Zones, buy 3-year Standard Reserved Instances for those instances, and store the images in Amazon ECR. Use binpack task placement to fit as many tasks as possible on each instance.",
+      "explanation": "ไม่ผ่าน: ต้องดูแล container hosts ซึ่งโจทย์ไม่ต้องการ การกำหนดขนาด cluster ตาม peak ทำให้จ่ายค่า capacity ว่างนอกช่วง peak และ Standard RI ผูกกับ instance family ใน Region จึงไม่ยืดหยุ่นหากเปลี่ยน family หรือ platform ตามที่บริษัทคาดไว้"
+    }
+  ],
+  "correctIds": [
+    "C"
+  ],
+  "rationale": "1) ห้ามดูแล hosts และไม่มีทักษะ Kubernetes ตัด EKS node groups (A) และ ECS บน EC2 (D) 2) Beanstalk ต่อ service (B) ต้องมี ALB และ instances ขั้นต่ำต่อ environment จึงแพง 3) Fargate คิดตามขนาด task จริง ลด capacity ว่างจาก utilization ต่ำ 4) เพิ่ม Fargate Spot สำหรับ workers และ Compute Savings Plan สำหรับ baseline ที่ยืดหยุ่นข้าม platform C จึงถูกที่สุด",
+  "wrongAnswerHelp": "Start with the explicit business constraint, then eliminate choices that solve a different layer of the architecture or add unnecessary operational work.",
+  "references": [
+    "https://docs.aws.amazon.com/AmazonECS/latest/developerguide/fargate-capacity-providers.html",
+    "https://docs.aws.amazon.com/savingsplans/latest/userguide/plan-types.html",
+    "https://aws.amazon.com/eks/pricing/"
+  ],
+  "products": [
+    "ECS (Elastic Container Service)",
+    "Fargate",
+    "ECR (Elastic Container Registry)",
+    "Savings Plans",
+    "Spot",
+    "EKS (Elastic Kubernetes Service)",
+    "Elastic Beanstalk"
+  ],
+  "requirements": [
+    "30 stateless Java services with low, variable utilization",
+    "Some background workers tolerate interruption",
+    "Team has no Kubernetes expertise"
+  ],
+  "review": {
+    "decisiveClue": "30 services utilization < 10%, workers 10 ตัวทน interruption, ไม่มีทักษะ Kubernetes, ห้ามดูแล hosts, baseline คงที่ 3 ปีแต่ platform อาจเปลี่ยน, ต้นทุนต่ำสุด",
+    "reasoning": "1) ห้ามดูแล hosts และไม่มีทักษะ Kubernetes ตัด EKS node groups (A) และ ECS บน EC2 (D) 2) Beanstalk ต่อ service (B) ต้องมี ALB และ instances ขั้นต่ำต่อ environment จึงแพง 3) Fargate คิดตามขนาด task จริง ลด capacity ว่างจาก utilization ต่ำ 4) เพิ่ม Fargate Spot สำหรับ workers และ Compute Savings Plan สำหรับ baseline ที่ยืดหยุ่นข้าม platform C จึงถูกที่สุด",
+    "options": {
+      "A": "ไม่ผ่าน: EKS มีค่า control plane ต่อ cluster และ managed node groups ยังเป็น EC2 hosts ที่ต้องดูแลและจ่ายตาม capacity ที่จองไว้ ทีมไม่มีประสบการณ์ Kubernetes และไม่ได้ใช้ส่วนลดจาก Spot หรือ Savings Plans จึงทั้งแพงกว่าและขัดกับข้อจำกัดด้านทักษะ",
+      "B": "ไม่ผ่าน: 30 environments หมายถึง 30 ALBs และอย่างน้อย 60 EC2 instances ตลอดเวลา ซึ่งเท่ากับต้นทุนปัจจุบันหรือมากกว่า ยังต้องจ่าย capacity ที่ว่างเพราะ utilization ต่ำ และ Beanstalk ยังใช้ EC2 instances ที่เป็น host ภายใต้การจัดการของบริการ",
+      "C": "ถูก: Fargate คิดเงินตาม vCPU และ memory ของ task จึงจ่ายตามขนาดจริงแทน instance ที่ใช้ไม่ถึง 10% target tracking ปรับจำนวน task ต่อ service ตามช่วง peak Fargate Spot ลดค่า workers ที่ถูกขัดจังหวะได้ และ Compute Savings Plan ครอบคลุม Fargate และยังใช้ได้ถ้าเปลี่ยน instance family หรือ platform ภายหลัง ทีมไม่ต้องดูแล host หรือ Kubernetes",
+      "D": "ไม่ผ่าน: ต้องดูแล container hosts ซึ่งโจทย์ไม่ต้องการ การกำหนดขนาด cluster ตาม peak ทำให้จ่ายค่า capacity ว่างนอกช่วง peak และ Standard RI ผูกกับ instance family ใน Region จึงไม่ยืดหยุ่นหากเปลี่ยน family หรือ platform ตามที่บริษัทคาดไว้"
+    },
+    "references": [
+      {
+        "title": "AWS Fargate capacity providers (including Fargate Spot)",
+        "url": "https://docs.aws.amazon.com/AmazonECS/latest/developerguide/fargate-capacity-providers.html"
+      },
+      {
+        "title": "Savings Plans types",
+        "url": "https://docs.aws.amazon.com/savingsplans/latest/userguide/plan-types.html"
+      },
+      {
+        "title": "Amazon EKS pricing",
+        "url": "https://aws.amazon.com/eks/pricing/"
+      }
+    ],
+    "reviewedAt": "2026-10-29"
+  }
+}

@@ -1,0 +1,11 @@
+{
+  "id": "csv-24",
+  "scope": "explanations",
+  "verdict": "PASS",
+  "verifiedCorrectIds": [
+    "B"
+  ],
+  "issues": [],
+  "changes": {},
+  "sources": []
+}

@@ -1,0 +1,30 @@
+{
+  "id": "w8-68",
+  "scope": "explanations",
+  "verdict": "FIX",
+  "verifiedCorrectIds": [
+    "B"
+  ],
+  "issues": [
+    "options.A.explanation: ไม่บอกชัดว่าต้องสร้าง table/รัน query เองและไม่มี scheduled alert",
+    "options.C.explanation: ไม่ระบุว่า Athena ต้องมี scheduler+pipeline ส่งผลเอง และไม่ชัดว่า waiting period 7-30 วัน ทำให้การเตือนวันละครั้งยังทันได้ แต่ overhead สูงกว่า",
+    "options.B.explanation: ไม่ระบุว่าจับ ScheduleKeyDeletion และมี waiting period ให้ cancel"
+  ],
+  "changes": {
+    "options": {
+      "A": {
+        "explanation": "Athena query CloudTrail log ใน S3 ได้จริง แต่เป็นการตรวจย้อนหลัง ต้องสร้าง table, ตั้งให้รันเอง ('regularly' ไม่มี scheduler ในตัว) และสร้างขั้นตอนส่งผลให้ admin เอง ต้องดูแลเพิ่ม ส่วน EventBridge rule จับ ScheduleKeyDeletion แบบ event-driven ได้โดยไม่ต้องมี query จึงไม่ใช่ LEAST operational effort"
+      },
+      "B": {
+        "explanation": "การลบ KMS key มี waiting period 7-30 วัน และ ScheduleKeyDeletion ถูกบันทึกเป็น CloudTrail event ที่ EventBridge rule match แล้วส่ง SNS ถึง admin ได้เกือบทันทีโดยไม่ต้องเขียน code หรือ query admin ตรวจและ CancelKeyDeletion ก่อนครบ waiting period ได้ ใช้ rule + topic เพียงอย่างละตัว จึง effort ต่ำสุด"
+      },
+      "C": {
+        "explanation": "Athena รันรายวันมีโอกาสแจ้งทัน เพราะ waiting period ขั้นต่ำ 7 วัน แต่ Athena ไม่มี scheduler ในตัว ต้องสร้าง table, ตั้ง schedule (เช่น EventBridge + Lambda) และ pipeline ส่งผล จึง operational effort สูงกว่า EventBridge + SNS และแจ้งช้าได้ถึงหนึ่งวัน ไม่ timely เท่า event-driven"
+      }
+    }
+  },
+  "sources": [
+    "https://docs.aws.amazon.com/kms/latest/developerguide/deleting-keys.html",
+    "https://docs.aws.amazon.com/eventbridge/latest/userguide/eb-service-event-cloudtrail.html"
+  ]
+}

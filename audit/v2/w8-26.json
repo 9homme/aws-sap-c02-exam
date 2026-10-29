@@ -1,0 +1,13 @@
+{
+  "id": "w8-26",
+  "scope": "explanations",
+  "verdict": "AMBIGUOUS",
+  "verifiedCorrectIds": [
+    "B"
+  ],
+  "issues": [
+    "Sonnet draft rewrote A/C/D and the caveat to claim the exam assumed KMS lacked FIPS 140-2 Level 3 at authoring time; the authoring date is unknown and commit 08c3edd removed exactly that assumption. Kept the committed explanations and ambiguous status unchanged."
+  ],
+  "changes": {},
+  "sources": []
+}

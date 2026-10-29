@@ -1,0 +1,33 @@
+{
+  "id": "w8-62",
+  "scope": "explanations",
+  "verdict": "FIX",
+  "verifiedCorrectIds": [
+    "A"
+  ],
+  "issues": [
+    "options.A/B/C/D.explanation: อธิบายกว้างและไม่ชัดว่าทำไมผิด (เช่น D ใช้คำว่า attachment locality; B/C ไม่บอกว่า endpoint ไม่ใช่ TGW attachment type)",
+    "options.A.explanation: ไม่ระบุว่าต้องลบ attachment ก่อนลบ TGW-B และต้องอัปเดต VPC route tables"
+  ],
+  "changes": {
+    "options": {
+      "A": {
+        "explanation": "ย้าย VPC-7 ถึง VPC-10 มา attach กับ TGW-A เพื่อให้ทั้ง 10 VPC อยู่ใต้ transit gateway เดียวและเชื่อมถึงกันได้ ต้องลบ attachment ที่ TGW-B ก่อนจึงลบ TGW-B ได้ จากนั้นตั้ง route (static หรือ propagation) ใน TGW route table และแก้ VPC route tables ที่ยังชี้ TGW-B ให้ชี้ TGW-A ด้วย"
+      },
+      "B": {
+        "explanation": "Interface VPC endpoint (PrivateLink) เป็นทางเข้าไปยัง service หนึ่ง ๆ ไม่ใช่ attachment type ของ transit gateway (ชนิดที่ใช้ได้คือ VPC, VPN, Direct Connect gateway, peering ฯลฯ) จึงนำ endpoint ไป attach กับ TGW-A เพื่อเชื่อมทั้ง VPC ไม่ได้ และไม่ทำให้ VPC-7 ถึง VPC-10 สื่อสารกับ VPC อื่นได้"
+      },
+      "C": {
+        "explanation": "Gateway VPC endpoint รองรับเฉพาะ S3 และ DynamoDB และทำงานผ่าน route table ของ VPC ไม่ใช่ resource ที่ attach กับ transit gateway ได้ ตัวเลือกยังสลับชนิดเป็น interface endpoint ในประโยคถัดไป จึงทำไม่ได้และไม่ช่วยให้ CIDR ของ VPC-7 ถึง VPC-10 ถูกเชื่อมกับ VPC-1 ถึง VPC-6"
+      },
+      "D": {
+        "explanation": "VPC attachment ต้องอยู่ Region เดียวกับ transit gateway ดังนั้น TGW ใหม่ใน Region อื่นไม่สามารถ attach VPC-7 ถึง VPC-10 ซึ่งอยู่ใน Region เดิมได้ ต่อให้ทำ peering กับ TGW-A ก็ทำไม่ได้ในทางเทคนิค และเพิ่มค่าใช้จ่ายข้าม Region โดยไม่จำเป็น เพราะ VPC ทั้งหมดอยู่ Region เดียวกันอยู่แล้ว"
+      }
+    }
+  },
+  "sources": [
+    "https://docs.aws.amazon.com/vpc/latest/tgw/tgw-vpc-attachments.html",
+    "https://docs.aws.amazon.com/vpc/latest/tgw/tgw-route-tables.html",
+    "https://docs.aws.amazon.com/vpc/latest/tgw/delete-tgw.html"
+  ]
+}

@@ -1,0 +1,15 @@
+{
+  "id": "w8-58",
+  "scope": "explanations",
+  "verdict": "PASS",
+  "verifiedCorrectIds": [
+    "B"
+  ],
+  "issues": [],
+  "changes": {},
+  "sources": [
+    "https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/placement-groups.html",
+    "https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/efa.html",
+    "https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/enhanced-networking.html"
+  ]
+}

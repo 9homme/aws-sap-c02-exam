@@ -1,0 +1,60 @@
+{
+  "id": "pro-37",
+  "scope": "full",
+  "verdict": "FIX",
+  "originalCorrectIds": [
+    "D"
+  ],
+  "verifiedCorrectIds": [
+    "D"
+  ],
+  "issues": [
+    "options: ตัวลวงเดิมผิดอย่างชัดเจน (อ้างความสามารถที่บริการไม่มี) ทำให้ตอบได้จากการจำชื่อบริการ ไม่ใช่ระดับ SAP-C02 Professional; เขียนใหม่ให้แต่ละตัวลวงทำงานได้จริงบางส่วนแต่ตกเงื่อนไขหนึ่งข้อ",
+    "prompt: ลบประโยค boilerplate (architecture review board / workable for the stated environment)",
+    "review.reasoning: เดิมคัดลอก requirement ภาษาอังกฤษมาต่อกัน ไม่ได้อธิบายการตัดตัวเลือก"
+  ],
+  "changes": {
+    "prompt": "An international news site experiences occasional layer-7 HTTP floods and broad volumetric DDoS attempts during major events. Its static images should be cached at edge locations, while dynamic account APIs terminate HTTPS at an ALB behind the distribution. The security team needs managed certificate renewal and rules that block known malicious patterns, rate-limit abusive clients, and provide regional and global visibility of DDoS events. The company can pay for advanced DDoS protection if application availability during major news events justifies the expense, but it must not confuse a WAF rule with network-scale DDoS absorption. The solution must meet all of the following requirements: (1) Manage HTTPS certificates and use edge caching for static content; (2) Filter application-layer abusive HTTP requests and use DDoS mitigation appropriate to the internet-exposed service; (3) Avoid sending every cacheable asset request directly to the origin while retaining dynamic API routing. Which solution meets these requirements with the LEAST operational overhead?",
+    "options": {
+      "A": {
+        "text": "Use CloudFront with ACM certificates in front of the static content and the ALB, and subscribe to AWS Shield Advanced for the distribution and the ALB without creating AWS WAF web ACLs.",
+        "explanation": "ตกข้อ (2): Shield Advanced ช่วยรับมือ DDoS ระดับ network/transport และให้ทีม Shield Response แต่การบล็อก pattern อันตรายและการจำกัดอัตรา client ระดับ HTTP ต้องใช้ AWS WAF web ACL และ rate-based rules การ mitigate layer 7 อัตโนมัติของ Shield Advanced ก็ทำงานผ่าน web ACL ที่ผูกไว้เช่นกัน"
+      },
+      "B": {
+        "text": "Use the ALB as the only public entry point with an ACM certificate, attach an AWS WAF web ACL with managed rules and rate-based rules to the ALB, and subscribe the ALB to AWS Shield Advanced.",
+        "explanation": "ตกข้อ (1)(3): WAF และ Shield Advanced ป้องกันได้ แต่ไม่มี edge caching รูปภาพ static ทุก request จึงวิ่งถึง ALB และ origin ทำให้ load ช่วงข่าวใหญ่สูงขึ้น และไม่ได้ประโยชน์จากการกระจายรับ traffic ที่ edge ของ CloudFront"
+      },
+      "C": {
+        "text": "Use CloudFront with ACM certificates and attach an AWS WAF web ACL with managed rules and rate-based rules. Apply the CachingDisabled cache policy to all paths so that every request is evaluated by the origin.",
+        "explanation": "ตกข้อ (3): WAF และ CloudFront ถูกต้อง แต่การปิด cache ทุก path ทำให้ static images ทุก request ต้องไปถึง origin ซึ่งโจทย์ห้าม ควรใช้ cache behavior แยก: cache static content และส่ง /api ไปยัง ALB ด้วย policy ที่ไม่ cache"
+      },
+      "D": {
+        "text": "Use CloudFront with ACM certificates, attach AWS WAF web ACLs and appropriate rate-based rules, and assess AWS Shield Advanced for its additional DDoS protections and response capabilities.",
+        "explanation": "ถูก: CloudFront cache รูปภาพที่ edge และส่ง API ไปยัง ALB ผ่าน cache behavior แยก ACM ต่ออายุ certificate อัตโนมัติ (สำหรับ CloudFront ต้องอยู่ใน us-east-1) WAF บล็อก pattern อันตรายและจำกัดอัตราด้วย rate-based rules Shield Standard คุ้มครอง layer 3/4 อยู่แล้ว ส่วน Shield Advanced เพิ่ม visibility, การตอบสนองจาก SRT และ cost protection ซึ่งคุ้มเมื่อ availability ช่วงข่าวใหญ่สำคัญ"
+      }
+    },
+    "review": {
+      "decisiveClue": "cache static ที่ edge + ACM, กรอง HTTP flood ด้วย rules/rate limit, DDoS ระดับ network แยกจาก WAF, ไม่ส่ง asset ที่ cache ได้ไป origin",
+      "reasoning": "1) แยกชั้น: CloudFront = edge cache และจุดรับ traffic, WAF = กรองระดับ HTTP, Shield = DDoS ระดับ network และบริการเสริม 2) A ไม่มี WAF จึงไม่กรอง layer 7 3) B ไม่มี CloudFront จึงไม่ cache 4) C ปิด cache ทั้งหมด 5) D ใช้ทั้งสามชั้นถูกต้องและแยก cache behavior สำหรับ static/API",
+      "references": [
+        {
+          "title": "AWS WAF, AWS Shield and Firewall Manager",
+          "url": "https://docs.aws.amazon.com/waf/latest/developerguide/waf-chapter.html"
+        },
+        {
+          "title": "Rate-based rule statement",
+          "url": "https://docs.aws.amazon.com/waf/latest/developerguide/waf-rule-statement-type-rate-based.html"
+        },
+        {
+          "title": "AWS Shield Advanced overview",
+          "url": "https://docs.aws.amazon.com/waf/latest/developerguide/ddos-advanced-summary.html"
+        }
+      ]
+    }
+  },
+  "sources": [
+    "https://docs.aws.amazon.com/waf/latest/developerguide/waf-chapter.html",
+    "https://docs.aws.amazon.com/waf/latest/developerguide/waf-rule-statement-type-rate-based.html",
+    "https://docs.aws.amazon.com/waf/latest/developerguide/ddos-advanced-summary.html"
+  ]
+}

@@ -1,0 +1,60 @@
+{
+  "id": "pro-57",
+  "scope": "full",
+  "verdict": "FIX",
+  "originalCorrectIds": [
+    "D"
+  ],
+  "verifiedCorrectIds": [
+    "D"
+  ],
+  "issues": [
+    "options: ตัวลวงเดิมผิดอย่างชัดเจน (อ้างความสามารถที่บริการไม่มี) ทำให้ตอบได้จากการจำชื่อบริการ ไม่ใช่ระดับ SAP-C02 Professional; เขียนใหม่ให้แต่ละตัวลวงทำงานได้จริงบางส่วนแต่ตกเงื่อนไขหนึ่งข้อ",
+    "prompt: ลบประโยค boilerplate (architecture review board / workable for the stated environment)",
+    "review.reasoning: เดิมคัดลอก requirement ภาษาอังกฤษมาต่อกัน ไม่ได้อธิบายการตัดตัวเลือก"
+  ],
+  "changes": {
+    "prompt": "A ride-hailing company has a backend that emits business events such as payment-approved, refund-requested and driver-registered. These events must be routed to different downstream applications by business rules with minimal producer coupling and without polling a shared database. A completely different ingestion system collects high-volume vehicle telemetry where several independent consumer teams need to replay records after a code defect is fixed. The compliance department also wants raw telemetry delivered continuously into encrypted S3 objects in manageable batches without operating another long-lived custom writer fleet. Architects have been asked to recommend one integrated yet correctly separated event-processing approach rather than pretending every type of event has the same ordering and retention requirements. The solution must meet all of the following requirements: (1) Route application business events to different targets with event rules and loose coupling; (2) Retain replayable ordered-per-shard telemetry for independent stream consumers within configured retention limits; (3) Buffer and deliver telemetry into S3 using a managed ingestion/delivery service. Which solution meets these requirements with the LEAST operational overhead?",
+    "options": {
+      "A": {
+        "text": "Publish both the business events and the telemetry to one Kinesis Data Streams stream, have each downstream application read every record and discard events it does not need, and connect Amazon Data Firehose to the stream for S3 delivery.",
+        "explanation": "ตกข้อ (1): KDS และ Firehose ตอบเรื่อง telemetry ได้ แต่การให้ทุก consumer อ่านทุก business event แล้วกรองเองใน code ไม่ใช่ rule-based routing และทุกแอปต้องรู้รูปแบบ event ทั้งหมด ทำให้ coupling สูงและเพิ่มภาระ throughput ของ stream"
+      },
+      "B": {
+        "text": "Use Amazon EventBridge rules for the business events, and send the telemetry directly to an Amazon Data Firehose delivery stream that writes encrypted batches to S3; the consumer teams reprocess telemetry from the S3 objects.",
+        "explanation": "ตกข้อ (2): EventBridge และ Firehose ถูกต้อง แต่ Firehose ไม่มี consumer API ที่หลายทีมอ่านแยกกันพร้อม checkpoint และไม่รักษาลำดับต่อ shard การอ่านซ้ำจาก S3 จึงไม่ใช่ replay ของ stream ตามตำแหน่งที่ทีมต้องการหลังแก้ defect"
+      },
+      "C": {
+        "text": "Use Amazon EventBridge rules for the business events and Kinesis Data Streams for the telemetry, and run an AWS Lambda consumer that batches telemetry records, encrypts them, and writes objects to S3.",
+        "explanation": "ตกข้อ (3): routing และ replayable stream ถูกต้อง แต่ Lambda ที่ batch, เข้ารหัส และเขียน S3 เองคือ custom writer ที่ต้องดูแล retry, ขนาดไฟล์ และ error handling เอง Firehose ทำงานนี้แบบ managed โดยอ่านจาก stream ได้โดยตรง"
+      },
+      "D": {
+        "text": "Use EventBridge event buses and rules for business events, Kinesis Data Streams for replayable telemetry, and Amazon Data Firehose delivery streams into S3 for buffered archiving.",
+        "explanation": "ถูก: EventBridge ส่ง business events ไปยัง target ต่าง ๆ ตาม rules โดย producer ไม่ต้องรู้จัก consumer Kinesis Data Streams เก็บ telemetry ตาม retention ที่ตั้งและรักษาลำดับต่อ shard ทีมต่าง ๆ อ่านและ replay ได้อิสระ ส่วน Firehose ใช้ stream เป็น source แล้ว buffer, เข้ารหัส และส่ง batch เข้า S3 แบบ managed"
+      }
+    },
+    "review": {
+      "decisiveClue": "business events ต้อง route ตาม rules, telemetry ต้อง replay ได้หลาย consumer, ส่ง telemetry เข้า S3 แบบ managed",
+      "reasoning": "1) แยกรูปแบบ event: business events ต้องการ content-based routing (EventBridge) ส่วน telemetry ต้องการ stream ที่ replay ได้ (KDS) และ delivery เข้า S3 (Firehose) 2) A ใช้ stream แทน routing 3) B ไม่มี stream ที่ replay ได้ 4) C เขียน delivery เอง 5) D แยกบริการตามหน้าที่ครบทั้งสามข้อ",
+      "references": [
+        {
+          "title": "What is Amazon EventBridge?",
+          "url": "https://docs.aws.amazon.com/eventbridge/latest/userguide/eb-what-is.html"
+        },
+        {
+          "title": "What is Amazon Kinesis Data Streams?",
+          "url": "https://docs.aws.amazon.com/streams/latest/dev/introduction.html"
+        },
+        {
+          "title": "Send data to Firehose from Kinesis Data Streams",
+          "url": "https://docs.aws.amazon.com/firehose/latest/dev/writing-with-kinesis-streams.html"
+        }
+      ]
+    }
+  },
+  "sources": [
+    "https://docs.aws.amazon.com/eventbridge/latest/userguide/eb-what-is.html",
+    "https://docs.aws.amazon.com/streams/latest/dev/introduction.html",
+    "https://docs.aws.amazon.com/firehose/latest/dev/writing-with-kinesis-streams.html"
+  ]
+}

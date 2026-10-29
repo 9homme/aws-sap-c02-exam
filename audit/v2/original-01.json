@@ -1,0 +1,65 @@
+{
+  "id": "original-01",
+  "scope": "full",
+  "verdict": "FIX",
+  "originalCorrectIds": [
+    "A"
+  ],
+  "verifiedCorrectIds": [
+    "B"
+  ],
+  "issues": [
+    "prompt: เดิมเป็นคำถามระดับ associate ตัวลวง (VPC endpoint, IGW, NAT) ผิดชัดเจนเกินไป ไม่ใช่ pattern SAP-C02 Professional",
+    "correctIds: คำตอบ A ทุกข้อในชุด original ทำให้เดาได้ ปรับเป็น B",
+    "caveat: เดิมขัดแย้งในตัวเรื่อง private vs internet แก้ด้วยการกำหนดใน prompt ว่ายอมรับ IPsec ผ่าน internet"
+  ],
+  "changes": {
+    "prompt": "A company runs a critical order-management application on premises. The application calls workloads in 12 VPCs that are attached to a single AWS Transit Gateway. Connectivity uses one 10 Gbps AWS Direct Connect dedicated connection at one Direct Connect location with a transit virtual interface. Normal traffic is about 800 Mbps and short peaks reach 2 Gbps. A recent fiber cut caused a full outage. The company cannot provision a second Direct Connect connection for at least 4 months. The security team accepts IPsec-encrypted traffic over the internet as a temporary backup path. Failover must be automatic, all 12 VPCs must stay reachable, and the network team wants to minimize ongoing operational effort. Which solution meets these requirements?",
+    "correctIds": [
+      "B"
+    ],
+    "rationale": "Site-to-Site VPN attached to the existing transit gateway gives an independent, automatically failed-over backup path for all attached VPCs; ECMP across tunnels covers peaks above a single tunnel's ~1.25 Gbps.",
+    "options": {
+      "A": {
+        "text": "Order a second 10 Gbps port on the same Direct Connect location and bundle both ports into a link aggregation group (LAG) on the existing transit virtual interface.",
+        "explanation": "ไม่ผ่าน: LAG รวมหลายพอร์ตที่ต้องอยู่บน AWS device เดียวกันใน location เดียวกัน จึงเพิ่ม bandwidth แต่ไม่ป้องกันความเสียหายระดับ location หรือเส้นทาง fiber ร่วมแบบที่เพิ่งเกิด อีกทั้งการเพิ่ม Direct Connect port ยังติดเงื่อนไขว่าจัดหาไม่ได้ภายใน 4 เดือน"
+      },
+      "B": {
+        "text": "Create two AWS Site-to-Site VPN connections that terminate on the existing transit gateway, enable ECMP on the transit gateway, and use BGP so that Direct Connect routes are preferred and the VPN tunnels take over automatically when Direct Connect fails.",
+        "explanation": "ถูก: VPN แนบกับ Transit Gateway เดียวที่มีทั้ง 12 VPC อยู่แล้ว จึงไม่ต้องตั้งค่ารายบัญชี/VPC BGP ทำให้ failover อัตโนมัติ และ Transit Gateway เลือก Direct Connect ก่อน VPN เมื่อ prefix เดียวกัน VPN tunnel หนึ่งรับได้ราว 1.25 Gbps จึงต้องใช้ ECMP หลาย tunnel เพื่อรองรับ peak 2 Gbps ข้อจำกัดคือ performance ผ่าน internet ไม่คงที่ จึงเหมาะเป็นทางสำรองชั่วคราว"
+      },
+      "C": {
+        "text": "Create a second transit virtual interface on the existing Direct Connect connection and associate it with a second Direct Connect gateway that is attached to the same transit gateway.",
+        "explanation": "ไม่ผ่าน: virtual interface ตัวที่สองยังวิ่งบน physical connection และ location เดิม เมื่อ fiber หรือ connection นั้นเสีย VIF ทั้งสองก็ล่มพร้อมกัน การเพิ่ม logical path บนวงจรเดียวจึงไม่ใช่ redundancy ที่แก้สาเหตุของ outage ครั้งนี้"
+      },
+      "D": {
+        "text": "Create a Site-to-Site VPN connection to a virtual private gateway in each of the 12 VPCs with static routes, and update the VPC route tables to fail over manually when Direct Connect becomes unavailable.",
+        "explanation": "ไม่ผ่าน: ทางนี้สร้าง encrypted backup ได้จริง แต่ต้องดูแล VPN 12 ชุดแยกจาก Transit Gateway ที่มีอยู่ และการเปลี่ยน route ด้วยมือขัดกับ requirement ให้ failover อัตโนมัติ ทำให้ operational effort สูงกว่าการแนบ VPN ที่ Transit Gateway จุดเดียว"
+      }
+    },
+    "review": {
+      "decisiveClue": "Direct Connect เส้นเดียว ยังหาเส้นที่สองไม่ได้ 4 เดือน ยอมรับ IPsec ผ่าน internet ต้อง failover อัตโนมัติไปทั้ง 12 VPC และ peak 2 Gbps",
+      "reasoning": "1) ปัญหาคือ single point of failure ระดับ connection/location ทางแก้ต้องเป็นเส้นทางที่ไม่ใช้วงจรเดิม จึงตัด LAG (A) และ VIF ซ้ำ (C) 2) Security ยอมรับ VPN ผ่าน internet ชั่วคราว และ Direct Connect เส้นที่สองยังทำไม่ได้ VPN จึงเป็นทางสำรองที่ทำได้ทันที 3) จุดที่ VPN ไปสิ้นสุดสำคัญ: แนบที่ Transit Gateway ทำให้ทั้ง 12 VPC ใช้ backup เดียวกัน ส่วน VGW รายตัว (D) ทำให้ต้องดูแลหลายชุดและ failover ด้วยมือ 4) VPN tunnel หนึ่งรับได้ประมาณ 1.25 Gbps จึงต้องเปิด ECMP บนหลาย tunnel เพื่อรับ peak 2 Gbps ระยะยาวควรเพิ่ม Direct Connect ที่ location ที่สองตาม resiliency recommendations",
+      "references": [
+        {
+          "title": "Direct Connect resiliency recommendations",
+          "url": "https://docs.aws.amazon.com/directconnect/latest/UserGuide/resiliency_toolkit.html"
+        },
+        {
+          "title": "Transit gateway VPN attachments and ECMP",
+          "url": "https://docs.aws.amazon.com/vpc/latest/tgw/tgw-vpn-attachments.html"
+        },
+        {
+          "title": "Site-to-Site VPN quotas (tunnel bandwidth)",
+          "url": "https://docs.aws.amazon.com/vpn/latest/s2svpn/vpn-limits.html"
+        }
+      ],
+      "reviewStatus": null
+    }
+  },
+  "sources": [
+    "https://docs.aws.amazon.com/directconnect/latest/UserGuide/resiliency_toolkit.html",
+    "https://docs.aws.amazon.com/vpc/latest/tgw/tgw-vpn-attachments.html",
+    "https://docs.aws.amazon.com/vpn/latest/s2svpn/vpn-limits.html"
+  ]
+}

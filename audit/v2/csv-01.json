@@ -1,0 +1,32 @@
+{
+  "id": "csv-01",
+  "scope": "explanations",
+  "verdict": "AMBIGUOUS",
+  "verifiedCorrectIds": [
+    "C"
+  ],
+  "issues": [
+    "prompt is broad: 'centralized permissions management across accounts' fits Organizations (SCP) and also IAM Identity Center (permission sets); recorded key C kept as expected answer.",
+    "review.caveat: told reader to rewrite the prompt, which is not allowed; replaced with explanation of why C is still the expected answer.",
+    "options.A.explanation / options.D.explanation: did not tie to 'reducing risk' wording; rewritten."
+  ],
+  "changes": {
+    "options": {
+      "A": {
+        "explanation": "Control Tower สร้าง landing zone และ guardrails (preventive ผ่าน SCP, detective ผ่าน Config) โดยพึ่ง Organizations เป็นฐาน จึงเกี่ยวข้องกับ governance. แต่โจทย์ถามบริการหลักที่ถือโครงสร้างบัญชีและ policy ส่วนกลาง ซึ่งคือ Organizations ไม่ใช่ชั้น orchestration ที่ครอบอยู่"
+      },
+      "D": {
+        "explanation": "IAM Identity Center กำหนด permission sets ให้พนักงานเข้าหลายบัญชีจากจุดเดียว จึงเป็นการ 'จัดการสิทธิ์ส่วนกลาง' ได้อีกความหมายหนึ่ง. แต่เป็นสิทธิ์ของ workforce ที่ให้ผู้ใช้เข้าถึง ไม่ได้ลดความเสี่ยงด้วยการจำกัดเพดานสิทธิ์ของทุกบัญชีแบบ SCP"
+      }
+    },
+    "review": {
+      "reasoning": "1) 'Centralized permissions across multiple accounts' + 'reducing risk' ชี้ไปที่ guardrail ส่วนกลาง. 2) Organizations ใช้ SCP กำหนดเพดานสิทธิ์สูงสุดที่ทุกบัญชีสมาชิกสืบทอดจาก OU ต่อให้ local admin ให้สิทธิ์กว้างก็เกินเพดานไม่ได้. 3) Control Tower เป็นชั้นจัดการที่ใช้ Organizations เป็นฐาน, IAM เดี่ยวไม่ข้ามบัญชี, Identity Center เน้น workforce sign-in. 4) ดังนั้นเลือก C ซึ่งเป็นเฉลยที่บันทึกไว้",
+      "caveat": "โจทย์ข้อนี้กว้าง: 'centralized permissions management' อาจหมายถึงเพดานสิทธิ์ด้วย SCP (Organizations) หรือการให้พนักงานเข้าหลายบัญชีด้วย permission sets (IAM Identity Center) ซึ่งทั้งสองตีความได้. เฉลยที่บันทึกคือ C เพราะวลี 'reducing risk' สื่อถึง preventive guardrail ที่ SCP ให้โดยตรง จึงยึด C เป็นคำตอบที่ข้อสอบคาดหวัง",
+      "reviewStatus": "ambiguous"
+    }
+  },
+  "sources": [
+    "https://docs.aws.amazon.com/organizations/latest/userguide/orgs_manage_policies_scps.html",
+    "https://docs.aws.amazon.com/singlesignon/latest/userguide/what-is.html"
+  ]
+}

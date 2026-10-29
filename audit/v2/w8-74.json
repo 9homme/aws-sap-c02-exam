@@ -1,0 +1,14 @@
+{
+  "id": "w8-74",
+  "scope": "explanations",
+  "verdict": "PASS",
+  "verifiedCorrectIds": [
+    "D"
+  ],
+  "issues": [],
+  "changes": {},
+  "sources": [
+    "https://docs.aws.amazon.com/AmazonECS/latest/developerguide/AWS_Fargate.html",
+    "https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/CHAP_MySQL.html"
+  ]
+}

@@ -1,0 +1,50 @@
+{
+  "id": "w8-60",
+  "scope": "explanations",
+  "verdict": "AMBIGUOUS",
+  "verifiedCorrectIds": [
+    "D"
+  ],
+  "issues": [
+    "review.reasoning/decisiveClue: อ่านเหมือนเลือก A เป็นหลักและตำหนิ D ขัดกับ correctIds=D",
+    "options.D.explanation: อธิบายตัวเลือกที่เป็นเฉลยในเชิงลบ ทั้งที่ Organizations + delegated administrator คือเหตุผลที่ลด operational overhead ตามคำว่า LEAST",
+    "options.A.explanation: ไม่ระบุว่า A ต้องเปิดและเชิญแต่ละ account เอง ซึ่งเป็นภาระมากกว่า D",
+    "review.caveat: ไม่อธิบายว่าทำไมเฉลยที่บันทึกยังเป็น D"
+  ],
+  "changes": {
+    "options": {
+      "A": {
+        "explanation": "เปิด Security Hub ทุก account ตั้ง administrator/member และ aggregation Region รวม findings ข้าม Region ได้จริง (แอปรับเป็นคำตอบที่ยอมรับได้) แต่ต้องเปิดและเชิญแต่ละ account ด้วยมือ ภาระสูงกว่า D ที่ใช้ Organizations ในโจทย์ที่ถาม LEAST operational overhead"
+      },
+      "D": {
+        "explanation": "Organizations + Security Hub delegated administrator ทำให้ account ใหม่ในองค์กรถูกเพิ่มเป็น member อัตโนมัติ และรวม findings จาก GuardDuty, Macie, Access Analyzer ที่ส่งเข้า Security Hub จึง overhead ต่ำสุด (ต้องเปิดใน Regions และตั้ง cross-Region aggregation เพิ่มสำหรับ multi-Region)"
+      }
+    },
+    "review": {
+      "decisiveClue": "ต้องรวม findings หลาย account ด้วย LEAST operational overhead จึงใช้ Organizations + Security Hub administrator",
+      "reasoning": "โจทย์ต้องการ consolidated view ของ findings จาก GuardDuty, Macie และ Access Analyzer ซึ่งส่งเข้า AWS Security Hub ได้ Audit Manager (B, C) เป็นเครื่องมือเก็บ evidence สำหรับ compliance ไม่ใช่รวม findings จึงตัดออก เหลือ A กับ D ซึ่งใช้ Security Hub ทั้งคู่ D ใช้ Organizations กับ delegated administrator ให้ member เพิ่มอัตโนมัติ overhead ต่ำสุด จึงเป็นเฉลยที่บันทึกไว้ ส่วน A ก็ยอมรับได้แต่ต้องเปิดทีละ account",
+      "caveat": "A และ D ใช้ Security Hub รวม findings ได้ทั้งคู่ โดย A ระบุ aggregation Region ชัดกว่า แต่ต้องเปิดและเชิญแต่ละ account เอง ขณะที่ D ใช้ Organizations กับ delegated administrator ซึ่งลดภาระตามคำว่า LEAST operational overhead จึงเป็นเฉลยที่บันทึกไว้ และ cross-Region aggregation ต้องตั้งเพิ่มเองในกรณี multi-Region",
+      "reviewStatus": "ambiguous",
+      "references": [
+        {
+          "title": "Security Hub cross-Region aggregation",
+          "url": "https://docs.aws.amazon.com/securityhub/latest/userguide/finding-aggregation.html"
+        },
+        {
+          "title": "Security Hub with AWS Organizations",
+          "url": "https://docs.aws.amazon.com/securityhub/latest/userguide/securityhub-accounts-orgs.html"
+        },
+        {
+          "title": "Designating a Security Hub delegated administrator",
+          "url": "https://docs.aws.amazon.com/securityhub/latest/userguide/designate-orgs-admin-account.html"
+        }
+      ]
+    }
+  },
+  "sources": [
+    "https://docs.aws.amazon.com/securityhub/latest/userguide/finding-aggregation.html",
+    "https://docs.aws.amazon.com/securityhub/latest/userguide/securityhub-accounts-orgs.html",
+    "https://docs.aws.amazon.com/securityhub/latest/userguide/designate-orgs-admin-account.html",
+    "https://docs.aws.amazon.com/securityhub/latest/userguide/account-management-manual.html"
+  ]
+}

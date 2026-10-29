@@ -1,0 +1,26 @@
+{
+  "id": "w8-22",
+  "scope": "explanations",
+  "verdict": "FIX",
+  "verifiedCorrectIds": [
+    "C"
+  ],
+  "issues": [
+    "options.C.explanation: vague ('ช่วงเวลาที่โจทย์ยอมรับ'); should state Archive Access standard retrieval is typically 3-5 hours (< 6 h)",
+    "options.D.explanation: should state Deep Archive Access typically takes up to ~12 hours"
+  ],
+  "changes": {
+    "options": {
+      "C": {
+        "explanation": "Intelligent-Tiering ย้าย object ที่ไม่ถูกอ่านไป tier ราคาถูกอัตโนมัติ จึงรองรับ hot/cold ปนกันใน 6 เดือนแรก Archive Access กู้คืนแบบ standard ราว 3-5 ชั่วโมง ผ่านเงื่อนไข 6 ชั่วโมง นับจากวันที่ไม่ถูกเข้าถึง (มี monitoring fee และต้อง RestoreObject ก่อนอ่าน)"
+      },
+      "D": {
+        "explanation": "Deep Archive Access ของ Intelligent-Tiering ประหยัดสุดแต่ standard retrieval ใช้ราว 12 ชั่วโมง เกินเงื่อนไขกู้คืนภายใน 6 ชั่วโมง จึงต้องเลือก Archive Access (C) ที่เร็วกว่าแทน"
+      }
+    }
+  },
+  "sources": [
+    "https://docs.aws.amazon.com/AmazonS3/latest/userguide/intelligent-tiering-overview.html",
+    "https://docs.aws.amazon.com/AmazonS3/latest/userguide/restoring-objects-retrieval-options.html"
+  ]
+}

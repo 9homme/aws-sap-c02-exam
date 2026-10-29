@@ -1,0 +1,63 @@
+{
+  "id": "original-05",
+  "scope": "full",
+  "verdict": "FIX",
+  "originalCorrectIds": [
+    "A"
+  ],
+  "verifiedCorrectIds": [
+    "B"
+  ],
+  "issues": [
+    "prompt: เดิมตัวลวง (S3 lifecycle, scheduled scaling) ไม่เกี่ยวข้องกับโจทย์ ไม่ใช่ระดับ Professional",
+    "technical: ปัจจุบัน ECS มี built-in blue/green; เพิ่มเงื่อนไขใช้ CodeDeploy ร่วมกับทีมอื่นเพื่อให้มีคำตอบที่ดีที่สุดเพียงข้อเดียว"
+  ],
+  "changes": {
+    "prompt": "A company runs a containerized payments API on Amazon ECS with AWS Fargate behind an Application Load Balancer. The company already uses AWS CodeDeploy for its Amazon EC2 and AWS Lambda workloads and wants every team to use the same deployment service, deployment configurations, and deployment history. For each new ECS release, exactly 10% of production traffic must go to the new version for 15 minutes before the remaining traffic shifts. If the CloudWatch alarms for 5xx errors or p99 latency enter the ALARM state during the deployment, all traffic must return to the previous version automatically without manual steps. The company wants to avoid writing custom traffic-shifting code. Which solution meets these requirements?",
+    "correctIds": [
+      "B"
+    ],
+    "rationale": "CodeDeploy blue/green for Amazon ECS shifts ALB traffic using a canary deployment configuration and rolls back automatically on CloudWatch alarms, while sharing the company's existing deployment service.",
+    "options": {
+      "A": {
+        "text": "Use the ECS rolling update deployment type with minimumHealthyPercent set to 100 and maximumPercent set to 110, and enable the ECS deployment circuit breaker with rollback.",
+        "explanation": "ไม่ผ่าน: rolling update แทนที่ task ทีละส่วน traffic ที่ไปเวอร์ชันใหม่จึงขึ้นกับจำนวน task ที่ healthy ไม่ใช่ 10% ที่คงไว้ 15 นาทีตามกำหนด circuit breaker ย้อนกลับเมื่อ task launch หรือ health check ล้มเหลว ไม่ได้ใช้ alarms 5xx/latency ตาม requirement และไม่ใช่ CodeDeploy ที่องค์กรต้องการใช้ร่วมกัน"
+      },
+      "B": {
+        "text": "Configure the ECS service to use the CodeDeploy blue/green deployment controller with two ALB target groups. Use the CodeDeployDefault.ECSCanary10Percent15Minutes deployment configuration, add the 5xx and latency CloudWatch alarms to the deployment group, and enable automatic rollback when an alarm threshold is met.",
+        "explanation": "ถูก: CodeDeploy สร้าง replacement task set แล้วใช้ ALB listener สลับ traffic ตาม canary configuration ที่กำหนด 10% เป็นเวลา 15 นาทีตรงตามโจทย์ alarm ที่ผูกกับ deployment group ทำให้ rollback อัตโนมัติเมื่อเข้า ALARM และยังใช้ deployment service และ history เดียวกับทีม EC2/Lambda ต้องตั้ง test listener/hooks ตามต้องการ"
+      },
+      "C": {
+        "text": "Run two ECS services behind the ALB with weighted target groups. Create an AWS Lambda function that is invoked on a schedule to change the listener weights to 10/90 and then 100/0 and to reset the weights if the alarms fire.",
+        "explanation": "ทำได้ในทางเทคนิค แต่เป็น custom traffic-shifting code ที่โจทย์ห้าม ต้องดูแล state ของ deployment, การ retry และ rollback เอง และไม่มี deployment history ร่วมกับ CodeDeploy ซึ่งทำสิ่งนี้แบบ managed ได้อยู่แล้ว"
+      },
+      "D": {
+        "text": "Deploy the new version behind a second ALB and create Amazon Route 53 weighted records that send 10% of requests to the new ALB. Use Route 53 health checks to remove the new ALB if it becomes unhealthy.",
+        "explanation": "ไม่ผ่าน: weighted DNS แบ่งตามการตอบ DNS query และ client cache ตาม TTL จึงคุมสัดส่วน traffic 10% ได้ไม่แม่นยำ health check ไม่ใช่ CloudWatch alarm 5xx/p99 และไม่ได้ย้อน traffic ทั้งหมดอย่างเป็นระบบ ยังต้องดูแล ALB ชุดที่สองอีกด้วย"
+      }
+    },
+    "review": {
+      "decisiveClue": "ต้องการ 10% นาน 15 นาที, rollback อัตโนมัติตาม CloudWatch alarm, ใช้ CodeDeploy ร่วมกับทีมอื่น, ห้ามเขียน traffic-shifting code เอง",
+      "reasoning": "1) 'exactly 10% for 15 minutes' คือ canary แบบ traffic-based ไม่ใช่ rolling ตามจำนวน task (A) และไม่ใช่ DNS weighting ที่ cache ได้ (D) 2) rollback ต้องอิง CloudWatch alarms ซึ่ง CodeDeploy deployment group รองรับโดยตรงด้วย automatic rollback 3) โจทย์บังคับให้ใช้ CodeDeploy ร่วมกับ EC2/Lambda และห้าม custom code จึงตัด C 4) ECS ปัจจุบันมี built-in blue/green ด้วย แต่เงื่อนไขเรื่อง deployment service เดียวกันทำให้ B ตอบตรงที่สุด",
+      "references": [
+        {
+          "title": "Blue/green deployments for Amazon ECS with CodeDeploy",
+          "url": "https://docs.aws.amazon.com/AmazonECS/latest/developerguide/deployment-type-bluegreen.html"
+        },
+        {
+          "title": "CodeDeploy deployment configurations (ECS canary)",
+          "url": "https://docs.aws.amazon.com/codedeploy/latest/userguide/deployment-configurations.html"
+        },
+        {
+          "title": "CodeDeploy automatic rollback with alarms",
+          "url": "https://docs.aws.amazon.com/codedeploy/latest/userguide/deployments-rollback-and-redeploy.html"
+        }
+      ]
+    }
+  },
+  "sources": [
+    "https://docs.aws.amazon.com/AmazonECS/latest/developerguide/deployment-type-bluegreen.html",
+    "https://docs.aws.amazon.com/codedeploy/latest/userguide/deployment-configurations.html",
+    "https://docs.aws.amazon.com/codedeploy/latest/userguide/deployments-rollback-and-redeploy.html"
+  ]
+}

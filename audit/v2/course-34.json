@@ -1,0 +1,19 @@
+{
+  "id": "course-34",
+  "scope": "explanations",
+  "verdict": "FIX",
+  "verifiedCorrectIds": [
+    "B"
+  ],
+  "issues": [
+    "review.reasoning: refers to 'number of AZs or uptime alone', which is not in the options; does not distinguish A/C/D"
+  ],
+  "changes": {
+    "review": {
+      "reasoning": "Reliability คือความสามารถของ workload ในการทำหน้าที่ที่ต้องการได้อย่างถูกต้องและสม่ำเสมอตลอดช่วงเวลาที่คาดหวัง รวมถึงฟื้นตัวเมื่อเกิด failure จึงเลือก B ส่วน A คือเรื่อง Security (encryption), C คือ Cost Optimization ที่ไม่สนผลของ failure และ D เป็น Performance Efficiency แบบวัด benchmark ครั้งเดียวซึ่งไม่พิสูจน์ความต่อเนื่องของบริการ"
+    }
+  },
+  "sources": [
+    "https://docs.aws.amazon.com/wellarchitected/latest/framework/reliability.html"
+  ]
+}

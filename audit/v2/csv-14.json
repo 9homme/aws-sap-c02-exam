@@ -1,0 +1,21 @@
+{
+  "id": "csv-14",
+  "scope": "explanations",
+  "verdict": "FIX",
+  "verifiedCorrectIds": [
+    "D"
+  ],
+  "issues": [
+    "options.D.explanation: states only a caveat; does not say why S3 fits large video files with high throughput."
+  ],
+  "changes": {
+    "options": {
+      "D": {
+        "explanation": "S3 เป็น object storage ที่เก็บไฟล์ขนาดใหญ่ได้ไม่จำกัดจำนวนและ scale ได้ รองรับ multipart upload และ byte-range GET แบบขนานเพื่อ throughput สูง โดยไม่ต้องดูแล file server. throughput จริงขึ้นกับ parallelism ของ client และ request pattern"
+      }
+    }
+  },
+  "sources": [
+    "https://docs.aws.amazon.com/AmazonS3/latest/userguide/Welcome.html"
+  ]
+}

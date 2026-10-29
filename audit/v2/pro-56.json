@@ -1,0 +1,60 @@
+{
+  "id": "pro-56",
+  "scope": "full",
+  "verdict": "FIX",
+  "originalCorrectIds": [
+    "C"
+  ],
+  "verifiedCorrectIds": [
+    "C"
+  ],
+  "issues": [
+    "options: ตัวลวงเดิมผิดอย่างชัดเจน (อ้างความสามารถที่บริการไม่มี) ทำให้ตอบได้จากการจำชื่อบริการ ไม่ใช่ระดับ SAP-C02 Professional; เขียนใหม่ให้แต่ละตัวลวงทำงานได้จริงบางส่วนแต่ตกเงื่อนไขหนึ่งข้อ",
+    "prompt: ลบประโยค boilerplate (architecture review board / workable for the stated environment)",
+    "review.reasoning: เดิมคัดลอก requirement ภาษาอังกฤษมาต่อกัน ไม่ได้อธิบายการตัดตัวเลือก"
+  ],
+  "changes": {
+    "prompt": "A logistics group stores raw shipment records and customer data in S3. Business analysts need to query curated datasets in SQL but may only see approved columns and business units. A regional executive dashboard must show scheduled visualizations of the same governed warehouse or Athena datasets without granting analysts direct bucket administrator privileges. Meanwhile, operations engineers need free-text search of recent delivery events and fast filtering of diagnostic documents for a troubleshooting console. The security team expects table and column entitlements to be independently managed from the full-text search index, with encryption and data access reviewed at each layer. The solution must meet all of the following requirements: (1) Enforce fine-grained analytical-data permissions over cataloged S3 datasets used by SQL engines; (2) Deliver governed business dashboards with visual analysis and scheduled sharing; (3) Support low-latency search and indexing of operational documents without mistaking full-text search for relational warehouse SQL. Which solution meets these requirements with the LEAST operational overhead?",
+    "options": {
+      "A": {
+        "text": "Register the S3 datasets with Lake Formation and grant column- and row-level permissions for Athena, build dashboards in Amazon QuickSight, and have operations engineers search delivery events with Athena LIKE queries over the raw S3 data.",
+        "explanation": "ตกข้อ (3): Lake Formation และ QuickSight ถูกต้อง แต่ Athena ต้องสแกนข้อมูลทุกครั้งและไม่มี inverted index การค้นหาข้อความอิสระด้วย LIKE จึงช้าและแพงสำหรับ troubleshooting console ที่ต้องการ latency ต่ำ ซึ่งโจทย์เตือนไม่ให้สับสน full-text search กับ SQL"
+      },
+      "B": {
+        "text": "Create S3 bucket policies and IAM policies for each business unit that allow access to approved prefixes, query with Athena, build dashboards in QuickSight, and index operational documents in Amazon OpenSearch Service.",
+        "explanation": "ตกข้อ (1): QuickSight และ OpenSearch ถูกต้อง แต่ IAM/bucket policy คุมได้แค่ระดับ object หรือ prefix ไม่สามารถจำกัดเฉพาะคอลัมน์ที่อนุมัติในตารางได้ และต้องดูแลสิทธิ์ที่ระดับ storage แทน catalog"
+      },
+      "C": {
+        "text": "Register S3 datasets and permissions with Lake Formation and compatible catalog/query integrations, build BI in QuickSight, and index operational documents in OpenSearch Service.",
+        "explanation": "ถูก: Lake Formation กำหนดสิทธิ์ระดับ table/column/row บน Glue Data Catalog ให้ Athena และ engine ที่รองรับ โดยผู้ใช้ไม่ต้องมีสิทธิ์ bucket ตรง QuickSight ให้ dashboard ที่จัดการสิทธิ์ผู้ใช้และตั้งเวลาส่งรายงานได้ OpenSearch Service index เอกสารเพื่อค้นหาข้อความและกรองแบบ latency ต่ำ สิทธิ์ของแต่ละชั้นแยกจัดการและเข้ารหัสได้"
+      },
+      "D": {
+        "text": "Register the S3 datasets with Lake Formation and grant column-level permissions for Athena, index the operational documents in OpenSearch Service, and give executives Athena console access to run saved queries instead of building dashboards.",
+        "explanation": "ตกข้อ (2): ชั้นสิทธิ์และ search ถูกต้อง แต่การให้ผู้บริหารรัน saved queries ใน Athena console ไม่ใช่ governed dashboard ที่มี visual analysis และ scheduled sharing ผู้บริหารยังต้องมีสิทธิ์ query และเห็นผลเป็นตาราง ไม่ใช่ dashboard"
+      }
+    },
+    "review": {
+      "decisiveClue": "สิทธิ์ระดับคอลัมน์/หน่วยธุรกิจบน catalog สำหรับ SQL, dashboard ผู้บริหารที่ตั้งเวลาแชร์, ค้นหาเอกสาร operations แบบ full-text latency ต่ำ",
+      "reasoning": "1) แยกสามชั้น: data permissions (Lake Formation), BI dashboards (QuickSight), full-text search (OpenSearch) 2) B ใช้ IAM ระดับ prefix ซึ่งไม่ถึงระดับคอลัมน์ 3) D ไม่มี dashboard 4) A ใช้ Athena LIKE แทน search index 5) C ใช้บริการที่ตรงกับแต่ละชั้นและจัดการสิทธิ์แยกกันตามที่ security ต้องการ",
+      "references": [
+        {
+          "title": "Lake Formation permissions model",
+          "url": "https://docs.aws.amazon.com/lake-formation/latest/dg/managing-permissions.html"
+        },
+        {
+          "title": "What is Amazon QuickSight?",
+          "url": "https://docs.aws.amazon.com/quicksight/latest/user/welcome.html"
+        },
+        {
+          "title": "What is Amazon OpenSearch Service?",
+          "url": "https://docs.aws.amazon.com/opensearch-service/latest/developerguide/what-is.html"
+        }
+      ]
+    }
+  },
+  "sources": [
+    "https://docs.aws.amazon.com/lake-formation/latest/dg/managing-permissions.html",
+    "https://docs.aws.amazon.com/quicksight/latest/user/welcome.html",
+    "https://docs.aws.amazon.com/opensearch-service/latest/developerguide/what-is.html"
+  ]
+}

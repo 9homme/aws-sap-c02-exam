@@ -1,0 +1,13 @@
+{
+  "id": "course-13",
+  "scope": "explanations",
+  "verdict": "PASS",
+  "verifiedCorrectIds": [
+    "A"
+  ],
+  "issues": [],
+  "changes": {},
+  "sources": [
+    "https://docs.aws.amazon.com/wellarchitected/2023-10-03/framework/definitions.html"
+  ]
+}
