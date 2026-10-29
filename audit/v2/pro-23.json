@@ -1,0 +1,60 @@
+{
+  "id": "pro-23",
+  "scope": "full",
+  "verdict": "FIX",
+  "originalCorrectIds": [
+    "A"
+  ],
+  "verifiedCorrectIds": [
+    "A"
+  ],
+  "issues": [
+    "options: ตัวลวงเดิมผิดอย่างชัดเจน (อ้างความสามารถที่บริการไม่มี) ทำให้ตอบได้จากการจำชื่อบริการ ไม่ใช่ระดับ SAP-C02 Professional; เขียนใหม่ให้แต่ละตัวลวงทำงานได้จริงบางส่วนแต่ตกเงื่อนไขหนึ่งข้อ",
+    "prompt: ลบประโยค boilerplate (architecture review board / workable for the stated environment)",
+    "review.reasoning: เดิมคัดลอก requirement ภาษาอังกฤษมาต่อกัน ไม่ได้อธิบายการตัดตัวเลือก"
+  ],
+  "changes": {
+    "prompt": "A media company renders tens of thousands of independent video segments every night. Jobs last between five minutes and three hours and can resume safely from checkpoints stored in S3. The organization already uses EC2 for an interactive editing service, but the render queue is operationally separate and its arrival rate is unpredictable. The finance team can tolerate a small percentage of interrupted render attempts because the deadline is next morning. Engineering wants automatic queue-based compute provisioning and retry management, without running an always-on fleet or building its own scheduler on top of a generic Auto Scaling group. The solution must meet all of the following requirements: (1) Process containerized and queueable jobs with managed job scheduling and automatic compute allocation; (2) Use interruptible capacity to reduce compute cost where job checkpointing permits interruption; (3) Preserve retry behavior and completion by the next-morning deadline without permanent hosts. Which solution meets these requirements with the LEAST operational overhead?",
+    "options": {
+      "A": {
+        "text": "Use AWS Batch with a managed compute environment that can use EC2 Spot capacity, define job queues and retry strategies, and checkpoint work to durable storage.",
+        "explanation": "ถูก: AWS Batch รับงานเข้า job queue จัดลำดับ และสร้าง/ลด compute ใน managed compute environment ให้อัตโนมัติจนเหลือศูนย์เมื่อไม่มีงาน Spot ลดต้นทุนได้มากเพราะงาน resume จาก checkpoint ใน S3 ได้ retry strategy (เช่น evaluateOnExit สำหรับ Spot interruption) ส่งงานซ้ำให้อัตโนมัติ ควรใช้ allocation strategy SPOT_PRICE_CAPACITY_OPTIMIZED และหลาย instance types เพื่อลด interruption"
+      },
+      "B": {
+        "text": "Use AWS Batch with a managed compute environment that uses only On-Demand Instances, define job queues and retry strategies, and checkpoint work to Amazon S3.",
+        "explanation": "ตกข้อ (2): Batch ตอบเรื่อง scheduling และ retry แล้ว แต่ใช้แค่ On-Demand ทำให้ไม่ได้ประโยชน์จาก interruptible capacity ทั้งที่งานมี checkpoint และ finance ยอมรับการถูกขัดจังหวะบางส่วน ต้นทุนจึงสูงกว่าที่จำเป็นมาก"
+      },
+      "C": {
+        "text": "Send render requests to an Amazon SQS queue and run worker processes on an EC2 Auto Scaling group of Spot Instances that polls the queue, scale on queue depth, and implement retries in the worker code.",
+        "explanation": "ตกข้อ (1): Spot และ SQS ทำงานได้จริงและลดต้นทุนได้ แต่ทีมต้องสร้าง scheduler เอง ทั้งการ scale ตาม backlog, visibility timeout สำหรับงานยาว 3 ชั่วโมง, retry และการจัดการ interruption ซึ่งโจทย์ระบุว่าไม่ต้องการสร้างบน Auto Scaling group ทั่วไป"
+      },
+      "D": {
+        "text": "Invoke an AWS Lambda function for each video segment from Amazon S3 event notifications, and use Lambda retries and an on-failure destination to handle failed segments.",
+        "explanation": "ตกข้อ (1)(3): Lambda ไม่มี server ให้ดูแล แต่ invocation หนึ่งรันได้นานสุด 15 นาที งานที่ยาวถึง 3 ชั่วโมงจึงทำไม่ได้ และ asynchronous retry ของ Lambda ไม่ได้ออกแบบมาสำหรับ batch scheduling ขนาดใหญ่ที่มีกำหนดเสร็จ"
+      }
+    },
+    "review": {
+      "decisiveClue": "งาน container ที่เข้า queue ได้ ต้องการ managed scheduling + auto compute, ใช้ Spot ได้เพราะมี checkpoint, ห้ามมี host ถาวรหรือสร้าง scheduler เอง",
+      "reasoning": "1) งานยาว 5 นาทีถึง 3 ชั่วโมง ตัด Lambda (D) ที่จำกัด 15 นาที 2) ต้องการ managed scheduling และ retry โดยไม่สร้าง scheduler เอง ตัด SQS + ASG (C) 3) checkpoint ได้และยอมรับ interruption จึงควรใช้ Spot ตัด On-Demand-only (B) 4) A ใช้ AWS Batch กับ Spot compute environment, job queue และ retry strategy ครบทั้งสามข้อ",
+      "references": [
+        {
+          "title": "What is AWS Batch?",
+          "url": "https://docs.aws.amazon.com/batch/latest/userguide/what-is-batch.html"
+        },
+        {
+          "title": "AWS Batch automated job retries",
+          "url": "https://docs.aws.amazon.com/batch/latest/userguide/job_retries.html"
+        },
+        {
+          "title": "Compute environment allocation strategies",
+          "url": "https://docs.aws.amazon.com/batch/latest/userguide/allocation-strategies.html"
+        }
+      ]
+    }
+  },
+  "sources": [
+    "https://docs.aws.amazon.com/batch/latest/userguide/what-is-batch.html",
+    "https://docs.aws.amazon.com/batch/latest/userguide/job_retries.html",
+    "https://docs.aws.amazon.com/batch/latest/userguide/allocation-strategies.html"
+  ]
+}

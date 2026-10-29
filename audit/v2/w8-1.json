@@ -1,0 +1,13 @@
+{
+  "id": "w8-1",
+  "scope": "explanations",
+  "verdict": "PASS",
+  "verifiedCorrectIds": [
+    "D"
+  ],
+  "issues": [],
+  "changes": {},
+  "sources": [
+    "https://docs.aws.amazon.com/organizations/latest/userguide/orgs_manage_policies_scps.html"
+  ]
+}

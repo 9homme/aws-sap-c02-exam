@@ -1,0 +1,82 @@
+{
+  "id": "pro-91",
+  "sourceCategory": "professional",
+  "sourceLabel": "AI-authored · Professional multi-requirement",
+  "sourceDetail": "Original multi-constraint scenario — dashboard ผู้บริหาร 500 คนพร้อมกันแบบ sub-second",
+  "coreEligible": true,
+  "emerging": false,
+  "domain": "3",
+  "task": "Continuous improvement",
+  "topic": "dashboard ผู้บริหาร 500 คนพร้อมกันแบบ sub-second",
+  "type": "multiple-choice",
+  "selectCount": 1,
+  "prompt": "A consumer goods company is rolling out executive sales dashboards to 500 regional managers who will use them at the same time during a weekly 9:00 AM review. Each dashboard joins about 5 TB of structured sales, product, and store data that is stored in an Amazon Redshift provisioned cluster and refreshed every hour by ETL jobs. In a pilot, the dashboards took 8–20 seconds to render when 100 users were active, because many users run the same aggregate queries at the same time and queries wait in the queue. The business requires sub-second dashboard interactions for all 500 users during the review, governed sharing so that each manager sees only their region, and scheduled email delivery of the dashboards to executives. The data in the dashboards can be up to 1 hour old. The analytics team already uses Amazon QuickSight and is willing to pay for additional capacity during the weekly peak. The company also stores raw clickstream data in Amazon S3, which some analysts query occasionally with Amazon Athena. The Redshift cluster is otherwise lightly used outside the ETL windows. Which solution will provide the BEST performance for the dashboards?",
+  "options": [
+    {
+      "id": "A",
+      "text": "Connect QuickSight to Amazon Athena in direct query mode, export the sales tables from Redshift to Amazon S3 every hour, and have the dashboards query the S3 data through Athena with row-level security in QuickSight. Partition the exported data by region and date so that each dashboard query scans less data.",
+      "explanation": "ไม่ผ่านด้าน performance: Athena ทำงานแบบ serverless ที่ดีสำหรับ ad hoc queries แต่ query ที่ join ข้อมูล 5 TB จากผู้ใช้ 500 คนพร้อมกันจะติด concurrency quota และใช้เวลาหลายวินาทีต่อ query ทั้งยังเพิ่มขั้นตอน export ทุกชั่วโมง"
+    },
+    {
+      "id": "B",
+      "text": "Create Redshift materialized views with automatic refresh for the dashboard aggregates, enable concurrency scaling on the workload management queue that QuickSight uses, import the results into QuickSight SPICE with an hourly refresh, apply row-level security for regions, and schedule email reports in QuickSight.",
+      "explanation": "ถูก: materialized views คำนวณ aggregate ล่วงหน้าทำให้ query ที่ซ้ำกันเร็วขึ้นมาก concurrency scaling เพิ่ม capacity ชั่วคราวเมื่อมี query รอคิว SPICE เก็บผลไว้ใน in-memory engine ของ QuickSight ทำให้ dashboard ตอบระดับ sub-second สำหรับผู้ใช้จำนวนมากโดยไม่ต้อง query Redshift ทุกครั้ง refresh รายชั่วโมงตรงกับความสดที่ยอมรับได้ ส่วน row-level security และ scheduled reports ตอบเรื่อง governed sharing"
+    },
+    {
+      "id": "C",
+      "text": "Index the sales, product, and store data into an Amazon OpenSearch Service domain every hour, and build the dashboards in OpenSearch Dashboards with fine-grained access control for each region. Use OpenSearch Dashboards reporting to send scheduled reports to the executives.",
+      "explanation": "ไม่ผ่าน: OpenSearch เหมาะกับ search และ log analytics ไม่ได้ออกแบบสำหรับ join ข้อมูลเชิงสัมพันธ์ขนาดหลาย TB ระหว่างหลายตาราง การ denormalize ทุกชั่วโมงเพิ่มงานมาก และไม่ได้ใช้ QuickSight ที่ทีมใช้อยู่สำหรับ scheduled email reports"
+    },
+    {
+      "id": "D",
+      "text": "Migrate the data to Amazon Redshift Serverless with the default base capacity, keep the dashboards in QuickSight direct query mode so that every interaction runs a live query, and apply row-level security in QuickSight. Set the maximum capacity high enough for the weekly peak.",
+      "explanation": "ช่วยได้บางส่วน: Serverless ปรับ capacity ได้ แต่ direct query ทำให้ทุกการคลิกของผู้ใช้ 500 คนเป็น query ที่ join 5 TB ใหม่ทุกครั้ง โดยไม่มี materialized views หรือ in-memory cache จึงยากที่จะได้ sub-second อย่างสม่ำเสมอช่วง peak"
+    }
+  ],
+  "correctIds": [
+    "B"
+  ],
+  "rationale": "1) OpenSearch (C) ไม่ใช่ engine สำหรับ relational joins 2) Athena direct query (A) และ Redshift direct query (D) ทำให้ทุก interaction เป็น query หนักซ้ำ ๆ ซึ่งยากจะได้ sub-second ที่ 500 users 3) ยอม stale 1 ชั่วโมงจึงคำนวณล่วงหน้าและ cache ได้: materialized views + concurrency scaling ลดเวลาที่ Redshift และ SPICE ตอบ dashboard จาก memory 4) B จึงให้ performance ดีที่สุดพร้อม governed sharing",
+  "wrongAnswerHelp": "Start with the explicit business constraint, then eliminate choices that solve a different layer of the architecture or add unnecessary operational work.",
+  "references": [
+    "https://docs.aws.amazon.com/redshift/latest/dg/materialized-view-overview.html",
+    "https://docs.aws.amazon.com/redshift/latest/dg/concurrency-scaling.html",
+    "https://docs.aws.amazon.com/quicksight/latest/user/spice.html"
+  ],
+  "products": [
+    "Redshift",
+    "QuickSight",
+    "Athena",
+    "OpenSearch Service"
+  ],
+  "requirements": [
+    "Sub-second dashboards for 500 concurrent users",
+    "Joins across 5 TB of structured sales data",
+    "Governed sharing to executives"
+  ],
+  "review": {
+    "decisiveClue": "ผู้ใช้ 500 คนพร้อมกันต้องการ sub-second, join 5 TB, ข้อมูลเก่าได้ 1 ชั่วโมง, row-level security และ scheduled email, ยอมจ่าย capacity ช่วง peak",
+    "reasoning": "1) OpenSearch (C) ไม่ใช่ engine สำหรับ relational joins 2) Athena direct query (A) และ Redshift direct query (D) ทำให้ทุก interaction เป็น query หนักซ้ำ ๆ ซึ่งยากจะได้ sub-second ที่ 500 users 3) ยอม stale 1 ชั่วโมงจึงคำนวณล่วงหน้าและ cache ได้: materialized views + concurrency scaling ลดเวลาที่ Redshift และ SPICE ตอบ dashboard จาก memory 4) B จึงให้ performance ดีที่สุดพร้อม governed sharing",
+    "options": {
+      "A": "ไม่ผ่านด้าน performance: Athena ทำงานแบบ serverless ที่ดีสำหรับ ad hoc queries แต่ query ที่ join ข้อมูล 5 TB จากผู้ใช้ 500 คนพร้อมกันจะติด concurrency quota และใช้เวลาหลายวินาทีต่อ query ทั้งยังเพิ่มขั้นตอน export ทุกชั่วโมง",
+      "B": "ถูก: materialized views คำนวณ aggregate ล่วงหน้าทำให้ query ที่ซ้ำกันเร็วขึ้นมาก concurrency scaling เพิ่ม capacity ชั่วคราวเมื่อมี query รอคิว SPICE เก็บผลไว้ใน in-memory engine ของ QuickSight ทำให้ dashboard ตอบระดับ sub-second สำหรับผู้ใช้จำนวนมากโดยไม่ต้อง query Redshift ทุกครั้ง refresh รายชั่วโมงตรงกับความสดที่ยอมรับได้ ส่วน row-level security และ scheduled reports ตอบเรื่อง governed sharing",
+      "C": "ไม่ผ่าน: OpenSearch เหมาะกับ search และ log analytics ไม่ได้ออกแบบสำหรับ join ข้อมูลเชิงสัมพันธ์ขนาดหลาย TB ระหว่างหลายตาราง การ denormalize ทุกชั่วโมงเพิ่มงานมาก และไม่ได้ใช้ QuickSight ที่ทีมใช้อยู่สำหรับ scheduled email reports",
+      "D": "ช่วยได้บางส่วน: Serverless ปรับ capacity ได้ แต่ direct query ทำให้ทุกการคลิกของผู้ใช้ 500 คนเป็น query ที่ join 5 TB ใหม่ทุกครั้ง โดยไม่มี materialized views หรือ in-memory cache จึงยากที่จะได้ sub-second อย่างสม่ำเสมอช่วง peak"
+    },
+    "references": [
+      {
+        "title": "Materialized views in Amazon Redshift",
+        "url": "https://docs.aws.amazon.com/redshift/latest/dg/materialized-view-overview.html"
+      },
+      {
+        "title": "Concurrency scaling",
+        "url": "https://docs.aws.amazon.com/redshift/latest/dg/concurrency-scaling.html"
+      },
+      {
+        "title": "Importing data into SPICE",
+        "url": "https://docs.aws.amazon.com/quicksight/latest/user/spice.html"
+      }
+    ],
+    "reviewedAt": "2026-10-29"
+  }
+}

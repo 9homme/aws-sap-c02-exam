@@ -1,0 +1,55 @@
+{
+  "id": "pro-44",
+  "scope": "full",
+  "verdict": "FIX",
+  "originalCorrectIds": [
+    "C"
+  ],
+  "verifiedCorrectIds": [
+    "C"
+  ],
+  "issues": [
+    "options: ตัวลวงเดิมผิดอย่างชัดเจน (อ้างความสามารถที่บริการไม่มี) ทำให้ตอบได้จากการจำชื่อบริการ ไม่ใช่ระดับ SAP-C02 Professional; เขียนใหม่ให้แต่ละตัวลวงทำงานได้จริงบางส่วนแต่ตกเงื่อนไขหนึ่งข้อ",
+    "prompt: ลบประโยค boilerplate (architecture review board / workable for the stated environment)",
+    "review.reasoning: เดิมคัดลอก requirement ภาษาอังกฤษมาต่อกัน ไม่ได้อธิบายการตัดตัวเลือก"
+  ],
+  "changes": {
+    "prompt": "An enterprise operates two corporate data centers and an AWS shared-services VPC. Developers host private API endpoints in the VPC with names under aws.corp.internal. On-premises servers must resolve those private AWS names using their existing corporate DNS servers, while EC2 application servers must resolve database names under legacy.corp.internal managed by the corporate DNS infrastructure. The company has redundant Direct Connect links and firewall rules allowing DNS only between designated resolver endpoints. Security explicitly prohibits publishing either namespace to public authoritative DNS, and both teams want to maintain existing zones without duplicating records manually in every account. The solution must meet all of the following requirements: (1) Enable DNS queries from on-premises resolvers into AWS private hosted zones; (2) Forward only the required internal suffix from AWS VPC resolvers back to on-premises DNS; (3) Keep both sets of records private while using redundant network paths. Which solution meets these requirements with the LEAST operational overhead?",
+    "options": {
+      "A": {
+        "text": "Create a Route 53 Resolver outbound endpoint in the shared-services VPC with forwarding rules for legacy.corp.internal to the corporate DNS servers and for aws.corp.internal to the Amazon-provided DNS server, and point the corporate DNS servers at the outbound endpoint.",
+        "explanation": "ตกข้อ (1): outbound endpoint ส่ง query ออกจาก VPC ไปยัง DNS ภายนอกเท่านั้น ไม่ได้รับ query ที่เข้ามาจาก on premises ฝั่งสำนักงานจึงยัง resolve aws.corp.internal ไม่ได้ ต้องมี inbound endpoint สำหรับทิศทางนั้น"
+      },
+      "B": {
+        "text": "Create a Route 53 Resolver inbound endpoint so that the corporate DNS servers can forward aws.corp.internal queries into the VPC. Create a private hosted zone named legacy.corp.internal in AWS and copy the corporate database records into it.",
+        "explanation": "ตกข้อ (2): ทิศทาง on premises → AWS ถูกต้อง แต่การสร้าง zone ซ้ำใน AWS และคัดลอก records ด้วยมือทำให้ข้อมูลสองที่ไม่ตรงกันเมื่อมีการเปลี่ยน และขัดกับข้อกำหนดให้ทีมดูแล zone เดิมโดยไม่ทำสำเนา ควรใช้ outbound endpoint ที่ forward suffix นี้ไปยัง DNS ขององค์กร"
+      },
+      "C": {
+        "text": "Use Route 53 Resolver inbound endpoints for on-premises-to-AWS queries, outbound endpoints with forwarding rules for AWS-to-on-premises queries, and private hosted zone associations as required.",
+        "explanation": "ถูก: corporate DNS ตั้ง conditional forwarder สำหรับ aws.corp.internal ไปยัง IP ของ inbound endpoint ที่กระจายหลาย AZ ส่วน VPC resolver ใช้ forwarding rule เฉพาะ legacy.corp.internal ผ่าน outbound endpoint ไปยัง DNS ขององค์กร private hosted zone ต้อง associate กับ VPC ของ endpoint ทุก query วิ่งผ่าน Direct Connect ที่ redundant และ zone ทั้งสองยังเป็น private"
+      },
+      "D": {
+        "text": "Publish aws.corp.internal as a Route 53 public hosted zone that contains the private IP addresses of the API endpoints, and create a Resolver outbound endpoint with a forwarding rule for legacy.corp.internal to the corporate DNS servers.",
+        "explanation": "ตกข้อ (3): ทิศทาง AWS → on premises ถูกต้อง แต่การเผยแพร่ aws.corp.internal ใน public hosted zone เปิดเผยชื่อและ IP ภายในต่อสาธารณะ ซึ่ง security ห้ามโดยตรง แม้ IP จะเป็น private ก็ตาม"
+      }
+    },
+    "review": {
+      "decisiveClue": "DNS สองทิศทาง: on premises → private hosted zone และ VPC → legacy.corp.internal, ห้ามใช้ public DNS, ไม่ทำสำเนา records",
+      "reasoning": "1) แยกทิศทางของ query: เข้ามาใน AWS = inbound endpoint, ออกจาก AWS = outbound endpoint + forwarding rule 2) A มีแต่ outbound จึงตอบเพียงทิศเดียว 3) B แก้ทิศ AWS → on premises ด้วยการคัดลอก records ซึ่งโจทย์ห้าม 4) D ใช้ public hosted zone ซึ่งขัดข้อ (3) 5) C ใช้ endpoint สองทิศทาง forward เฉพาะ suffix ที่จำเป็น และคงความเป็น private ของทั้งสอง zone",
+      "references": [
+        {
+          "title": "Resolving DNS queries between VPCs and your network",
+          "url": "https://docs.aws.amazon.com/Route53/latest/DeveloperGuide/resolver-overview-DSN-queries-to-vpc.html"
+        },
+        {
+          "title": "Forwarding outbound DNS queries to your network",
+          "url": "https://docs.aws.amazon.com/Route53/latest/DeveloperGuide/resolver-forwarding-outbound-queries.html"
+        }
+      ]
+    }
+  },
+  "sources": [
+    "https://docs.aws.amazon.com/Route53/latest/DeveloperGuide/resolver-overview-DSN-queries-to-vpc.html",
+    "https://docs.aws.amazon.com/Route53/latest/DeveloperGuide/resolver-forwarding-outbound-queries.html"
+  ]
+}

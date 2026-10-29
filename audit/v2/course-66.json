@@ -1,0 +1,13 @@
+{
+  "id": "course-66",
+  "scope": "explanations",
+  "verdict": "PASS",
+  "verifiedCorrectIds": [
+    "B"
+  ],
+  "issues": [],
+  "changes": {},
+  "sources": [
+    "https://docs.aws.amazon.com/dms/latest/userguide/Welcome.html"
+  ]
+}

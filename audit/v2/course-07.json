@@ -1,0 +1,20 @@
+{
+  "id": "course-07",
+  "scope": "explanations",
+  "verdict": "FIX",
+  "verifiedCorrectIds": [
+    "C"
+  ],
+  "issues": [
+    "review.reasoning: correct option says 'teams' but explanation only denies scoring people, leaving the wording unreconciled; does not name what the Tool outputs (risks, improvement plan) or contrast with B/D clearly"
+  ],
+  "changes": {
+    "review": {
+      "reasoning": "Well-Architected Tool คือบริการใน console ที่ให้ตอบคำถามราย pillar เพื่อประเมิน workload เทียบกับ best practices ของ AWS แล้วชี้ความเสี่ยง (high/medium risk) และสร้าง improvement plan คำว่า teams ในตัวเลือกหมายถึงแนวปฏิบัติและกระบวนการที่ทีมใช้กับ workload ไม่ใช่การให้คะแนนรายบุคคล (กับดักของ A) ส่วน B เป็นหน้าที่ของ CloudFormation/Systems Manager และ D ผิดเพราะ Tool ไม่ออกใบรับรองว่าปลอดภัยหรือพร้อม production"
+    }
+  },
+  "sources": [
+    "https://docs.aws.amazon.com/wellarchitected/latest/framework/welcome.html",
+    "https://docs.aws.amazon.com/wellarchitected/latest/userguide/intro.html"
+  ]
+}

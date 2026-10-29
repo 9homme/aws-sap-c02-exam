@@ -1,0 +1,81 @@
+{
+  "id": "pro-77",
+  "sourceCategory": "professional",
+  "sourceLabel": "AI-authored · Professional multi-requirement",
+  "sourceDetail": "Original multi-constraint scenario — directory สำหรับบริษัทลูกขนาดเล็กที่ถูกที่สุด",
+  "coreEligible": true,
+  "emerging": false,
+  "domain": "1",
+  "task": "Organizational complexity",
+  "topic": "directory สำหรับบริษัทลูกขนาดเล็กที่ถูกที่สุด",
+  "type": "multiple-choice",
+  "selectCount": 1,
+  "prompt": "A retail group has acquired a small online subsidiary that has 200 employees and runs its workloads on 120 Amazon EC2 instances in a single AWS account. The subsidiary has never had an Active Directory, and administrators currently sign in to each instance with local accounts, which the auditors flagged as a risk. The company wants a central directory so that both the Windows and Linux instances can be joined to a domain, administrators can sign in with directory accounts, and group membership controls who can log in to which servers. There is no requirement for trusts with any other directory, multi-factor authentication through the directory, schema extensions, or Group Policy beyond basic settings, and the subsidiary does not expect to exceed 500 users. The parent company's IT team will manage the directory remotely and does not want to patch or back up domain controllers. The subsidiary's IT budget is very small, and the CFO has asked for the lowest-cost managed option. The subsidiary's VPC has private subnets in two Availability Zones. Which solution will meet these requirements MOST cost-effectively?",
+  "options": [
+    {
+      "id": "A",
+      "text": "Create an AWS Managed Microsoft AD Standard Edition directory in the subsidiary's VPC, join the Windows and Linux instances to the domain, and use directory groups to control which administrators can sign in to each server. Use the directory's automated daily snapshots for recovery.",
+      "explanation": "ทำงานได้และเป็น managed แต่แพงเกินความต้องการ: Managed AD ให้ความสามารถเต็มของ Microsoft AD เช่น trusts, MFA และ schema extensions ซึ่งโจทย์ระบุว่าไม่ต้องใช้ ราคาต่อชั่วโมงของ Standard Edition สูงกว่า Simple AD ขนาดเล็กอย่างชัดเจน"
+    },
+    {
+      "id": "B",
+      "text": "Create an AD Connector in the subsidiary's VPC that points to the parent company's on-premises Active Directory, and join the instances to the parent domain through the connector. Create a Site-to-Site VPN connection from the subsidiary's VPC to the parent data center and create the administrator accounts in the parent domain.",
+      "explanation": "ไม่ผ่าน: AD Connector เป็นเพียง proxy ไปยัง directory ที่มีอยู่ ต้องพึ่งการเชื่อมต่อกับ AD ของบริษัทแม่และต้องสร้าง trust หรือบัญชีในโดเมนนั้น ซึ่งไม่ใช่ directory ของบริษัทลูกเอง และเพิ่ม dependency ข้ามเครือข่ายโดยไม่จำเป็น"
+    },
+    {
+      "id": "C",
+      "text": "Create a Small Simple AD directory in the subsidiary's VPC across two Availability Zones, join the Windows and Linux instances to the domain, create directory users and groups for the administrators, and use group membership to control logons to each server.",
+      "explanation": "ถูก: Simple AD เป็น directory แบบ managed ที่เข้ากันกับ Active Directory พื้นฐาน รองรับ domain join ทั้ง Windows และ Linux, users/groups และ Kerberos ขนาด Small รองรับได้ถึงประมาณ 500 ผู้ใช้ AWS ดูแล snapshot และ patch ให้ และราคาต่ำกว่า Managed AD ข้อจำกัดคือไม่รองรับ trust, MFA หรือ schema extension ซึ่งโจทย์ไม่ต้องการอยู่แล้ว"
+    },
+    {
+      "id": "D",
+      "text": "Deploy two Windows Server domain controllers on Amazon EC2 instances in two Availability Zones, use AWS Systems Manager to patch them, and back them up with AWS Backup. Use the Windows Server license included with the EC2 instances and create the administrator users and groups in the new domain.",
+      "explanation": "ไม่ผ่าน: ใช้งานได้เต็มรูปแบบแต่ต้องดูแล domain controllers เอง ทั้ง patch, backup, monitoring และ Windows license ซึ่งทีมไม่ต้องการ และค่า EC2 สองเครื่องพร้อม license และ storage ก็ไม่ใช่ทางที่ถูกที่สุด"
+    }
+  ],
+  "correctIds": [
+    "C"
+  ],
+  "rationale": "1) ไม่มี directory เดิมให้เชื่อม AD Connector (B) จึงไม่ใช่ทางที่เหมาะ 2) ห้ามดูแล domain controllers เอง ตัด D 3) ระหว่าง managed directory สองแบบ: Managed AD (A) มีความสามารถที่ไม่ต้องใช้และแพงกว่า ส่วน Simple AD รองรับ domain join, users/groups สำหรับไม่เกิน 500 ผู้ใช้ในราคาต่ำกว่า 4) C จึงคุ้มค่าที่สุด",
+  "wrongAnswerHelp": "Start with the explicit business constraint, then eliminate choices that solve a different layer of the architecture or add unnecessary operational work.",
+  "references": [
+    "https://docs.aws.amazon.com/directoryservice/latest/admin-guide/directory_simple_ad.html",
+    "https://docs.aws.amazon.com/directoryservice/latest/admin-guide/directory_microsoft_ad.html",
+    "https://aws.amazon.com/directoryservice/pricing/"
+  ],
+  "products": [
+    "EC2",
+    "IAM",
+    "Simple AD"
+  ],
+  "requirements": [
+    "Domain-join 120 Windows/Linux EC2 instances for 200 users",
+    "No existing AD and no trust requirements",
+    "Minimal administration of directory servers"
+  ],
+  "review": {
+    "decisiveClue": "ไม่มี AD เดิมและไม่ต้องมี trust/MFA/schema, ไม่เกิน 500 ผู้ใช้, ต้องการ domain join Windows/Linux, ไม่ดูแล DC เอง, ราคาต่ำสุด",
+    "reasoning": "1) ไม่มี directory เดิมให้เชื่อม AD Connector (B) จึงไม่ใช่ทางที่เหมาะ 2) ห้ามดูแล domain controllers เอง ตัด D 3) ระหว่าง managed directory สองแบบ: Managed AD (A) มีความสามารถที่ไม่ต้องใช้และแพงกว่า ส่วน Simple AD รองรับ domain join, users/groups สำหรับไม่เกิน 500 ผู้ใช้ในราคาต่ำกว่า 4) C จึงคุ้มค่าที่สุด",
+    "options": {
+      "A": "ทำงานได้และเป็น managed แต่แพงเกินความต้องการ: Managed AD ให้ความสามารถเต็มของ Microsoft AD เช่น trusts, MFA และ schema extensions ซึ่งโจทย์ระบุว่าไม่ต้องใช้ ราคาต่อชั่วโมงของ Standard Edition สูงกว่า Simple AD ขนาดเล็กอย่างชัดเจน",
+      "B": "ไม่ผ่าน: AD Connector เป็นเพียง proxy ไปยัง directory ที่มีอยู่ ต้องพึ่งการเชื่อมต่อกับ AD ของบริษัทแม่และต้องสร้าง trust หรือบัญชีในโดเมนนั้น ซึ่งไม่ใช่ directory ของบริษัทลูกเอง และเพิ่ม dependency ข้ามเครือข่ายโดยไม่จำเป็น",
+      "C": "ถูก: Simple AD เป็น directory แบบ managed ที่เข้ากันกับ Active Directory พื้นฐาน รองรับ domain join ทั้ง Windows และ Linux, users/groups และ Kerberos ขนาด Small รองรับได้ถึงประมาณ 500 ผู้ใช้ AWS ดูแล snapshot และ patch ให้ และราคาต่ำกว่า Managed AD ข้อจำกัดคือไม่รองรับ trust, MFA หรือ schema extension ซึ่งโจทย์ไม่ต้องการอยู่แล้ว",
+      "D": "ไม่ผ่าน: ใช้งานได้เต็มรูปแบบแต่ต้องดูแล domain controllers เอง ทั้ง patch, backup, monitoring และ Windows license ซึ่งทีมไม่ต้องการ และค่า EC2 สองเครื่องพร้อม license และ storage ก็ไม่ใช่ทางที่ถูกที่สุด"
+    },
+    "references": [
+      {
+        "title": "Simple Active Directory",
+        "url": "https://docs.aws.amazon.com/directoryservice/latest/admin-guide/directory_simple_ad.html"
+      },
+      {
+        "title": "AWS Managed Microsoft AD",
+        "url": "https://docs.aws.amazon.com/directoryservice/latest/admin-guide/directory_microsoft_ad.html"
+      },
+      {
+        "title": "AWS Directory Service pricing",
+        "url": "https://aws.amazon.com/directoryservice/pricing/"
+      }
+    ],
+    "reviewedAt": "2026-10-29"
+  }
+}

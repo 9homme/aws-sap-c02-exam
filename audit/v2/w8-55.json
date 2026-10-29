@@ -1,0 +1,27 @@
+{
+  "id": "w8-55",
+  "scope": "explanations",
+  "verdict": "FIX",
+  "verifiedCorrectIds": [
+    "C"
+  ],
+  "issues": [
+    "options.C.explanation: ประโยคเรียบเรียงไม่ชัดและไม่โยงกับ requirement (ต้องไม่ผ่าน internet, ข้อมูลอ่านน้อยเป็นครั้งคราว, MOST cost-effectively)",
+    "options.D.explanation: ไม่ชี้ว่า dataset 'large' ทำให้การทำสำเนา (storage + CRR + Batch Replication) แพงเมื่อเทียบกับการอ่านเพียงเล็กน้อย"
+  ],
+  "changes": {
+    "options": {
+      "C": {
+        "explanation": "S3 interface endpoint (PrivateLink) เข้าถึงผ่าน private IP และเข้าจาก eu-west-2 ได้ผ่าน inter-Region VPC peering โดยไม่ผ่าน internet ไม่ต้องทำสำเนา dataset ใหญ่ จ่ายเฉพาะ endpoint/data processing และ transfer ที่ต่ำ ต้องใช้ endpoint-specific DNS และ route/SG/policy ให้ครบ"
+      },
+      "D": {
+        "explanation": "CRR ต้องทำสำเนา dataset ขนาดใหญ่ทั้งชุด (ของเดิมต้องใช้ Batch Replication) และจ่าย storage สำเนา กับค่า replication ทั้งที่ Region ที่สองอ่านน้อยเป็นครั้งคราว จึงแพงกว่าการเข้าถึง bucket เดิมผ่าน private endpoint"
+      }
+    }
+  },
+  "sources": [
+    "https://docs.aws.amazon.com/AmazonS3/latest/userguide/privatelink-interface-endpoints.html",
+    "https://docs.aws.amazon.com/vpc/latest/peering/what-is-vpc-peering.html",
+    "https://docs.aws.amazon.com/AmazonS3/latest/userguide/s3-batch-replication-batch.html"
+  ]
+}

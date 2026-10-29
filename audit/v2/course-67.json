@@ -1,0 +1,19 @@
+{
+  "id": "course-67",
+  "scope": "explanations",
+  "verdict": "FIX",
+  "verifiedCorrectIds": [
+    "C"
+  ],
+  "issues": [
+    "review.reasoning: ไม่เชื่อม Athena/QuickSight กับ 'discovered data' (ข้อมูลที่ Application Discovery Service เก็บไว้ใน S3) ตามที่โจทย์ถาม"
+  ],
+  "changes": {
+    "review": {
+      "reasoning": "โจทย์ถามเครื่องมือวิเคราะห์ 'discovered data' ข้อมูลที่ Application Discovery Service เก็บได้จะรวมที่ Migration Hub (ดู inventory/สถานะ) และเก็บเป็นไฟล์ใน S3 ให้ Amazon Athena ใช้ SQL สำรวจ แล้วใช้ Amazon QuickSight ทำ dashboard จึงครบทั้งภาพรวม SQL และ visualization ตรงกับ C ข้อ A, B, D ไม่ใช่เครื่องมือวิเคราะห์ (DNS failover, backup, flow log เพียงบางส่วน) ข้อควรระวัง: ต้องตั้งค่า data export และ permissions ให้ถูกต้อง"
+    }
+  },
+  "sources": [
+    "https://docs.aws.amazon.com/application-discovery/latest/userguide/what-is-appdiscovery.html"
+  ]
+}

@@ -1,0 +1,19 @@
+{
+  "id": "course-32",
+  "scope": "explanations",
+  "verdict": "FIX",
+  "verifiedCorrectIds": [
+    "D"
+  ],
+  "issues": [
+    "review.reasoning: refers to 'shutting down systems customers need', which is not an option; not tied to A/B/C"
+  ],
+  "changes": {
+    "review": {
+      "reasoning": "Cost Optimization คือการส่งมอบผลลัพธ์ทางธุรกิจด้วยราคาต่ำสุดเท่าที่ทำได้จริง โดยใช้ resource เต็มประสิทธิภาพและยังตอบ functional requirements ครบ จึงเลือก D ส่วน A ลด bill โดยละเมิด security control, B ซื้อ capacity เกินจนเหลือ idle และ C ปิด monitoring เพื่อลดค่าบริการ ล้วนลดต้นทุนโดยแลกกับความเสี่ยงหรือผลลัพธ์ที่เสียไป จึงไม่ใช่ cost optimization"
+    }
+  },
+  "sources": [
+    "https://docs.aws.amazon.com/wellarchitected/latest/framework/cost-optimization.html"
+  ]
+}

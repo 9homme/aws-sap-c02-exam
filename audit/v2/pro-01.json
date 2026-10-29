@@ -1,0 +1,17 @@
+{
+  "id": "pro-01",
+  "scope": "full",
+  "verdict": "PASS",
+  "originalCorrectIds": [
+    "B"
+  ],
+  "verifiedCorrectIds": [
+    "B"
+  ],
+  "issues": [],
+  "changes": {},
+  "sources": [
+    "https://docs.aws.amazon.com/vpn/latest/s2svpn/private-ip-dx.html",
+    "https://docs.aws.amazon.com/directconnect/latest/UserGuide/WorkingWithVirtualInterfaces.html"
+  ]
+}

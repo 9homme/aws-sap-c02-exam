@@ -1,0 +1,35 @@
+{
+  "id": "w8-11",
+  "scope": "explanations",
+  "verdict": "FIX",
+  "verifiedCorrectIds": [
+    "A"
+  ],
+  "issues": [
+    "options.A.explanation/review.reasoning: บอกว่า endpoint ที่ไม่พร้อมถูกตัดเสมอ แต่ถ้าทุก record unhealthy Route 53 จะ fail-open",
+    "options.B/D.explanation: ไม่ระบุว่า Evaluate Target Health เป็นค่าของ alias record เท่านั้น CNAME ไม่มีค่านี้",
+    "review.decisiveClue: ควรผูกกับ apex + global + health-aware latency"
+  ],
+  "changes": {
+    "options": {
+      "A": {
+        "explanation": "ครบเงื่อนไข: public hosted zone ให้ลูกค้าอินเทอร์เน็ต resolve ได้ alias record ใช้ที่ apex ได้ และ latency records พร้อม Evaluate Target Health ทำให้เลือก Region ที่ใกล้และยัง healthy ได้ (ถ้าทุก record unhealthy Route 53 จะ fail-open) ไม่ต้องตรึง IP ของ ALB"
+      },
+      "B": {
+        "explanation": "Public zone ถูก แต่ zone apex ใช้ CNAME ไม่ได้ และ Evaluate Target Health เป็นค่าเฉพาะของ alias record ที่ชี้ไป ALB เท่านั้น CNAME ไม่มีค่านี้ จึงทำทั้ง apex และ health-aware routing ไม่ได้"
+      },
+      "D": {
+        "explanation": "ผิดสองชั้น: private hosted zone ให้ resolve ได้เฉพาะ VPC ที่ผูกไว้ ไม่ใช่ลูกค้าบนอินเทอร์เน็ตทั่วโลก และ CNAME ใช้ที่ zone apex ไม่ได้ อีกทั้ง Evaluate Target Health ไม่มีใน CNAME record"
+      }
+    },
+    "review": {
+      "decisiveClue": "apex domain + ผู้ใช้ทั่วโลก + ต้องเลือก Region ที่ใกล้และ healthy",
+      "reasoning": "Public hosted zone ทำให้ลูกค้าบนอินเทอร์เน็ต resolve ชื่อได้ alias ใช้ที่ apex (เช่น example.com) ได้ ส่วน CNAME ใช้ไม่ได้ และ Evaluate Target Health เป็นค่าของ alias เท่านั้น Latency alias records ที่ชี้ ALB ทั้งสอง Region จึงเลือก Region ที่ latency ต่ำสุดและข้าม endpoint ที่ unhealthy ได้ ตาม A (ถ้าทุก record unhealthy Route 53 จะ fail-open)"
+    }
+  },
+  "sources": [
+    "https://docs.aws.amazon.com/Route53/latest/DeveloperGuide/resource-record-sets-choosing-alias-non-alias.html",
+    "https://docs.aws.amazon.com/Route53/latest/DeveloperGuide/health-checks-how-route-53-chooses-records.html",
+    "https://docs.aws.amazon.com/Route53/latest/DeveloperGuide/hosted-zones-private.html"
+  ]
+}

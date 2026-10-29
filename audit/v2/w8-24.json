@@ -1,0 +1,25 @@
+{
+  "id": "w8-24",
+  "scope": "explanations",
+  "verdict": "FIX",
+  "verifiedCorrectIds": [
+    "B"
+  ],
+  "issues": [
+    "options.C/D.explanation: D text garbled and does not state the actual weakness of weighted routing (splits traffic by weight unless standby weight is 0 with health checks; failover routing is the purpose-built primary/secondary policy)"
+  ],
+  "changes": {
+    "options": {
+      "C": {
+        "explanation": "ยังต้อง restore DB จาก backup ตอนเกิดเหตุ จึงช้ากว่า promote replica และ weighted routing แบ่ง traffic ตามน้ำหนัก ไม่ใช่นโยบาย primary/secondary สำหรับ DR โดยตรง จึงด้อยกว่า B ทั้งด้านฐานข้อมูลและ DNS"
+      },
+      "D": {
+        "explanation": "Cross-Region read replica ถูกต้องและ promote ได้เร็วเท่า B แต่ weighted routing จะส่ง traffic ไปฝั่งสำรองตามน้ำหนักตลอด เว้นแต่ตั้ง weight เป็น 0 พร้อม health check เอง ส่วน failover routing ออกแบบมาสำหรับ primary/secondary จึงตรงกว่า"
+      }
+    }
+  },
+  "sources": [
+    "https://docs.aws.amazon.com/Route53/latest/DeveloperGuide/routing-policy-failover.html",
+    "https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/USER_ReadRepl.XRgn.html"
+  ]
+}

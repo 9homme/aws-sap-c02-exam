@@ -1,0 +1,84 @@
+{
+  "id": "pro-100",
+  "sourceCategory": "professional",
+  "sourceLabel": "AI-authored · Professional multi-requirement",
+  "sourceDetail": "Original multi-constraint scenario — ลดค่า NAT gateway จาก traffic ไป S3 และ DynamoDB",
+  "coreEligible": true,
+  "emerging": false,
+  "domain": "3",
+  "task": "Continuous improvement",
+  "topic": "ลดค่า NAT gateway จาก traffic ไป S3 และ DynamoDB",
+  "type": "multiple-choice",
+  "selectCount": 1,
+  "prompt": "A data platform team runs 400 Amazon EC2 instances in private subnets across three Availability Zones in one VPC. Each Availability Zone has its own NAT gateway, and the instances reach the internet only through those NAT gateways. The monthly bill shows that NAT gateway data processing charges have become the second-largest networking cost, at about 900 TB per month. The team enabled VPC Flow Logs and found that more than 85% of the bytes that pass through the NAT gateways go to Amazon S3 and Amazon DynamoDB in the same Region, mostly from batch jobs that read and write large Parquet files and from services that query DynamoDB tables. The remaining traffic goes to a few external SaaS APIs. Security policy requires that the instances stay in private subnets with no public IP addresses, and the security team wants to restrict which buckets the instances can reach. Applications must not change. The buckets and tables are owned by the same account and Region as the VPC, and the team uses AWS CloudFormation to manage route tables. Which solution will meet these requirements MOST cost-effectively?",
+  "options": [
+    {
+      "id": "A",
+      "text": "Create interface VPC endpoints for Amazon S3 and Amazon DynamoDB in each Availability Zone, enable private DNS for the endpoints, and attach endpoint policies that allow only the approved buckets and tables, keeping the NAT gateways for the SaaS traffic.",
+      "explanation": "ช่วยได้แต่ไม่ถูกที่สุด: interface endpoints ทำให้ traffic ไม่ผ่าน NAT และคุมด้วย endpoint policy ได้ แต่มีค่าใช้จ่ายต่อ ENI ต่อชั่วโมงในทุก AZ และค่าข้อมูลต่อ GB สำหรับ 900 TB ต่อเดือน ขณะที่ gateway endpoints ของ S3 และ DynamoDB ไม่มีค่าใช้จ่าย"
+    },
+    {
+      "id": "B",
+      "text": "Create gateway VPC endpoints for Amazon S3 and Amazon DynamoDB, add them to the route tables of all private subnets, attach endpoint policies that allow only the approved buckets and tables, and keep the NAT gateways only for the external SaaS traffic.",
+      "explanation": "ถูก: gateway endpoints ของ S3 และ DynamoDB ไม่มีค่าบริการรายชั่วโมงหรือต่อ GB และเพิ่ม route ไปยัง prefix list ของบริการใน route tables ทำให้ traffic 85% ไม่ผ่าน NAT อีก แอปไม่ต้องเปลี่ยนเพราะใช้ endpoint สาธารณะเดิมของบริการ endpoint policy จำกัด buckets และ tables ที่เข้าถึงได้ ส่วน NAT ยังใช้กับ SaaS APIs และ instances ยังอยู่ใน private subnet"
+    },
+    {
+      "id": "C",
+      "text": "Add a second NAT gateway in each Availability Zone, split the private subnets between the NAT gateways, and make sure that every subnet routes to a NAT gateway in its own Availability Zone to avoid cross-AZ data transfer charges. Add bucket policies that allow access only from the NAT gateways' Elastic IP addresses.",
+      "explanation": "ไม่ผ่าน: การจับคู่ NAT ตาม AZ ช่วยเลี่ยงค่า cross-AZ แต่ทุก byte ที่ไป S3 และ DynamoDB ยังเสียค่า data processing ของ NAT และการเพิ่ม NAT gateway ยังเพิ่มค่าใช้จ่ายรายชั่วโมง จึงไม่แก้ต้นเหตุของค่าใช้จ่าย"
+    },
+    {
+      "id": "D",
+      "text": "Move the batch instances to public subnets, assign them public IP addresses, and route their traffic through an internet gateway so that S3 and DynamoDB traffic no longer passes through the NAT gateways. Restrict inbound traffic with security groups that allow no inbound connections from the internet.",
+      "explanation": "ไม่ผ่าน: internet gateway ไม่มีค่า data processing แบบ NAT จริง แต่การย้าย instances ไป public subnet พร้อม public IP ขัดกับ security policy โดยตรง และยังไม่ได้จำกัดว่า instances เข้าถึง bucket ใดได้"
+    }
+  ],
+  "correctIds": [
+    "B"
+  ],
+  "rationale": "1) ต้องอยู่ใน private subnet ตัดการย้ายไป public subnet (D) 2) การเพิ่ม NAT (C) ไม่ลดค่า data processing 3) ทั้ง interface (A) และ gateway endpoints (B) ทำให้ traffic ไม่ผ่าน NAT และใช้ endpoint policy ได้ แต่ gateway endpoints ของ S3 และ DynamoDB ไม่มีค่าใช้จ่าย ส่วน interface endpoints คิดรายชั่วโมงและต่อ GB 4) B จึงคุ้มค่าที่สุด",
+  "wrongAnswerHelp": "Start with the explicit business constraint, then eliminate choices that solve a different layer of the architecture or add unnecessary operational work.",
+  "references": [
+    "https://docs.aws.amazon.com/vpc/latest/privatelink/gateway-endpoints.html",
+    "https://docs.aws.amazon.com/vpc/latest/userguide/nat-gateway-pricing.html",
+    "https://docs.aws.amazon.com/vpc/latest/userguide/flow-logs.html"
+  ],
+  "products": [
+    "NAT Gateway",
+    "Internet Gateway",
+    "AWS PrivateLink",
+    "S3",
+    "DynamoDB",
+    "VPC Flow Logs"
+  ],
+  "requirements": [
+    "Cut NAT gateway processing charges",
+    "EC2 traffic is mostly to S3 and DynamoDB in-Region",
+    "Instances stay in private subnets"
+  ],
+  "review": {
+    "decisiveClue": "85% ของ 900 TB ผ่าน NAT ไป S3/DynamoDB ใน Region, instances ต้องอยู่ private, ต้องจำกัด buckets, ห้ามแก้แอป, ต้นทุนต่ำสุด",
+    "reasoning": "1) ต้องอยู่ใน private subnet ตัดการย้ายไป public subnet (D) 2) การเพิ่ม NAT (C) ไม่ลดค่า data processing 3) ทั้ง interface (A) และ gateway endpoints (B) ทำให้ traffic ไม่ผ่าน NAT และใช้ endpoint policy ได้ แต่ gateway endpoints ของ S3 และ DynamoDB ไม่มีค่าใช้จ่าย ส่วน interface endpoints คิดรายชั่วโมงและต่อ GB 4) B จึงคุ้มค่าที่สุด",
+    "options": {
+      "A": "ช่วยได้แต่ไม่ถูกที่สุด: interface endpoints ทำให้ traffic ไม่ผ่าน NAT และคุมด้วย endpoint policy ได้ แต่มีค่าใช้จ่ายต่อ ENI ต่อชั่วโมงในทุก AZ และค่าข้อมูลต่อ GB สำหรับ 900 TB ต่อเดือน ขณะที่ gateway endpoints ของ S3 และ DynamoDB ไม่มีค่าใช้จ่าย",
+      "B": "ถูก: gateway endpoints ของ S3 และ DynamoDB ไม่มีค่าบริการรายชั่วโมงหรือต่อ GB และเพิ่ม route ไปยัง prefix list ของบริการใน route tables ทำให้ traffic 85% ไม่ผ่าน NAT อีก แอปไม่ต้องเปลี่ยนเพราะใช้ endpoint สาธารณะเดิมของบริการ endpoint policy จำกัด buckets และ tables ที่เข้าถึงได้ ส่วน NAT ยังใช้กับ SaaS APIs และ instances ยังอยู่ใน private subnet",
+      "C": "ไม่ผ่าน: การจับคู่ NAT ตาม AZ ช่วยเลี่ยงค่า cross-AZ แต่ทุก byte ที่ไป S3 และ DynamoDB ยังเสียค่า data processing ของ NAT และการเพิ่ม NAT gateway ยังเพิ่มค่าใช้จ่ายรายชั่วโมง จึงไม่แก้ต้นเหตุของค่าใช้จ่าย",
+      "D": "ไม่ผ่าน: internet gateway ไม่มีค่า data processing แบบ NAT จริง แต่การย้าย instances ไป public subnet พร้อม public IP ขัดกับ security policy โดยตรง และยังไม่ได้จำกัดว่า instances เข้าถึง bucket ใดได้"
+    },
+    "references": [
+      {
+        "title": "Gateway endpoints",
+        "url": "https://docs.aws.amazon.com/vpc/latest/privatelink/gateway-endpoints.html"
+      },
+      {
+        "title": "NAT gateway pricing considerations",
+        "url": "https://docs.aws.amazon.com/vpc/latest/userguide/nat-gateway-pricing.html"
+      },
+      {
+        "title": "Logging IP traffic using VPC Flow Logs",
+        "url": "https://docs.aws.amazon.com/vpc/latest/userguide/flow-logs.html"
+      }
+    ],
+    "reviewedAt": "2026-10-29"
+  }
+}

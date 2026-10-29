@@ -1,0 +1,60 @@
+{
+  "id": "pro-54",
+  "scope": "full",
+  "verdict": "FIX",
+  "originalCorrectIds": [
+    "A"
+  ],
+  "verifiedCorrectIds": [
+    "A"
+  ],
+  "issues": [
+    "options: ตัวลวงเดิมผิดอย่างชัดเจน (อ้างความสามารถที่บริการไม่มี) ทำให้ตอบได้จากการจำชื่อบริการ ไม่ใช่ระดับ SAP-C02 Professional; เขียนใหม่ให้แต่ละตัวลวงทำงานได้จริงบางส่วนแต่ตกเงื่อนไขหนึ่งข้อ",
+    "prompt: ลบประโยค boilerplate (architecture review board / workable for the stated environment)",
+    "review.reasoning: เดิมคัดลอก requirement ภาษาอังกฤษมาต่อกัน ไม่ได้อธิบายการตัดตัวเลือก"
+  ],
+  "changes": {
+    "prompt": "A quantitative research firm runs a large set of existing Kubernetes simulation jobs and custom operators maintained by an in-house platform team. Each job reads a common 30-TB dataset composed of many large scientific files, performs frequent low-latency parallel file operations, and writes intermediate results before publishing final reports to Amazon S3. The current approach mounts object storage through a home-built filesystem wrapper that performs poorly under simultaneous metadata and random-read access. The scientists insist on preserving standard Kubernetes scheduling semantics, admission policies and their existing Helm charts; they will consider fully managed data storage but cannot rewrite the application to object APIs this quarter. The solution must meet all of the following requirements: (1) Keep Kubernetes-native job execution and existing operator/Helm deployment patterns; (2) Provide a shared, parallel POSIX-style high-performance filesystem for active compute with S3-based source and output data; (3) Avoid a manual EC2 cluster with an independently operated self-hosted Lustre filesystem. Which solution meets these requirements with the LEAST operational overhead?",
+    "options": {
+      "A": {
+        "text": "Deploy EKS for the Kubernetes jobs and attach Amazon FSx for Lustre using supported CSI integration; integrate dataset import/export with S3 and validate lifecycle settings.",
+        "explanation": "ถูก: EKS คง Kubernetes API, operators และ Helm charts เดิม FSx for Lustre CSI driver ให้ pods mount parallel file system ที่รองรับ metadata และ random read สูง data repository association กับ S3 ทำให้เห็น dataset 30 TB เป็นไฟล์และ export ผลลัพธ์กลับ S3 ได้ ไม่ต้องดูแล Lustre เอง ควรตั้ง lifecycle ของ file system ให้สอดคล้องกับรอบงาน"
+      },
+      "B": {
+        "text": "Convert the Kubernetes jobs into AWS Batch job definitions on EC2 compute environments and mount an Amazon FSx for Lustre file system that is linked to the S3 dataset.",
+        "explanation": "ตกข้อ (1): FSx for Lustre ถูกต้อง และ Batch เป็นบริการ managed ที่ดี แต่การแปลง jobs เป็น Batch job definitions ทำให้เลิกใช้ Kubernetes scheduling, admission policies, operators และ Helm charts เดิม ซึ่งนักวิทยาศาสตร์ยืนยันให้คงไว้"
+      },
+      "C": {
+        "text": "Run the jobs on Amazon EKS and mount the S3 dataset into the pods with the Mountpoint for Amazon S3 CSI driver, writing intermediate results back to the bucket.",
+        "explanation": "ตกข้อ (2): EKS ถูกต้อง แต่ Mountpoint for S3 ไม่ใช่ POSIX file system เต็มรูปแบบ ไม่รองรับการแก้ไขไฟล์เดิมหรือ random write และไม่ได้ออกแบบสำหรับ metadata operations หนัก ๆ แบบ parallel ปัญหาจึงคล้ายกับ wrapper เดิมที่ทำงานช้า"
+      },
+      "D": {
+        "text": "Run the jobs on Amazon EKS and deploy a self-managed Lustre cluster on EC2 instances with metadata and object storage servers, synchronizing data with Amazon S3 by using scheduled scripts.",
+        "explanation": "ตกข้อ (3): ได้ parallel POSIX file system และคง Kubernetes ได้ แต่ทีมต้องดูแล Lustre servers, HA และ script sync กับ S3 เอง ซึ่งโจทย์ระบุให้หลีกเลี่ยง FSx for Lustre ให้ความสามารถเดียวกันแบบ managed"
+      }
+    },
+    "review": {
+      "decisiveClue": "ต้องคง Kubernetes/operators/Helm, ต้องการ parallel POSIX file system ประสิทธิภาพสูงที่เชื่อม S3, ห้ามดูแล Lustre เอง",
+      "reasoning": "1) ข้อ (1) ต้องคง Kubernetes จึงใช้ EKS ไม่ใช่แปลงเป็น Batch (B) 2) ข้อ (2) ต้องการ POSIX แบบ parallel ที่รองรับ metadata/random access ซึ่ง Mountpoint for S3 (C) ไม่ได้ออกแบบมา 3) ข้อ (3) ห้าม self-managed Lustre (D) 4) A ใช้ FSx for Lustre ผ่าน CSI driver บน EKS พร้อม data repository association กับ S3",
+      "references": [
+        {
+          "title": "Amazon FSx for Lustre CSI driver on Amazon EKS",
+          "url": "https://docs.aws.amazon.com/eks/latest/userguide/fsx-csi.html"
+        },
+        {
+          "title": "Linking FSx for Lustre to an S3 data repository",
+          "url": "https://docs.aws.amazon.com/fsx/latest/LustreGuide/create-dra-linked-data-repo.html"
+        },
+        {
+          "title": "Mountpoint for Amazon S3",
+          "url": "https://docs.aws.amazon.com/AmazonS3/latest/userguide/mountpoint.html"
+        }
+      ]
+    }
+  },
+  "sources": [
+    "https://docs.aws.amazon.com/eks/latest/userguide/fsx-csi.html",
+    "https://docs.aws.amazon.com/fsx/latest/LustreGuide/create-dra-linked-data-repo.html",
+    "https://docs.aws.amazon.com/AmazonS3/latest/userguide/mountpoint.html"
+  ]
+}

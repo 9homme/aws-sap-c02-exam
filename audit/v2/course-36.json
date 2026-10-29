@@ -1,0 +1,19 @@
+{
+  "id": "course-36",
+  "scope": "explanations",
+  "verdict": "FIX",
+  "verifiedCorrectIds": [
+    "D"
+  ],
+  "issues": [
+    "review.reasoning: closing clause about 'unticked checklist count' is vague; does not tie each wrong option to why it is not a high-risk issue"
+  ],
+  "changes": {
+    "review": {
+      "reasoning": "High-risk issue ใน Well-Architected คือการตัดสินใจเชิงสถาปัตยกรรมหรือการปฏิบัติงานที่ถ้าเกิดเหตุอาจกระทบธุรกิจ การปฏิบัติงาน ทรัพย์สิน หรือคนอย่างมีนัยสำคัญ เช่นไม่มีทางกู้ข้อมูลสำคัญ จึงเลือก D ส่วน A การใช้ EC2 ไม่ทำให้เสี่ยงสูงเอง, B คำถามที่ยังไม่ตอบแปลว่าข้อมูลไม่ครบ ไม่ใช่ระดับความเสี่ยง และ C การประหยัดเล็กน้อยโดยไม่กระทบ availability ไม่ใช่ความเสี่ยงร้ายแรง"
+    }
+  },
+  "sources": [
+    "https://docs.aws.amazon.com/wellarchitected/latest/framework/the-review-process.html"
+  ]
+}

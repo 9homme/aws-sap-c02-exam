@@ -1,0 +1,60 @@
+{
+  "id": "pro-61",
+  "scope": "full",
+  "verdict": "FIX",
+  "originalCorrectIds": [
+    "B"
+  ],
+  "verifiedCorrectIds": [
+    "B"
+  ],
+  "issues": [
+    "options: ตัวลวงเดิมผิดอย่างชัดเจน (อ้างความสามารถที่บริการไม่มี) ทำให้ตอบได้จากการจำชื่อบริการ ไม่ใช่ระดับ SAP-C02 Professional; เขียนใหม่ให้แต่ละตัวลวงทำงานได้จริงบางส่วนแต่ตกเงื่อนไขหนึ่งข้อ",
+    "prompt: ลบประโยค boilerplate (architecture review board / workable for the stated environment)",
+    "review.reasoning: เดิมคัดลอก requirement ภาษาอังกฤษมาต่อกัน ไม่ได้อธิบายการตัดตัวเลือก"
+  ],
+  "changes": {
+    "prompt": "An international archive operator that is a first-time AWS Snow Family customer must migrate an initial 1.1-PB collection of video files from a remote facility into S3 in 2026. Its WAN connection is restricted to 100 Mbps and cannot be upgraded before the site must be decommissioned; transmitting the initial backlog over that circuit would miss the deadline. The company can securely courier its own encrypted portable devices to a reachable AWS Data Transfer Terminal facility, reserve upload sessions there and reconcile source checksums after import. After the initial backlog reaches AWS, several business partners will continue sending modest daily batches by SFTP because their file-transfer clients are fixed by contract. The team needs controlled S3 prefixes and identity-based access and a specific delta/cutover plan without assuming that physically moved storage automatically guarantees consistency. The solution must meet all of the following requirements: (1) Transfer the extremely large initial dataset without relying on the undersized WAN circuit; (2) Keep a managed SFTP endpoint for continuing partner uploads into controlled S3 destinations; (3) Plan reconciliation, identity boundaries and remaining delta handling during cutover. Which solution meets these requirements with the LEAST operational overhead?",
+    "options": {
+      "A": {
+        "text": "Order AWS Snowball Edge Storage Optimized devices to move the 1.1 PB collection, use AWS Transfer Family SFTP endpoints with scoped S3 access for the partners, and reconcile checksums after the import.",
+        "explanation": "ตกข้อ (1): Transfer Family และการ reconcile ถูกต้อง แต่ AWS Snowball Edge ไม่เปิดให้ลูกค้าใหม่แล้ว บริษัทที่ใช้ Snow Family ครั้งแรกจึงสั่งอุปกรณ์ไม่ได้ในปี 2026 AWS Data Transfer Terminal เป็นทางเลือก physical transfer ที่ใช้ได้"
+      },
+      "B": {
+        "text": "Use AWS Data Transfer Terminal sessions to ingest encrypted portable drives at high speed into S3, verify the imported data and reconcile deltas; use AWS Transfer Family SFTP endpoints with scoped S3 access for daily partner feeds.",
+        "explanation": "ถูก: Data Transfer Terminal ให้นำอุปกรณ์ของบริษัทไปอัปโหลดเข้า S3 ผ่านเครือข่ายความเร็วสูงโดยไม่พึ่ง WAN 100 Mbps หลังนำเข้าต้องเทียบ checksum และย้ายไฟล์ที่เปลี่ยนหลังการคัดลอก (delta) ก่อน cutover Transfer Family ให้ managed SFTP endpoint โดยกำหนด IAM role และ logical directory ต่อ partner เพื่อจำกัด S3 prefix ที่เขียนได้"
+      },
+      "C": {
+        "text": "Use AWS DataSync over the 100 Mbps WAN with the bandwidth limit set to the full circuit speed to transfer the 1.1 PB collection, and use AWS Transfer Family SFTP endpoints for the partners.",
+        "explanation": "ตกข้อ (1): DataSync เป็นเครื่องมือ online transfer ที่ดี แต่ 100 Mbps รับข้อมูลได้ราว 1 TB ต่อวันในกรณีดีที่สุด 1.1 PB จึงใช้เวลาประมาณสามปี ซึ่งพลาดกำหนดปิด site อย่างแน่นอน"
+      },
+      "D": {
+        "text": "Use AWS Data Transfer Terminal to upload the drives into S3 and treat the imported copy as final at cutover. Create one shared AWS Transfer Family SFTP user with write access to the whole bucket for all partners.",
+        "explanation": "ตกข้อ (3): บริการถูกเลือกถูกต้อง แต่การถือว่าข้อมูลที่ขนย้ายไปตรงกับต้นทางโดยไม่ตรวจ checksum และไม่ย้ายไฟล์ที่เปลี่ยนภายหลังเสี่ยงข้อมูลไม่ครบ ส่วนผู้ใช้ SFTP ร่วมที่เขียนได้ทั้ง bucket ขัดกับ identity boundaries และ S3 prefixes ที่ควบคุมได้"
+      }
+    },
+    "review": {
+      "decisiveClue": "1.1 PB บน WAN 100 Mbps, ลูกค้า Snow Family ครั้งแรก, partner ใช้ SFTP เดิม, ต้อง reconcile และกำหนด identity/prefix ต่อ partner",
+      "reasoning": "1) คำนวณ: 100 Mbps ≈ 1 TB/วัน 1.1 PB จึงต้องใช้ physical transfer ตัด DataSync (C) 2) Snowball Edge ไม่รับลูกค้าใหม่ ตัด A 3) ข้อ (3) ต้องตรวจ checksum, ย้าย delta และแยกสิทธิ์ต่อ partner ตัด D ที่ถือว่าสำเนาสมบูรณ์และใช้ผู้ใช้ร่วม 4) B ใช้ Data Transfer Terminal + Transfer Family พร้อมแผน reconcile ครบ",
+      "references": [
+        {
+          "title": "AWS Data Transfer Terminal technical requirements",
+          "url": "https://docs.aws.amazon.com/datatransferterminal/latest/userguide/tech-requirements.html"
+        },
+        {
+          "title": "AWS Snowball Edge availability change",
+          "url": "https://docs.aws.amazon.com/snowball/latest/developer-guide/snowball-edge-availability-change.html"
+        },
+        {
+          "title": "Logical directories for AWS Transfer Family",
+          "url": "https://docs.aws.amazon.com/transfer/latest/userguide/logical-dir-mappings.html"
+        }
+      ]
+    }
+  },
+  "sources": [
+    "https://docs.aws.amazon.com/datatransferterminal/latest/userguide/tech-requirements.html",
+    "https://docs.aws.amazon.com/snowball/latest/developer-guide/snowball-edge-availability-change.html",
+    "https://docs.aws.amazon.com/transfer/latest/userguide/logical-dir-mappings.html"
+  ]
+}

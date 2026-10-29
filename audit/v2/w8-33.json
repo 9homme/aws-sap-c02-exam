@@ -1,0 +1,23 @@
+{
+  "id": "w8-33",
+  "scope": "explanations",
+  "verdict": "FIX",
+  "verifiedCorrectIds": [
+    "B",
+    "D"
+  ],
+  "issues": [
+    "options.B.explanation: เรียก delegated admin ว่า prerequisite ทำให้เข้าใจผิดว่าจำเป็นเสมอ ทั้งที่ management account deploy เองได้; trusted access คือสิ่งที่จำเป็น"
+  ],
+  "changes": {
+    "options": {
+      "B": {
+        "explanation": "Org conformance pack ต้องเปิด trusted access ให้ AWS Config (config-multiaccountsetup) ก่อน และจะตั้ง delegated administrator เพื่อให้บัญชีกลางที่ไม่ใช่ management account เป็นผู้ deploy ก็ได้ จึงเป็นขั้นตั้งค่าที่ต้องคู่กับ D ไม่ใช่ตัว rule เอง ถ้า deploy จาก management account โดยตรงก็ไม่ต้องมี delegated admin"
+      }
+    }
+  },
+  "sources": [
+    "https://docs.aws.amazon.com/config/latest/developerguide/conformance-pack-organization-apis.html",
+    "https://docs.aws.amazon.com/config/latest/developerguide/aggregated-register-delegated-administrator.html"
+  ]
+}

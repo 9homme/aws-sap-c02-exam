@@ -1,0 +1,57 @@
+{
+  "id": "emerging-01",
+  "scope": "full",
+  "verdict": "FIX",
+  "originalCorrectIds": [
+    "A"
+  ],
+  "verifiedCorrectIds": [
+    "A"
+  ],
+  "issues": [
+    "prompt: เดิมตัวลวง (S3 lifecycle, NAT gateway, EBS snapshot) ไม่เกี่ยวข้องกับ responsible AI เลย; เพิ่ม multi-model และตัวลวงที่ทำได้บางส่วน"
+  ],
+  "changes": {
+    "prompt": "A bank is launching a customer-support assistant. Most conversations use foundation models in Amazon Bedrock, but one workflow uses a fine-tuned open-weight model hosted on an Amazon SageMaker AI endpoint. Compliance requires the same controls for every model: block requests and responses about investment advice, mask account numbers and other PII in responses, filter harmful content, and detect prompt-injection attempts in user input. The controls must be managed centrally and updated without redeploying application code for each model. The company wants the least custom code. Which solution meets these requirements?",
+    "correctIds": [
+      "A"
+    ],
+    "rationale": "Amazon Bedrock Guardrails centralizes denied topics, PII masking, content filters, and prompt-attack detection, and the ApplyGuardrail API applies the same guardrail to models hosted outside Bedrock.",
+    "options": {
+      "A": {
+        "text": "Create one Amazon Bedrock guardrail with a denied topic for investment advice, sensitive information filters that mask PII and a custom regex for account numbers, content filters, and the prompt attack filter. Attach the guardrail to Bedrock model invocations, and call the ApplyGuardrail API to evaluate input and output for the SageMaker AI endpoint.",
+        "explanation": "ถูก: Bedrock Guardrails รวม denied topics, PII masking, content filters และ prompt attack detection ไว้ใน policy เดียวที่แก้ไขและทำ version ได้จากส่วนกลาง ApplyGuardrail API ประเมินข้อความได้โดยไม่ต้องเรียก model ใน Bedrock จึงใช้ policy เดียวกันกับ model บน SageMaker ได้ ควรทดสอบ false positive และตั้งข้อความที่แสดงเมื่อถูกบล็อก"
+      },
+      "B": {
+        "text": "Add detailed instructions to the system prompt of every model that forbid investment advice, tell the model to mask account numbers, and instruct it to ignore attempts to override its instructions.",
+        "explanation": "ไม่ผ่าน: system prompt เป็นคำแนะนำให้ model ไม่ใช่การบังคับใช้ prompt injection ออกแบบมาเพื่อหลบคำสั่งแบบนี้โดยตรง ต้องแก้ prompt แยกตาม model และไม่มีการตรวจ output ที่เชื่อถือได้ จึงไม่ตอบเรื่อง compliance controls ที่ต้องบังคับใช้เหมือนกันทุก model"
+      },
+      "C": {
+        "text": "Invoke an AWS Lambda function on every response that calls Amazon Comprehend DetectPiiEntities and replaces detected entities before the response is returned to the user.",
+        "explanation": "ไม่ผ่าน: Comprehend ตรวจหา PII ได้ แต่ทางนี้ครอบคลุมเพียงการ mask PII ใน output ไม่ได้บล็อกหัวข้อ investment advice, ไม่กรอง harmful content และไม่ตรวจ prompt injection ใน input ทั้งยังเป็น custom code ที่ต้องดูแลเอง"
+      },
+      "D": {
+        "text": "Place AWS WAF in front of the application's API with AWS Managed Rules, including the core rule set and a custom rule that blocks requests containing investment-related keywords.",
+        "explanation": "ไม่ผ่าน: AWS WAF ตรวจ HTTP request ตาม pattern เช่น SQL injection หรือ XSS ไม่ได้เข้าใจความหมายของบทสนทนาหรือตรวจคำตอบของ model การบล็อกด้วย keyword พลาดง่ายเมื่อผู้ใช้เปลี่ยนถ้อยคำ และไม่ mask PII ใน response"
+      }
+    },
+    "review": {
+      "decisiveClue": "ใช้ controls เดียวกันทั้ง Bedrock และ SageMaker, denied topic + PII masking + harmful content + prompt attack, จัดการส่วนกลาง, custom code น้อยที่สุด",
+      "reasoning": "1) controls ต้องบังคับใช้จริง ไม่ใช่คำขอใน system prompt (B) 2) ต้องครอบคลุมหลายประเภทพร้อมกัน: topic, PII, harmful content, prompt attack ซึ่ง Comprehend (C) ทำได้เพียง PII และ WAF (D) ไม่เข้าใจความหมายของภาษา 3) Bedrock Guardrails รวมทุก policy ไว้ในที่เดียว และ ApplyGuardrail API ทำให้ใช้กับ model นอก Bedrock เช่น SageMaker endpoint ได้ 4) A จึงใช้ policy เดียว จัดการจากส่วนกลาง และ custom code น้อยที่สุด",
+      "references": [
+        {
+          "title": "Amazon Bedrock Guardrails",
+          "url": "https://docs.aws.amazon.com/bedrock/latest/userguide/guardrails.html"
+        },
+        {
+          "title": "Use the ApplyGuardrail API",
+          "url": "https://docs.aws.amazon.com/bedrock/latest/userguide/guardrails-use-independent-api.html"
+        }
+      ]
+    }
+  },
+  "sources": [
+    "https://docs.aws.amazon.com/bedrock/latest/userguide/guardrails.html",
+    "https://docs.aws.amazon.com/bedrock/latest/userguide/guardrails-use-independent-api.html"
+  ]
+}

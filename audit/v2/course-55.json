@@ -1,0 +1,20 @@
+{
+  "id": "course-55",
+  "scope": "explanations",
+  "verdict": "FIX",
+  "verifiedCorrectIds": [
+    "C"
+  ],
+  "issues": [
+    "review.decisiveClue/reasoning: not anchored to the prompt wording 'Assess'; clarified Assess is the first phase."
+  ],
+  "changes": {
+    "review": {
+      "decisiveClue": "'Assess' คือเฟสแรก ต้องเข้าใจภาพรวมและทดลองเล็กก่อนผูกมัดแผนใหญ่",
+      "reasoning": "Assess เป็นเฟสแรก (ก่อน Mobilize และ Migrate and Modernize) จึงเน้นทำความเข้าใจภาพรวม: Rapid portfolio review ดู estate, pattern/tool guidance ประเมินทางเลือก และ POC scoping เลือกสิ่งที่จะทดลองเพื่อลดความไม่แน่นอน ยังไม่ใช่ mass migration ของ production ทั้งหมด"
+    }
+  },
+  "sources": [
+    "https://docs.aws.amazon.com/m2/latest/userguide/modernization-m2.html"
+  ]
+}

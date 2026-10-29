@@ -1,0 +1,19 @@
+{
+  "id": "course-06",
+  "scope": "explanations",
+  "verdict": "FIX",
+  "verifiedCorrectIds": [
+    "B"
+  ],
+  "issues": [
+    "review.reasoning: last sentence about Route 53 latency policy and CloudFront origin selection is confusing and not tied to the prompt; does not explain versioned filenames/long TTL or how multiple origins are actually selected"
+  ],
+  "changes": {
+    "review": {
+      "reasoning": "ภาพที่ versioned (เปลี่ยนเนื้อหา = เปลี่ยนชื่อไฟล์/URL) แทบไม่เปลี่ยน จึงตั้ง TTL ยาวที่ CloudFront edge ได้ ผู้ใช้ทั่วโลกได้ภาพจาก edge ที่ใกล้ตัว (latency ต่ำ) และ cache hit ลดการ fetch กลับ origin ซ้ำ โดยไม่ต้อง invalidate เพราะ URL ใหม่ = object ใหม่ ถ้ามีหลาย origin ต้องกำหนดเอง เช่น cache behavior ตาม path pattern, origin group สำหรับ failover หรือ Lambda@Edge เลือก origin เพราะ CloudFront ไม่เลือก origin ที่ใกล้ที่สุดให้อัตโนมัติ"
+    }
+  },
+  "sources": [
+    "https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/Expiration.html"
+  ]
+}

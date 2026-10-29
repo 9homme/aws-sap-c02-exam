@@ -1,0 +1,84 @@
+{
+  "id": "pro-94",
+  "sourceCategory": "professional",
+  "sourceLabel": "AI-authored · Professional multi-requirement",
+  "sourceDetail": "Original multi-constraint scenario — ป้องกันการปิด security services และการออกจาก organization",
+  "coreEligible": true,
+  "emerging": false,
+  "domain": "1",
+  "task": "Organizational complexity",
+  "topic": "ป้องกันการปิด security services และการออกจาก organization",
+  "type": "multiple-choice",
+  "selectCount": 1,
+  "prompt": "A bank has 200 AWS accounts in an organization in AWS Organizations. The security team operates from a dedicated security tooling account that is the delegated administrator for Amazon GuardDuty, AWS Security Hub CSPM, AWS Config, and IAM Access Analyzer. During an incident review, investigators found that an attacker who obtained administrator credentials in a member account had disabled GuardDuty, stopped the AWS Config recorder, and attempted to remove the account from the organization to escape monitoring. The CISO now requires that no principal in any member account, including account administrators and the root user, be able to disable these services, change their delegated administration, or leave the organization. Findings from every account, including accounts created in the future, must flow automatically to the security tooling account. Only a dedicated break-glass role that the security team controls may make exceptions. The break-glass role exists in every account with the same name and is protected by a separate approval process. Which solution will meet these requirements in the MOST secure way?",
+  "options": [
+    {
+      "id": "A",
+      "text": "Attach an SCP to the organization root that denies actions such as guardduty:DeleteDetector, guardduty:DisassociateFromAdministratorAccount, config:StopConfigurationRecorder, config:DeleteConfigurationRecorder, securityhub:DisableSecurityHub, and organizations:LeaveOrganization unless the caller is the break-glass role, and enable auto-enable for new accounts in each service from the delegated administrator account.",
+      "explanation": "ถูก: SCP ที่ root จำกัดเพดานสิทธิ์ของทุก principal ใน member accounts รวมถึง administrator และ root จึงปิดบริการหรือออกจาก organization ไม่ได้แม้ถูกยึดสิทธิ์ เงื่อนไขยกเว้นเฉพาะ break-glass role ที่ security ควบคุม การตั้ง auto-enable จาก delegated administrator ทำให้บัญชีใหม่ส่ง findings เข้าบัญชี security อัตโนมัติ เป็นการป้องกันล่วงหน้า ไม่ใช่ตรวจพบภายหลัง"
+    },
+    {
+      "id": "B",
+      "text": "Attach IAM permissions boundaries to every IAM role and user in each member account that deny disabling GuardDuty, Config, Security Hub, and Access Analyzer, and enable the services in each account through AWS CloudFormation StackSets. Review the boundaries quarterly with IAM Access Analyzer.",
+      "explanation": "ไม่ผ่าน: permissions boundary ใช้กับ IAM principals ที่ถูกแนบไว้เท่านั้น administrator ในบัญชีสามารถสร้าง role ใหม่ที่ไม่มี boundary หรือถอด boundary ออกได้ และไม่ครอบคลุม root user จึงไม่ได้ป้องกันผู้โจมตีที่มีสิทธิ์ admin และไม่ได้ห้ามการออกจาก organization"
+    },
+    {
+      "id": "C",
+      "text": "Create Amazon EventBridge rules in every account that detect API calls that disable GuardDuty, stop the Config recorder, or disable Security Hub, and invoke an AWS Lambda function that re-enables the service and notifies the security team. Deploy the rules and function with StackSets.",
+      "explanation": "ไม่ผ่าน: เป็น detective control ที่แก้หลังเกิดเหตุ ระหว่างนั้นยังมีช่วงที่ไม่มีการเฝ้าระวัง ผู้โจมตีที่เป็น admin ในบัญชีสามารถลบ EventBridge rule หรือ Lambda เองได้ และไม่ได้ป้องกันการออกจาก organization เลย"
+    },
+    {
+      "id": "D",
+      "text": "Attach an SCP to the production OU that denies disabling GuardDuty, AWS Config, and Security Hub, and require MFA for all administrator sign-ins in the development and sandbox OUs. Enable auto-enable for new accounts in each service from the delegated administrator account.",
+      "explanation": "ไม่ผ่าน: SCP ป้องกันได้เฉพาะบัญชีใน production OU บัญชี development และ sandbox ยังปิดบริการได้ และไม่มีการห้าม LeaveOrganization หรือการเปลี่ยน delegated administration ส่วน MFA ไม่ช่วยเมื่อผู้โจมตีได้ session ของ admin ไปแล้ว"
+    }
+  ],
+  "correctIds": [
+    "A"
+  ],
+  "rationale": "1) ต้องป้องกันล่วงหน้าแม้ผู้โจมตีมีสิทธิ์ admin หรือ root ซึ่งมีเพียง SCP ที่ทำได้ ตัด permissions boundary (B) ที่ admin ถอดได้และ EventBridge (C) ที่เป็นการแก้ภายหลัง 2) ต้องครอบคลุมทุกบัญชีและห้าม LeaveOrganization จึงต้องแนบที่ root ไม่ใช่เฉพาะ production OU (D) 3) auto-enable จาก delegated administrator ทำให้บัญชีใหม่ส่ง findings อัตโนมัติ 4) A จึงปลอดภัยที่สุด",
+  "wrongAnswerHelp": "Start with the explicit business constraint, then eliminate choices that solve a different layer of the architecture or add unnecessary operational work.",
+  "references": [
+    "https://docs.aws.amazon.com/organizations/latest/userguide/orgs_manage_policies_scps.html",
+    "https://docs.aws.amazon.com/guardduty/latest/ug/guardduty_organizations.html",
+    "https://docs.aws.amazon.com/organizations/latest/userguide/orgs_manage_policies_scps_examples.html"
+  ],
+  "products": [
+    "AWS Organizations",
+    "GuardDuty",
+    "Security Hub",
+    "IAM",
+    "AWS Config",
+    "IAM Access Analyzer"
+  ],
+  "requirements": [
+    "Nobody in member accounts can disable GuardDuty/Config/Security Hub",
+    "Accounts cannot leave the organization",
+    "Findings aggregated centrally"
+  ],
+  "review": {
+    "decisiveClue": "ไม่มีใครใน member account (รวม root) ปิด security services หรือออกจาก org ได้, บัญชีใหม่ต้องส่ง findings อัตโนมัติ, ยกเว้นเฉพาะ break-glass role",
+    "reasoning": "1) ต้องป้องกันล่วงหน้าแม้ผู้โจมตีมีสิทธิ์ admin หรือ root ซึ่งมีเพียง SCP ที่ทำได้ ตัด permissions boundary (B) ที่ admin ถอดได้และ EventBridge (C) ที่เป็นการแก้ภายหลัง 2) ต้องครอบคลุมทุกบัญชีและห้าม LeaveOrganization จึงต้องแนบที่ root ไม่ใช่เฉพาะ production OU (D) 3) auto-enable จาก delegated administrator ทำให้บัญชีใหม่ส่ง findings อัตโนมัติ 4) A จึงปลอดภัยที่สุด",
+    "options": {
+      "A": "ถูก: SCP ที่ root จำกัดเพดานสิทธิ์ของทุก principal ใน member accounts รวมถึง administrator และ root จึงปิดบริการหรือออกจาก organization ไม่ได้แม้ถูกยึดสิทธิ์ เงื่อนไขยกเว้นเฉพาะ break-glass role ที่ security ควบคุม การตั้ง auto-enable จาก delegated administrator ทำให้บัญชีใหม่ส่ง findings เข้าบัญชี security อัตโนมัติ เป็นการป้องกันล่วงหน้า ไม่ใช่ตรวจพบภายหลัง",
+      "B": "ไม่ผ่าน: permissions boundary ใช้กับ IAM principals ที่ถูกแนบไว้เท่านั้น administrator ในบัญชีสามารถสร้าง role ใหม่ที่ไม่มี boundary หรือถอด boundary ออกได้ และไม่ครอบคลุม root user จึงไม่ได้ป้องกันผู้โจมตีที่มีสิทธิ์ admin และไม่ได้ห้ามการออกจาก organization",
+      "C": "ไม่ผ่าน: เป็น detective control ที่แก้หลังเกิดเหตุ ระหว่างนั้นยังมีช่วงที่ไม่มีการเฝ้าระวัง ผู้โจมตีที่เป็น admin ในบัญชีสามารถลบ EventBridge rule หรือ Lambda เองได้ และไม่ได้ป้องกันการออกจาก organization เลย",
+      "D": "ไม่ผ่าน: SCP ป้องกันได้เฉพาะบัญชีใน production OU บัญชี development และ sandbox ยังปิดบริการได้ และไม่มีการห้าม LeaveOrganization หรือการเปลี่ยน delegated administration ส่วน MFA ไม่ช่วยเมื่อผู้โจมตีได้ session ของ admin ไปแล้ว"
+    },
+    "references": [
+      {
+        "title": "Service control policies",
+        "url": "https://docs.aws.amazon.com/organizations/latest/userguide/orgs_manage_policies_scps.html"
+      },
+      {
+        "title": "Managing GuardDuty accounts with AWS Organizations",
+        "url": "https://docs.aws.amazon.com/guardduty/latest/ug/guardduty_organizations.html"
+      },
+      {
+        "title": "Example SCPs",
+        "url": "https://docs.aws.amazon.com/organizations/latest/userguide/orgs_manage_policies_scps_examples.html"
+      }
+    ],
+    "reviewedAt": "2026-10-29"
+  }
+}

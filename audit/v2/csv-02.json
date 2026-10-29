@@ -1,0 +1,22 @@
+{
+  "id": "csv-02",
+  "scope": "explanations",
+  "verdict": "FIX",
+  "verifiedCorrectIds": [
+    "D"
+  ],
+  "issues": [
+    "options.D.explanation: does not mention the 2026-06-08 rename of Application Migration Service to AWS Transform MGN (verified via AWS What's New), so learners may not recognise the service name."
+  ],
+  "changes": {
+    "options": {
+      "D": {
+        "explanation": "MGN (AWS Application Migration Service ซึ่งถูกเปลี่ยนชื่อเป็น AWS Transform MGN เมื่อ 8 มิ.ย. 2026) ทำ replication ของ server ต้นทางรวม VMware VM แล้วเปิดเครื่องทดสอบก่อน cutover ได้. ตรงกับ rehost 'ย้าย VM เดิม' มากกว่าการเขียนหรือ package แอปใหม่"
+      }
+    }
+  },
+  "sources": [
+    "https://aws.amazon.com/about-aws/whats-new/2026/06/aws-transform-mgn-rebrand/",
+    "https://docs.aws.amazon.com/mgn/latest/ug/what-is-mgn.html"
+  ]
+}

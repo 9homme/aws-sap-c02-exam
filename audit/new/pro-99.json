@@ -1,0 +1,82 @@
+{
+  "id": "pro-99",
+  "sourceCategory": "professional",
+  "sourceLabel": "AI-authored · Professional multi-requirement",
+  "sourceDetail": "Original multi-constraint scenario — ย้าย Oracle ไป Aurora PostgreSQL โดย downtime ไม่เกิน 10 นาที",
+  "coreEligible": true,
+  "emerging": false,
+  "domain": "4",
+  "task": "Migration and modernization",
+  "topic": "ย้าย Oracle ไป Aurora PostgreSQL โดย downtime ไม่เกิน 10 นาที",
+  "type": "multiple-choice",
+  "selectCount": 1,
+  "prompt": "A logistics company runs a 6 TB Oracle Database 19c instance on premises for its shipment-tracking application. The company has decided to move to Amazon Aurora PostgreSQL-Compatible Edition to reduce licensing costs. The database contains about 400 PL/SQL stored procedures and packages, sequences, and several Oracle-specific data types. The application writes thousands of transactions per minute around the clock, and the business allows a maximum outage of 10 minutes for the final cutover. The application team can update the data-access layer and test converted procedures over the next 2 months. The company has a 10 Gbps AWS Direct Connect connection to the target VPC. The data team wants to validate that source and target data match before cutover and wants a rollback plan if the new database misbehaves in the first days. The DMS replication instance will run in the same VPC. The target Aurora cluster has already been created in two Availability Zones. The source database already has supplemental logging enabled and archive logs retained for 3 days. Which solution will MINIMIZE downtime during the migration?",
+  "options": [
+    {
+      "id": "A",
+      "text": "Use AWS Schema Conversion Tool or DMS Schema Conversion to convert the schema and PL/SQL code, fix the items that cannot be converted automatically, run an AWS DMS task with full load and ongoing change data capture from Oracle to Aurora PostgreSQL with data validation enabled, and cut over during a short window after replication lag reaches zero.",
+      "explanation": "ถูก: การแปลง schema และ PL/SQL ทำล่วงหน้าได้ในช่วง 2 เดือนพร้อมทดสอบ DMS full load ย้ายข้อมูล 6 TB ขณะระบบยังทำงาน แล้ว CDC ตามการเปลี่ยนแปลงจาก redo logs ต่อเนื่อง data validation เปรียบเทียบข้อมูลต้นทางกับปลายทาง เมื่อ lag เป็นศูนย์จึงหยุด write สั้น ๆ และสลับแอป downtime จึงอยู่ในระดับไม่กี่นาที และยังเปิด CDC ย้อนกลับไป Oracle เพื่อเป็นแผน rollback ได้"
+    },
+    {
+      "id": "B",
+      "text": "Export the database with Oracle Data Pump during a planned outage, convert the dump with AWS Schema Conversion Tool, import the data into Aurora PostgreSQL, and restart the application against Aurora after the import completes. Validate row counts before reopening the application.",
+      "explanation": "ไม่ผ่าน: การ export/import ข้อมูล 6 TB ต้องหยุด write ตลอดกระบวนการซึ่งใช้เวลาหลายชั่วโมงหรือหลายวัน เกิน 10 นาทีมาก และ Data Pump dump เป็นรูปแบบของ Oracle ที่ไม่ได้ import ตรงเข้า PostgreSQL"
+    },
+    {
+      "id": "C",
+      "text": "Convert the schema with AWS Schema Conversion Tool, put the application into read-only mode, and run an AWS DMS full-load-only task from Oracle to Aurora PostgreSQL before switching the application to Aurora. Enable data validation on the task and compare row counts.",
+      "explanation": "ไม่ผ่าน: การแปลง schema ถูกต้อง แต่ full load อย่างเดียวต้องให้แอปอยู่ใน read-only ตลอดการโหลดข้อมูล 6 TB ซึ่งนานกว่า 10 นาทีมาก และแอปที่เขียน transaction ตลอดเวลาไม่สามารถอยู่แบบ read-only นานได้"
+    },
+    {
+      "id": "D",
+      "text": "Migrate the database first to Amazon RDS for Oracle by using AWS DMS full load and change data capture, cut over the application to RDS for Oracle, and then plan a second migration from RDS for Oracle to Aurora PostgreSQL next year. Keep the Oracle licenses until the second migration completes. Review the design with the architecture board before rollout. Define the resources in AWS CloudFormation templates for repeatable deployment.",
+      "explanation": "ไม่ผ่าน: การย้ายแบบ homogeneous ไป RDS for Oracle ทำ downtime ต่ำได้ แต่ไม่ได้ไปถึงเป้าหมาย Aurora PostgreSQL ที่ต้องการลด license และต้องมี cutover ครั้งที่สอง ซึ่งรวมแล้วเพิ่มจำนวนครั้งของ downtime และความเสี่ยง"
+    }
+  ],
+  "correctIds": [
+    "A"
+  ],
+  "rationale": "1) heterogeneous migration ต้องแปลง schema/PL/SQL ก่อน ซึ่งทำล่วงหน้าได้ในช่วง 2 เดือน 2) downtime ไม่เกิน 10 นาทีต้องย้ายข้อมูลขณะระบบทำงาน ตัด export/import (B) และ full load อย่างเดียว (C) 3) D ไม่ไปถึงเป้าหมายและเพิ่ม cutover 4) DMS full load + CDC พร้อม data validation ทำให้ cutover สั้นและมีแผน rollback A จึงลด downtime ได้มากที่สุด",
+  "wrongAnswerHelp": "Start with the explicit business constraint, then eliminate choices that solve a different layer of the architecture or add unnecessary operational work.",
+  "references": [
+    "https://docs.aws.amazon.com/dms/latest/userguide/CHAP_Source.Oracle.html",
+    "https://docs.aws.amazon.com/dms/latest/userguide/CHAP_Validating.html",
+    "https://docs.aws.amazon.com/SchemaConversionTool/latest/userguide/CHAP_Welcome.html"
+  ],
+  "products": [
+    "Database Migration Service (DMS)",
+    "Schema Conversion Tool (SCT)",
+    "Aurora",
+    "RDS"
+  ],
+  "requirements": [
+    "Oracle → Aurora PostgreSQL with at most 10 minutes of outage",
+    "Stored procedures need conversion",
+    "Data keeps changing until cutover"
+  ],
+  "review": {
+    "decisiveClue": "Oracle → Aurora PostgreSQL, PL/SQL ต้องแปลง, write ตลอด 24 ชั่วโมง, downtime ไม่เกิน 10 นาที, ต้อง validate ข้อมูลและมีแผน rollback",
+    "reasoning": "1) heterogeneous migration ต้องแปลง schema/PL/SQL ก่อน ซึ่งทำล่วงหน้าได้ในช่วง 2 เดือน 2) downtime ไม่เกิน 10 นาทีต้องย้ายข้อมูลขณะระบบทำงาน ตัด export/import (B) และ full load อย่างเดียว (C) 3) D ไม่ไปถึงเป้าหมายและเพิ่ม cutover 4) DMS full load + CDC พร้อม data validation ทำให้ cutover สั้นและมีแผน rollback A จึงลด downtime ได้มากที่สุด",
+    "options": {
+      "A": "ถูก: การแปลง schema และ PL/SQL ทำล่วงหน้าได้ในช่วง 2 เดือนพร้อมทดสอบ DMS full load ย้ายข้อมูล 6 TB ขณะระบบยังทำงาน แล้ว CDC ตามการเปลี่ยนแปลงจาก redo logs ต่อเนื่อง data validation เปรียบเทียบข้อมูลต้นทางกับปลายทาง เมื่อ lag เป็นศูนย์จึงหยุด write สั้น ๆ และสลับแอป downtime จึงอยู่ในระดับไม่กี่นาที และยังเปิด CDC ย้อนกลับไป Oracle เพื่อเป็นแผน rollback ได้",
+      "B": "ไม่ผ่าน: การ export/import ข้อมูล 6 TB ต้องหยุด write ตลอดกระบวนการซึ่งใช้เวลาหลายชั่วโมงหรือหลายวัน เกิน 10 นาทีมาก และ Data Pump dump เป็นรูปแบบของ Oracle ที่ไม่ได้ import ตรงเข้า PostgreSQL",
+      "C": "ไม่ผ่าน: การแปลง schema ถูกต้อง แต่ full load อย่างเดียวต้องให้แอปอยู่ใน read-only ตลอดการโหลดข้อมูล 6 TB ซึ่งนานกว่า 10 นาทีมาก และแอปที่เขียน transaction ตลอดเวลาไม่สามารถอยู่แบบ read-only นานได้",
+      "D": "ไม่ผ่าน: การย้ายแบบ homogeneous ไป RDS for Oracle ทำ downtime ต่ำได้ แต่ไม่ได้ไปถึงเป้าหมาย Aurora PostgreSQL ที่ต้องการลด license และต้องมี cutover ครั้งที่สอง ซึ่งรวมแล้วเพิ่มจำนวนครั้งของ downtime และความเสี่ยง"
+    },
+    "references": [
+      {
+        "title": "Using an Oracle database as a source for AWS DMS",
+        "url": "https://docs.aws.amazon.com/dms/latest/userguide/CHAP_Source.Oracle.html"
+      },
+      {
+        "title": "AWS DMS data validation",
+        "url": "https://docs.aws.amazon.com/dms/latest/userguide/CHAP_Validating.html"
+      },
+      {
+        "title": "What is the AWS Schema Conversion Tool?",
+        "url": "https://docs.aws.amazon.com/SchemaConversionTool/latest/userguide/CHAP_Welcome.html"
+      }
+    ],
+    "reviewedAt": "2026-10-29"
+  }
+}

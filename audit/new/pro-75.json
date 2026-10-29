@@ -1,0 +1,81 @@
+{
+  "id": "pro-75",
+  "sourceCategory": "professional",
+  "sourceLabel": "AI-authored · Professional multi-requirement",
+  "sourceDetail": "Original multi-constraint scenario — DNS จาก AWS ไป on premises พร้อมป้องกัน DNS exfiltration",
+  "coreEligible": true,
+  "emerging": false,
+  "domain": "1",
+  "task": "Organizational complexity",
+  "topic": "DNS จาก AWS ไป on premises พร้อมป้องกัน DNS exfiltration",
+  "type": "multiple-choice",
+  "selectCount": 1,
+  "prompt": "A financial services company has 50 AWS accounts in an organization in AWS Organizations. Workloads in all VPCs must resolve names in the on-premises domain corp.example.com, which is hosted on DNS servers in the data center that are reachable over AWS Direct Connect through a transit gateway. On-premises systems do not need to resolve any AWS names. A recent penetration test showed that a compromised instance could exfiltrate data by encoding it in DNS queries to an attacker-controlled domain. The security team requires that DNS queries from every VPC to known malicious and newly observed suspicious domains be blocked and logged, including for VPCs created in the future. The central networking team must define the forwarding and filtering configuration once and apply it consistently to all accounts, and application teams must not be able to remove it. The company prefers managed services and does not want to run DNS servers on Amazon EC2. The security team also wants to review blocked queries in a central logging account. Which solution will meet these requirements in the MOST secure way?",
+  "options": [
+    {
+      "id": "A",
+      "text": "Deploy a pair of DNS servers on Amazon EC2 in every VPC that forward corp.example.com to the data center and apply a response policy zone with a downloaded threat list, and set the DHCP options set of each VPC to use these servers. Send the DNS server logs to a central Amazon CloudWatch Logs log group in the logging account. Define the resources in AWS CloudFormation templates for repeatable deployment.",
+      "explanation": "ทำงานได้บางส่วนแต่ไม่ปลอดภัยที่สุด: ต้องดูแล DNS servers และ threat list เองในทุก VPC application teams ที่มีสิทธิ์ใน VPC เปลี่ยน DHCP options กลับไปใช้ Amazon-provided DNS ได้ และ instance ยังส่ง query ตรงไปยัง Resolver ที่ VPC+2 ได้ จึงข้ามการกรองได้"
+    },
+    {
+      "id": "B",
+      "text": "Create a Route 53 Resolver outbound endpoint in the shared-services VPC and a forwarding rule for corp.example.com, share the rule with all accounts through AWS RAM, and block exfiltration by adding network ACL rules that deny outbound UDP and TCP port 53 to the internet.",
+      "explanation": "ไม่ผ่านด้าน security: การ forward ถูกต้อง แต่ instance ส่ง DNS query ไปยัง Route 53 Resolver ภายใน VPC ซึ่ง Resolver เป็นผู้ resolve ออกไปภายนอก NACL จึงไม่เห็นและบล็อก query ไปยัง domain อันตรายไม่ได้ ช่องทาง exfiltration จึงยังเปิดอยู่"
+    },
+    {
+      "id": "C",
+      "text": "Ask each account team to create its own Route 53 Resolver outbound endpoint and forwarding rule for corp.example.com, and to create Route 53 Resolver DNS Firewall rule groups that block the domains from a list that the security team publishes each week.",
+      "explanation": "ไม่ผ่าน: ความสามารถถูกต้องแต่กระจายการตั้งค่าไปให้ 50 ทีม ทำให้ไม่สม่ำเสมอ ทีมลบหรือแก้ได้เอง VPC ใหม่อาจไม่ได้รับการป้องกัน และ list รายสัปดาห์ไม่ครอบคลุม domain ใหม่ที่ AWS managed domain lists อัปเดตให้"
+    },
+    {
+      "id": "D",
+      "text": "Create a central Route 53 Resolver outbound endpoint and a corp.example.com forwarding rule, add the rule and DNS Firewall rule groups that use AWS managed domain lists for malware and threat domains to a Route 53 Profile, share the Profile through AWS RAM, associate it with every VPC by using AWS Firewall Manager policies, and enable Resolver query logging.",
+      "explanation": "ถูก: outbound endpoint กลางและ forwarding rule ให้ทุก VPC resolve corp.example.com ผ่าน Direct Connect DNS Firewall ทำงานที่ Route 53 Resolver จึงบล็อก query ไปยัง domain อันตรายได้จริงก่อนออกนอก VPC AWS managed domain lists อัปเดตต่อเนื่อง Route 53 Profile รวม rule และ firewall ไว้ที่เดียวแล้วแชร์ผ่าน RAM ส่วน Firewall Manager บังคับ associate กับ VPC ทั้งปัจจุบันและอนาคตจากส่วนกลาง และ query logging ให้หลักฐานการสอบสวน"
+    }
+  ],
+  "correctIds": [
+    "D"
+  ],
+  "rationale": "1) ทิศทางเดียวคือ VPC → on premises จึงใช้ outbound endpoint + forwarding rule 2) การป้องกัน exfiltration ต้องทำที่ Resolver เพราะ query ไม่ได้ออกจาก ENI โดยตรง NACL (B) จึงบล็อกไม่ได้ 3) ต้องบังคับจากส่วนกลางและครอบคลุม VPC ใหม่: การให้ทีมตั้งเอง (C) และ DNS บน EC2 (A) ถูกข้ามหรือลบได้ 4) D ใช้ DNS Firewall กับ managed domain lists ผ่าน Route 53 Profile ที่แชร์ด้วย RAM และบังคับด้วย Firewall Manager พร้อม query logging จึงปลอดภัยที่สุด",
+  "wrongAnswerHelp": "Start with the explicit business constraint, then eliminate choices that solve a different layer of the architecture or add unnecessary operational work.",
+  "references": [
+    "https://docs.aws.amazon.com/Route53/latest/DeveloperGuide/resolver-dns-firewall.html",
+    "https://docs.aws.amazon.com/Route53/latest/DeveloperGuide/profiles.html",
+    "https://docs.aws.amazon.com/Route53/latest/DeveloperGuide/resolver-forwarding-outbound-queries.html"
+  ],
+  "products": [
+    "Route 53 Resolver",
+    "AWS RAM (Resource Access Manager)",
+    "Amazon VPC"
+  ],
+  "requirements": [
+    "VPCs in 50 accounts resolve on-prem corp names",
+    "Block DNS queries to known exfiltration domains",
+    "Central team manages rules once for all accounts"
+  ],
+  "review": {
+    "decisiveClue": "เฉพาะ AWS → on premises, ต้องบล็อกและ log query ไปยัง domain อันตรายรวมถึง VPC ใหม่, ตั้งค่าครั้งเดียวจากส่วนกลางและทีมลบไม่ได้, ไม่ใช้ DNS บน EC2",
+    "reasoning": "1) ทิศทางเดียวคือ VPC → on premises จึงใช้ outbound endpoint + forwarding rule 2) การป้องกัน exfiltration ต้องทำที่ Resolver เพราะ query ไม่ได้ออกจาก ENI โดยตรง NACL (B) จึงบล็อกไม่ได้ 3) ต้องบังคับจากส่วนกลางและครอบคลุม VPC ใหม่: การให้ทีมตั้งเอง (C) และ DNS บน EC2 (A) ถูกข้ามหรือลบได้ 4) D ใช้ DNS Firewall กับ managed domain lists ผ่าน Route 53 Profile ที่แชร์ด้วย RAM และบังคับด้วย Firewall Manager พร้อม query logging จึงปลอดภัยที่สุด",
+    "options": {
+      "A": "ทำงานได้บางส่วนแต่ไม่ปลอดภัยที่สุด: ต้องดูแล DNS servers และ threat list เองในทุก VPC application teams ที่มีสิทธิ์ใน VPC เปลี่ยน DHCP options กลับไปใช้ Amazon-provided DNS ได้ และ instance ยังส่ง query ตรงไปยัง Resolver ที่ VPC+2 ได้ จึงข้ามการกรองได้",
+      "B": "ไม่ผ่านด้าน security: การ forward ถูกต้อง แต่ instance ส่ง DNS query ไปยัง Route 53 Resolver ภายใน VPC ซึ่ง Resolver เป็นผู้ resolve ออกไปภายนอก NACL จึงไม่เห็นและบล็อก query ไปยัง domain อันตรายไม่ได้ ช่องทาง exfiltration จึงยังเปิดอยู่",
+      "C": "ไม่ผ่าน: ความสามารถถูกต้องแต่กระจายการตั้งค่าไปให้ 50 ทีม ทำให้ไม่สม่ำเสมอ ทีมลบหรือแก้ได้เอง VPC ใหม่อาจไม่ได้รับการป้องกัน และ list รายสัปดาห์ไม่ครอบคลุม domain ใหม่ที่ AWS managed domain lists อัปเดตให้",
+      "D": "ถูก: outbound endpoint กลางและ forwarding rule ให้ทุก VPC resolve corp.example.com ผ่าน Direct Connect DNS Firewall ทำงานที่ Route 53 Resolver จึงบล็อก query ไปยัง domain อันตรายได้จริงก่อนออกนอก VPC AWS managed domain lists อัปเดตต่อเนื่อง Route 53 Profile รวม rule และ firewall ไว้ที่เดียวแล้วแชร์ผ่าน RAM ส่วน Firewall Manager บังคับ associate กับ VPC ทั้งปัจจุบันและอนาคตจากส่วนกลาง และ query logging ให้หลักฐานการสอบสวน"
+    },
+    "references": [
+      {
+        "title": "Route 53 Resolver DNS Firewall",
+        "url": "https://docs.aws.amazon.com/Route53/latest/DeveloperGuide/resolver-dns-firewall.html"
+      },
+      {
+        "title": "Route 53 Profiles",
+        "url": "https://docs.aws.amazon.com/Route53/latest/DeveloperGuide/profiles.html"
+      },
+      {
+        "title": "Forwarding outbound DNS queries to your network",
+        "url": "https://docs.aws.amazon.com/Route53/latest/DeveloperGuide/resolver-forwarding-outbound-queries.html"
+      }
+    ],
+    "reviewedAt": "2026-10-29"
+  }
+}

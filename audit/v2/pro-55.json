@@ -1,0 +1,60 @@
+{
+  "id": "pro-55",
+  "scope": "full",
+  "verdict": "FIX",
+  "originalCorrectIds": [
+    "B"
+  ],
+  "verifiedCorrectIds": [
+    "B"
+  ],
+  "issues": [
+    "options: ตัวลวงเดิมผิดอย่างชัดเจน (อ้างความสามารถที่บริการไม่มี) ทำให้ตอบได้จากการจำชื่อบริการ ไม่ใช่ระดับ SAP-C02 Professional; เขียนใหม่ให้แต่ละตัวลวงทำงานได้จริงบางส่วนแต่ตกเงื่อนไขหนึ่งข้อ",
+    "prompt: ลบประโยค boilerplate (architecture review board / workable for the stated environment)",
+    "review.reasoning: เดิมคัดลอก requirement ภาษาอังกฤษมาต่อกัน ไม่ได้อธิบายการตัดตัวเลือก"
+  ],
+  "changes": {
+    "prompt": "A gaming operator maintains three unrelated stateful services that must be reviewed together. An existing DynamoDB catalog is read repeatedly by many clients through compatible DynamoDB access patterns and currently suffers read latency at peak. A separate web application uses ephemeral session lookup caching and can repopulate the cache from its relational system of record after an outage. A new high-frequency user-wallet service uses Redis-compatible data structures and expects the database itself, rather than an external relational system, to remain durable through node replacements. Management would like to standardize on one product, but engineers warn that the persistence and API requirements are fundamentally different. The solution must meet all of the following requirements: (1) Accelerate an existing DynamoDB-backed read-heavy path without replacing DynamoDB as its source of truth; (2) Provide a cost-conscious disposable cache for session lookups with an existing durable source; (3) Select a durable Redis-compatible primary data store for the separate wallet service. Which solution meets these requirements with the LEAST operational overhead?",
+    "options": {
+      "A": {
+        "text": "Use DAX in front of the DynamoDB catalog, and use Amazon MemoryDB both for the session cache and for the wallet service.",
+        "explanation": "ตกข้อ (2): DAX และ MemoryDB สำหรับ wallet ถูกต้อง แต่ session cache ที่สร้างใหม่ได้จากระบบหลักไม่ต้องการความทนทานของ MemoryDB ซึ่งมีค่าใช้จ่ายสูงกว่าและ write latency สูงกว่าเพราะต้องบันทึก transaction log ข้าม AZ ElastiCache เหมาะกับ cache แบบ disposable มากกว่า"
+      },
+      "B": {
+        "text": "Use DAX in front of DynamoDB, ElastiCache for repopulatable session data, and MemoryDB for the Redis-compatible durable data store.",
+        "explanation": "ถูก: DAX เร่งการอ่าน DynamoDB ด้วย API เดิมโดย DynamoDB ยังเป็น source of truth ElastiCache เป็น in-memory cache ราคาคุ้มสำหรับ session ที่สร้างใหม่ได้หลัง outage ส่วน MemoryDB เก็บทุก write ใน Multi-AZ transaction log จึงเป็น primary database ที่ทนทานสำหรับ wallet แม้ node ถูกแทนที่"
+      },
+      "C": {
+        "text": "Use DAX in front of DynamoDB and ElastiCache for the session cache, and use an Amazon ElastiCache (Redis OSS) cluster with Multi-AZ replicas and daily snapshots as the wallet service's primary data store.",
+        "explanation": "ตกข้อ (3): สองส่วนแรกถูกต้อง แต่ ElastiCache ใช้ asynchronous replication และ snapshot เป็นรอบ เมื่อ primary node ล้มอาจเสีย write ล่าสุดก่อน replica ได้รับ จึงไม่เหมาะกับ wallet ที่ต้องให้ database ทนทานด้วยตัวเอง"
+      },
+      "D": {
+        "text": "Migrate the catalog from DynamoDB into Amazon MemoryDB as its new primary store, use ElastiCache for the session cache, and use MemoryDB for the wallet service.",
+        "explanation": "ตกข้อ (1): MemoryDB เร็วและทนทาน แต่การย้าย catalog ออกจาก DynamoDB คือการเปลี่ยน source of truth และต้องเขียน access pattern ใหม่ทั้งหมด ซึ่งโจทย์ห้าม DAX เร่ง path เดิมได้โดยไม่ต้องเปลี่ยน"
+      }
+    },
+    "review": {
+      "decisiveClue": "เร่ง DynamoDB โดยคง source of truth, session cache ที่ทิ้งได้และต้องคุ้มค่า, wallet ต้องการ Redis-compatible ที่ทนทานด้วยตัวเอง",
+      "reasoning": "1) แยกตาม persistence และ API: DynamoDB path = DAX, cache ที่สร้างใหม่ได้ = ElastiCache, Redis-compatible primary durable = MemoryDB 2) A ใช้ MemoryDB กับ cache ที่ไม่ต้องทนทานจึงแพงเกินจำเป็น 3) C ใช้ ElastiCache เป็น primary store ซึ่งอาจเสียข้อมูล 4) D เปลี่ยน source of truth ของ catalog 5) B จับคู่ครบตามที่วิศวกรเตือนว่าใช้ผลิตภัณฑ์เดียวไม่ได้",
+      "references": [
+        {
+          "title": "In-memory acceleration with DynamoDB Accelerator (DAX)",
+          "url": "https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/DAX.html"
+        },
+        {
+          "title": "What is Amazon ElastiCache?",
+          "url": "https://docs.aws.amazon.com/AmazonElastiCache/latest/dg/WhatIs.html"
+        },
+        {
+          "title": "What is Amazon MemoryDB?",
+          "url": "https://docs.aws.amazon.com/memorydb/latest/devguide/what-is-memorydb.html"
+        }
+      ]
+    }
+  },
+  "sources": [
+    "https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/DAX.html",
+    "https://docs.aws.amazon.com/AmazonElastiCache/latest/dg/WhatIs.html",
+    "https://docs.aws.amazon.com/memorydb/latest/devguide/what-is-memorydb.html"
+  ]
+}

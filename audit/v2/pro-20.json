@@ -1,0 +1,60 @@
+{
+  "id": "pro-20",
+  "scope": "full",
+  "verdict": "FIX",
+  "originalCorrectIds": [
+    "C"
+  ],
+  "verifiedCorrectIds": [
+    "C"
+  ],
+  "issues": [
+    "options: ตัวลวงเดิมผิดอย่างชัดเจน (อ้างความสามารถที่บริการไม่มี) ทำให้ตอบได้จากการจำชื่อบริการ ไม่ใช่ระดับ SAP-C02 Professional; เขียนใหม่ให้แต่ละตัวลวงทำงานได้จริงบางส่วนแต่ตกเงื่อนไขหนึ่งข้อ",
+    "prompt: ลบประโยค boilerplate (architecture review board / workable for the stated environment)",
+    "review.reasoning: เดิมคัดลอก requirement ภาษาอังกฤษมาต่อกัน ไม่ได้อธิบายการตัดตัวเลือก"
+  ],
+  "changes": {
+    "prompt": "An order-processing service runs on an Auto Scaling group of EC2 instances behind an ALB across three Availability Zones. The team sees uneven request load, occasional instance failures, and a backlog during flash sales. Instances must be replaceable automatically. The existing application stores transaction checkpoints on a single attached EBS volume and assumes that volume can be mounted read/write by a replacement EC2 instance in any AZ. Operations wants scaling driven by real application demand and alarms when customer-visible latency rises. The architect may refactor checkpoint placement but cannot introduce manual intervention whenever an instance is replaced. The solution must meet all of the following requirements: (1) Scale capacity based on application-level utilization or request demand and replace unhealthy EC2 instances; (2) Avoid coupling multi-AZ replacement to an AZ-scoped EBS volume attachment; (3) Detect latency and error-budget breaches via metrics and alarms. Which solution meets these requirements with the LEAST operational overhead?",
+    "options": {
+      "A": {
+        "text": "Use target tracking scaling on ALBRequestCountPerTarget with ELB health checks and CloudWatch alarms on TargetResponseTime. Keep the checkpoint EBS volume, and use a lifecycle hook with an AWS Lambda function that detaches the volume from a terminated instance and attaches it to the replacement instance.",
+        "explanation": "ตกข้อ (2): scaling, health checks และ alarms ถูกต้อง แต่ EBS volume อยู่ใน AZ เดียว ถ้า replacement instance เกิดใน AZ อื่นหรือ AZ ของ volume ล่ม ก็ attach ไม่ได้ การย้าย volume ด้วย Lambda ยังเพิ่มความซับซ้อนและผูก recovery กับ AZ เดิม"
+      },
+      "B": {
+        "text": "Use target tracking scaling with ELB health checks and latency alarms. Replace the checkpoint volume with an io2 EBS volume that uses Multi-Attach so that every instance in the Auto Scaling group can mount it read/write.",
+        "explanation": "ตกข้อ (2): EBS Multi-Attach ใช้ได้เฉพาะ instance ใน AZ เดียวกับ volume และต้องใช้ cluster-aware file system เพื่อไม่ให้ข้อมูลเสียหายเมื่อเขียนพร้อมกัน จึงไม่รองรับ instance ทั้งสาม AZ และไม่ได้ทำให้ checkpoint ทนต่อการเสีย AZ"
+      },
+      "C": {
+        "text": "Use target tracking scaling on ALBRequestCountPerTarget with ELB health checks so that unhealthy instances are replaced, move the transaction checkpoints to Amazon DynamoDB, treat instance EBS volumes as disposable, and create CloudWatch alarms on ALB TargetResponseTime and HTTPCode_Target_5XX_Count.",
+        "explanation": "ถูก: scaling ตามจำนวน request ต่อ target สะท้อน demand จริง ELB health checks ให้ Auto Scaling แทนที่ instance ที่ไม่ healthy DynamoDB เป็นบริการระดับ Region ที่ทุก AZ เข้าถึงได้ checkpoint จึงไม่ผูกกับ EBS ใน AZ เดียว และ alarms บน latency/5xx ตรวจการละเมิด error budget ที่ลูกค้าเห็น แอปต้องปรับให้เขียน checkpoint แบบ idempotent"
+      },
+      "D": {
+        "text": "Move the transaction checkpoints to Amazon DynamoDB and use target tracking scaling on ALBRequestCountPerTarget. Rely on EC2 status checks for replacement and on the Auto Scaling group's default instance metrics, without additional alarms.",
+        "explanation": "ตกข้อ (3) และบางส่วนของ (1): checkpoint และ scaling ถูกต้อง แต่ EC2 status checks ตรวจได้แค่ปัญหาระดับ instance ไม่รู้ว่าแอปตอบ HTTP ผิดพลาด และไม่มี alarms บน latency หรือ error rate ที่ลูกค้าเห็น ทีมจึงไม่ได้รับการแจ้งเตือนเมื่อ error budget ถูกใช้หมด"
+      }
+    },
+    "review": {
+      "decisiveClue": "scale ตาม demand ของแอปและแทน instance ที่เสียอัตโนมัติ, checkpoint ต้องไม่ผูกกับ EBS ใน AZ เดียว, ต้องมี alarm ด้าน latency/error",
+      "reasoning": "1) EBS เป็น resource ระดับ AZ ทั้งการย้าย volume (A) และ Multi-Attach (B) จึงไม่ตอบข้อ (2) ต้องย้าย checkpoint ไปบริการระดับ Region เช่น DynamoDB หรือ EFS 2) ข้อ (1) ต้องใช้ ELB health checks เพื่อแทน instance ที่แอปเสีย ไม่ใช่เพียง EC2 status checks 3) ข้อ (3) ต้องมี CloudWatch alarms บน latency/5xx ซึ่ง D ไม่มี 4) C ครบทุกข้อ",
+      "references": [
+        {
+          "title": "What is Amazon EC2 Auto Scaling?",
+          "url": "https://docs.aws.amazon.com/autoscaling/ec2/userguide/what-is-amazon-ec2-auto-scaling.html"
+        },
+        {
+          "title": "Target tracking scaling policies",
+          "url": "https://docs.aws.amazon.com/autoscaling/ec2/userguide/as-scaling-target-tracking.html"
+        },
+        {
+          "title": "Attach a volume to multiple instances with EBS Multi-Attach",
+          "url": "https://docs.aws.amazon.com/ebs/latest/userguide/ebs-volumes-multi.html"
+        }
+      ]
+    }
+  },
+  "sources": [
+    "https://docs.aws.amazon.com/autoscaling/ec2/userguide/what-is-amazon-ec2-auto-scaling.html",
+    "https://docs.aws.amazon.com/autoscaling/ec2/userguide/as-scaling-target-tracking.html",
+    "https://docs.aws.amazon.com/ebs/latest/userguide/ebs-volumes-multi.html"
+  ]
+}

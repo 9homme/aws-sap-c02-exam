@@ -1,0 +1,22 @@
+{
+  "id": "w8-14",
+  "scope": "explanations",
+  "verdict": "FIX",
+  "verifiedCorrectIds": [
+    "B"
+  ],
+  "issues": [
+    "options.B.explanation: ไม่อธิบายกลไกว่าทำไม nodes ใหม่ idle (Memcached shard ฝั่ง client ด้วย hashing จึงต้องรู้ node list)"
+  ],
+  "changes": {
+    "options": {
+      "B": {
+        "explanation": "Memcached กระจาย key ฝั่ง client ด้วย hashing ตามรายชื่อ node ที่ client รู้ ไม่มีการ shard ที่ server nodes ใหม่จึง idle จนกว่า client จะได้ endpoint ใหม่ การค้นหา endpoint ด้วย CLI แล้วอัปเดต node list ในแอปแก้ได้โดยไม่เปลี่ยน engine (key บางส่วนจะ remap ทำให้เกิด cache miss ชั่วคราว)"
+      }
+    }
+  },
+  "sources": [
+    "https://docs.aws.amazon.com/AmazonElastiCache/latest/dg/AutoDiscovery.Manual.html",
+    "https://docs.aws.amazon.com/AmazonElastiCache/latest/dg/Scaling.Memcached.manually.html"
+  ]
+}

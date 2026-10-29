@@ -1,0 +1,32 @@
+{
+  "id": "w8-56",
+  "scope": "explanations",
+  "verdict": "FIX",
+  "verifiedCorrectIds": [
+    "D"
+  ],
+  "issues": [
+    "options.A.explanation and options.B.explanation: อ้างว่า Savings Plans ลดค่า DynamoDB ไม่ได้ ซึ่งล้าสมัย เพราะ Database Savings Plans (เปิดตัว ธ.ค. 2025) ครอบคลุม DynamoDB แล้ว",
+    "options.B.explanation: เหตุผลที่ B ไม่ใช่คำตอบที่ถูกต้องที่สุดคือไม่มีการสลับเป็น provisioned mode (auto scaling ใช้ได้เฉพาะ provisioned) ไม่ใช่เรื่อง Savings Plans",
+    "review.caveat: ยังไม่กล่าวถึงว่า Database Savings Plans ทำให้โจทย์ล้าสมัยบางส่วน"
+  ],
+  "changes": {
+    "options": {
+      "A": {
+        "explanation": "Provisioned mode อาจถูกกว่า on-demand และ Database Savings Plans ลดราคาได้ แต่ตัวเลือกนี้ไม่ลด reads ซ้ำของ key ชุดเดิมเลย และไม่มี auto scaling รับ burst จึงต้องตั้ง capacity เผื่อสูงหรือเสี่ยง throttle ไม่ลดต้นทุนเท่า D"
+      },
+      "B": {
+        "explanation": "DAX กับ Savings Plans ช่วยลดต้นทุนได้ แต่ตารางยังเป็น on-demand และตัวเลือกไม่ได้สลับเป็น provisioned mode ขณะที่ DynamoDB auto scaling ใช้ได้เฉพาะ provisioned จึงตั้งค่าตามที่เขียนไม่ได้ และการซื้อ Savings Plans เพิ่มภาระ commitment"
+      }
+    },
+    "review": {
+      "caveat": "ปัจจุบันมี Database Savings Plans ที่ลดราคา DynamoDB ได้ ตัวเลือก B จึงไม่ได้ผิดเพราะ Savings Plans ใช้กับ DynamoDB ไม่ได้ แต่ยังตกเพราะไม่ได้สลับเป็น provisioned mode ที่ auto scaling ต้องใช้ ส่วน D ยังเป็นเฉลยที่บันทึกไว้และเหมาะสุดเพราะ DAX ลด reads ซ้ำ",
+      "reviewStatus": "historical"
+    }
+  },
+  "sources": [
+    "https://aws.amazon.com/about-aws/whats-new/2025/12/database-savings-plans-savings/",
+    "https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/AutoScaling.html",
+    "https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/DAX.html"
+  ]
+}

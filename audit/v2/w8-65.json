@@ -1,0 +1,26 @@
+{
+  "id": "w8-65",
+  "scope": "explanations",
+  "verdict": "FIX",
+  "verifiedCorrectIds": [
+    "D"
+  ],
+  "issues": [
+    "options.B.explanation: มีวลี 'แนวทาง shared file names' ที่ไม่มีความหมาย และไม่ชัดว่า Volume Gateway เก็บเป็น block ใน S3 ไม่ใช่ object ไฟล์",
+    "options.D.explanation: ไม่ระบุว่าต้อง upload ไฟล์เดิมเข้า share/bucket ก่อน และ cache refresh เมื่อมี direct S3 write"
+  ],
+  "changes": {
+    "options": {
+      "B": {
+        "explanation": "Volume Gateway เปิดเป็น iSCSI block volume ข้อมูลเก็บใน S3 ในรูป volume/snapshot ของ AWS ไม่ใช่ object ไฟล์ที่แอปใหม่อ่านด้วย S3 API ตรง ๆ ได้ และ block volume ต้องมี filesystem แล้วแชร์ให้หลาย server พร้อมกันไม่ปลอดภัย ขัดกับเป้าหมายที่หลังย้ายแอปต้องอ่านไฟล์จาก S3 โดยตรง"
+      },
+      "D": {
+        "explanation": "S3 File Gateway เปิด NFS share ที่ map กับ S3 bucket ให้หลาย on-premises servers mount ใช้ร่วมกัน แต่ละไฟล์เก็บเป็น S3 object เดียว (มี local cache) จึงไม่มีสำเนาหลักสองชุด และแอปที่ย้ายแล้วอ่าน S3 ตรงได้ ต้องอัปโหลดไฟล์เดิมเข้า bucket/share ก่อนแล้ว mount server ใหม่ และ refresh cache เมื่อมีการเขียน S3 ตรง"
+      }
+    }
+  },
+  "sources": [
+    "https://docs.aws.amazon.com/filegateway/latest/files3/what-is-file-s3.html",
+    "https://docs.aws.amazon.com/filegateway/latest/files3/refresh-cache.html"
+  ]
+}

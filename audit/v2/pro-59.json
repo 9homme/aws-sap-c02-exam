@@ -1,0 +1,60 @@
+{
+  "id": "pro-59",
+  "scope": "full",
+  "verdict": "FIX",
+  "originalCorrectIds": [
+    "D"
+  ],
+  "verifiedCorrectIds": [
+    "D"
+  ],
+  "issues": [
+    "options: ตัวลวงเดิมผิดอย่างชัดเจน (อ้างความสามารถที่บริการไม่มี) ทำให้ตอบได้จากการจำชื่อบริการ ไม่ใช่ระดับ SAP-C02 Professional; เขียนใหม่ให้แต่ละตัวลวงทำงานได้จริงบางส่วนแต่ตกเงื่อนไขหนึ่งข้อ",
+    "prompt: ลบประโยค boilerplate (architecture review board / workable for the stated environment)",
+    "review.reasoning: เดิมคัดลอก requirement ภาษาอังกฤษมาต่อกัน ไม่ได้อธิบายการตัดตัวเลือก"
+  ],
+  "changes": {
+    "prompt": "A payment technology vendor signs transactions using a vendor-supplied library that requires direct cryptographic operations through a supported PKCS#11 interface and customer-controlled HSM credentials. The vendor is not willing to rewrite the signing library to call the AWS KMS API. The same AWS Organization also operates container images and EC2 application instances that security reviewers want scanned for applicable software vulnerabilities, while S3 buckets contain large volumes of customer-support documents and could expose personally identifiable information. The vendor has budgeted for multiple security services if they address genuinely different assets, but a proposed architecture incorrectly treats one encryption key-management product as a universal detector for vulnerabilities and sensitive-data discovery. The solution must meet all of the following requirements: (1) Retain the vendor PKCS#11 library and operational control of cryptographic HSM resources for transaction signing; (2) Identify applicable EC2/container software vulnerabilities without expecting cryptographic services to inspect packages; (3) Discover sensitive personal information in S3 data independently of runtime vulnerability scanning. Which solution meets these requirements with the LEAST operational overhead?",
+    "options": {
+      "A": {
+        "text": "Create an AWS KMS custom key store that is backed by an AWS CloudHSM cluster for the signing keys, use Amazon Inspector for EC2 and container image vulnerabilities, and use Amazon Macie for sensitive S3 data.",
+        "explanation": "ตกข้อ (1): Inspector และ Macie ถูกต้อง แต่ custom key store ยังต้องเรียกผ่าน KMS API และรองรับเฉพาะ symmetric encryption keys ไม่ได้ให้ library เรียก PKCS#11 โดยตรงหรือให้ลูกค้าถือ HSM credentials เอง vendor จึงต้องเขียน library ใหม่ซึ่งไม่ยอม"
+      },
+      "B": {
+        "text": "Use AWS CloudHSM for the PKCS#11 signing library, enable Amazon GuardDuty Malware Protection to find software vulnerabilities on EC2 instances and container images, and use Amazon Macie for sensitive S3 data.",
+        "explanation": "ตกข้อ (2): CloudHSM และ Macie ถูกต้อง แต่ GuardDuty Malware Protection สแกนหา malware เมื่อพบพฤติกรรมน่าสงสัย ไม่ใช่การประเมินช่องโหว่ของ software packages ตาม CVE Amazon Inspector เป็นบริการที่ทำหน้าที่นี้สำหรับ EC2, ECR images และ Lambda"
+      },
+      "C": {
+        "text": "Use AWS CloudHSM for the PKCS#11 signing library and Amazon Inspector for EC2 and container image vulnerabilities, and configure Amazon Inspector to also scan the S3 support documents for personal information.",
+        "explanation": "ตกข้อ (3): CloudHSM และ Inspector ถูกต้องในหน้าที่ของตัวเอง แต่ Inspector ไม่สแกนเนื้อหา object ใน S3 เพื่อหาข้อมูลส่วนบุคคล การค้นหาและจำแนก sensitive data ใน S3 เป็นหน้าที่ของ Amazon Macie"
+      },
+      "D": {
+        "text": "Use AWS CloudHSM for compatible HSM signing, Amazon Inspector for applicable compute/image vulnerabilities, and Amazon Macie for sensitive S3 data discovery.",
+        "explanation": "ถูก: CloudHSM ให้ HSM แบบ single-tenant ที่ลูกค้าคุม crypto user credentials และมี PKCS#11 library ให้แอป signing ใช้โดยไม่ต้องเขียนใหม่ Inspector สแกนช่องโหว่ของ EC2 และ container images อย่างต่อเนื่อง ส่วน Macie ใช้ managed และ custom data identifiers ค้นหา PII ใน S3 แต่ละบริการดูแล asset คนละประเภท"
+      }
+    },
+    "review": {
+      "decisiveClue": "signing ต้องใช้ PKCS#11 และ HSM ที่ลูกค้าคุมเอง, สแกนช่องโหว่ EC2/container, ค้นหา PII ใน S3 แยกจากการสแกนช่องโหว่",
+      "reasoning": "1) แต่ละ asset ใช้บริการต่างกัน: crypto ที่ต้องการ PKCS#11 = CloudHSM, software vulnerabilities = Inspector, sensitive data ใน S3 = Macie 2) A ใช้ KMS custom key store ที่ไม่ให้ PKCS#11 3) B ใช้ GuardDuty แทน Inspector 4) C ใช้ Inspector แทน Macie 5) D จับคู่ถูกต้องทั้งหมด ไม่ใช้ key-management product เป็น detector ทุกอย่าง",
+      "references": [
+        {
+          "title": "What is AWS CloudHSM?",
+          "url": "https://docs.aws.amazon.com/cloudhsm/latest/userguide/introduction.html"
+        },
+        {
+          "title": "What is Amazon Inspector?",
+          "url": "https://docs.aws.amazon.com/inspector/latest/user/what-is-inspector.html"
+        },
+        {
+          "title": "What is Amazon Macie?",
+          "url": "https://docs.aws.amazon.com/macie/latest/user/what-is-macie.html"
+        }
+      ]
+    }
+  },
+  "sources": [
+    "https://docs.aws.amazon.com/cloudhsm/latest/userguide/introduction.html",
+    "https://docs.aws.amazon.com/inspector/latest/user/what-is-inspector.html",
+    "https://docs.aws.amazon.com/macie/latest/user/what-is-macie.html"
+  ]
+}

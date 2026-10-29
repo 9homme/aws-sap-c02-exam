@@ -1,0 +1,13 @@
+{
+  "id": "csv-54",
+  "scope": "explanations",
+  "verdict": "PASS",
+  "verifiedCorrectIds": [
+    "C"
+  ],
+  "issues": [],
+  "changes": {},
+  "sources": [
+    "https://docs.aws.amazon.com/Route53/latest/DeveloperGuide/Welcome.html"
+  ]
+}

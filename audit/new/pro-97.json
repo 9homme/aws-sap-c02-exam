@@ -1,0 +1,82 @@
+{
+  "id": "pro-97",
+  "sourceCategory": "professional",
+  "sourceLabel": "AI-authored · Professional multi-requirement",
+  "sourceDetail": "Original multi-constraint scenario — HPC แบบ MPI ที่ต้องการ performance สูงสุด",
+  "coreEligible": true,
+  "emerging": false,
+  "domain": "2",
+  "task": "New solution design",
+  "topic": "HPC แบบ MPI ที่ต้องการ performance สูงสุด",
+  "type": "multiple-choice",
+  "selectCount": 1,
+  "prompt": "An automotive company runs crash simulations with a tightly coupled MPI application. Each simulation uses 32 nodes with 96 cores each and exchanges large volumes of small messages between nodes at every time step, so inter-node latency dominates the run time. The input meshes total 3 TB per simulation and are stored in Amazon S3, and every node reads and writes a shared POSIX scratch directory at high throughput during the run. Engineers submit hundreds of simulations per week and want them queued and scheduled automatically, with compute released when the queue is empty. On the current cloud test cluster, which uses instances spread across three Availability Zones with an Amazon EFS file system, simulations scale poorly beyond 8 nodes. The company has budget for HPC-optimized instances and wants the shortest possible time to result for each simulation. The engineers already package the solver in a container image. Most simulations finish within 6 hours, and results must be written back to Amazon S3 for post-processing. Which solution will provide the BEST performance for the simulations?",
+  "options": [
+    {
+      "id": "A",
+      "text": "Use AWS Batch array jobs to run each simulation's 32 ranks as independent child jobs on compute-optimized instances spread across three Availability Zones for capacity, and store the scratch data in Amazon S3 that each job reads at startup. Retry failed child jobs automatically.",
+      "explanation": "ไม่ผ่าน: array jobs เหมาะกับงานอิสระต่อกัน ไม่ใช่ MPI ที่ ranks ต้องสื่อสารกันตลอดเวลา การกระจายข้าม AZ เพิ่ม latency ระหว่าง nodes และ S3 ไม่ใช่ POSIX scratch ที่อ่านเขียนร่วมกันระหว่างการรัน"
+    },
+    {
+      "id": "B",
+      "text": "Run the simulations on an Amazon EC2 Auto Scaling group of the largest general-purpose instances across three Availability Zones, mount the existing EFS file system with Max I/O performance mode, and use a custom scheduler on a head node. Scale the group in when the queue is empty. Tag all new resources with the owning team and cost center.",
+      "explanation": "ไม่ผ่าน: คล้ายกับระบบทดสอบที่ scale ไม่ดีอยู่แล้ว การกระจายหลาย AZ และไม่มี low-latency fabric ทำให้ MPI ช้า EFS ไม่ได้ออกแบบสำหรับ scratch แบบ parallel ที่ throughput สูงระดับนี้ และต้องดูแล scheduler เอง"
+    },
+    {
+      "id": "C",
+      "text": "Use AWS Batch multi-node parallel jobs on a managed compute environment of HPC-optimized instances that support Elastic Fabric Adapter, launch the nodes into a cluster placement group in one Availability Zone with EFA enabled, and mount an Amazon FSx for Lustre scratch file system linked to the S3 input bucket.",
+      "explanation": "ถูก: multi-node parallel jobs ของ Batch จัดกลุ่ม nodes ให้ MPI ทำงานร่วมกันพร้อมคิวและการคืน compute อัตโนมัติ EFA ให้ OS-bypass networking ที่ latency ต่ำสำหรับ MPI และ cluster placement group วาง nodes ใกล้กันใน AZ เดียว FSx for Lustre scratch ให้ throughput สูงแบบ parallel และเชื่อมกับ S3 เพื่อโหลด mesh และ export ผลลัพธ์ จึงใช้เวลาต่อ simulation สั้นที่สุด"
+    },
+    {
+      "id": "D",
+      "text": "Use AWS Batch multi-node parallel jobs on general-purpose instances without EFA, let Batch place the nodes in any Availability Zone, and mount the existing Amazon EFS file system for the scratch directory. Use the same solver container image as today.",
+      "explanation": "ช่วยได้บางส่วน: multi-node parallel jobs แก้เรื่องคิวและการจัดกลุ่ม nodes แล้ว แต่ไม่มี EFA และ placement group ทำให้ latency ระหว่าง nodes สูง และ EFS ยังเป็นคอขวดของ scratch I/O ซึ่งเป็นสาเหตุที่ระบบเดิม scale ไม่ดี"
+    }
+  ],
+  "correctIds": [
+    "C"
+  ],
+  "rationale": "1) งาน MPI ที่สื่อสารกันตลอดต้องรันเป็นกลุ่ม nodes เดียวกัน array jobs (A) จึงไม่เหมาะ 2) latency ระหว่าง nodes: ต้องใช้ EFA และ cluster placement group ใน AZ เดียว ไม่ใช่กระจายหลาย AZ (B, D) 3) scratch แบบ parallel: FSx for Lustre ที่เชื่อม S3 ให้ throughput สูงกว่า EFS 4) Batch multi-node parallel jobs ให้คิวและคืน compute อัตโนมัติ C จึงให้ performance สูงสุด",
+  "wrongAnswerHelp": "Start with the explicit business constraint, then eliminate choices that solve a different layer of the architecture or add unnecessary operational work.",
+  "references": [
+    "https://docs.aws.amazon.com/batch/latest/userguide/multi-node-parallel-jobs.html",
+    "https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/efa.html",
+    "https://docs.aws.amazon.com/fsx/latest/LustreGuide/what-is.html"
+  ],
+  "products": [
+    "EC2",
+    "AWS Batch",
+    "FSx for Lustre",
+    "Auto Scaling"
+  ],
+  "requirements": [
+    "Tightly coupled MPI with heavy inter-node traffic",
+    "Shared POSIX scratch with high throughput",
+    "Run as queued batch jobs"
+  ],
+  "review": {
+    "decisiveClue": "MPI แบบ tightly coupled ที่ latency ระหว่าง nodes สำคัญ, scratch POSIX throughput สูง, input ใน S3, ต้องการคิวอัตโนมัติ, ต้องการเวลาต่อ simulation สั้นที่สุด",
+    "reasoning": "1) งาน MPI ที่สื่อสารกันตลอดต้องรันเป็นกลุ่ม nodes เดียวกัน array jobs (A) จึงไม่เหมาะ 2) latency ระหว่าง nodes: ต้องใช้ EFA และ cluster placement group ใน AZ เดียว ไม่ใช่กระจายหลาย AZ (B, D) 3) scratch แบบ parallel: FSx for Lustre ที่เชื่อม S3 ให้ throughput สูงกว่า EFS 4) Batch multi-node parallel jobs ให้คิวและคืน compute อัตโนมัติ C จึงให้ performance สูงสุด",
+    "options": {
+      "A": "ไม่ผ่าน: array jobs เหมาะกับงานอิสระต่อกัน ไม่ใช่ MPI ที่ ranks ต้องสื่อสารกันตลอดเวลา การกระจายข้าม AZ เพิ่ม latency ระหว่าง nodes และ S3 ไม่ใช่ POSIX scratch ที่อ่านเขียนร่วมกันระหว่างการรัน",
+      "B": "ไม่ผ่าน: คล้ายกับระบบทดสอบที่ scale ไม่ดีอยู่แล้ว การกระจายหลาย AZ และไม่มี low-latency fabric ทำให้ MPI ช้า EFS ไม่ได้ออกแบบสำหรับ scratch แบบ parallel ที่ throughput สูงระดับนี้ และต้องดูแล scheduler เอง",
+      "C": "ถูก: multi-node parallel jobs ของ Batch จัดกลุ่ม nodes ให้ MPI ทำงานร่วมกันพร้อมคิวและการคืน compute อัตโนมัติ EFA ให้ OS-bypass networking ที่ latency ต่ำสำหรับ MPI และ cluster placement group วาง nodes ใกล้กันใน AZ เดียว FSx for Lustre scratch ให้ throughput สูงแบบ parallel และเชื่อมกับ S3 เพื่อโหลด mesh และ export ผลลัพธ์ จึงใช้เวลาต่อ simulation สั้นที่สุด",
+      "D": "ช่วยได้บางส่วน: multi-node parallel jobs แก้เรื่องคิวและการจัดกลุ่ม nodes แล้ว แต่ไม่มี EFA และ placement group ทำให้ latency ระหว่าง nodes สูง และ EFS ยังเป็นคอขวดของ scratch I/O ซึ่งเป็นสาเหตุที่ระบบเดิม scale ไม่ดี"
+    },
+    "references": [
+      {
+        "title": "Multi-node parallel jobs in AWS Batch",
+        "url": "https://docs.aws.amazon.com/batch/latest/userguide/multi-node-parallel-jobs.html"
+      },
+      {
+        "title": "Elastic Fabric Adapter for HPC workloads",
+        "url": "https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/efa.html"
+      },
+      {
+        "title": "What is Amazon FSx for Lustre?",
+        "url": "https://docs.aws.amazon.com/fsx/latest/LustreGuide/what-is.html"
+      }
+    ],
+    "reviewedAt": "2026-10-29"
+  }
+}

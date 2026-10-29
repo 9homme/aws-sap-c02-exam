@@ -1,0 +1,26 @@
+{
+  "id": "w8-41",
+  "scope": "explanations",
+  "verdict": "FIX",
+  "verifiedCorrectIds": [
+    "D"
+  ],
+  "issues": [
+    "options.C.explanation: เหตุผลที่ตก (ตัวตนไปอยู่นอกบริษัท, IAM federation ไม่ใช่ WorkSpaces SSO) ไม่ชัด",
+    "options.D.explanation: ไม่พูดถึง SSO และการไม่ cache credentials"
+  ],
+  "changes": {
+    "options": {
+      "C": {
+        "explanation": "Managed Microsoft AD เป็น directory ที่โฮสต์บน AWS และ WorkSpaces users ต้องอยู่ใน directory นั้น ทำให้ข้อมูลตัวตนไปอยู่นอกบริษัท ส่วน IAM federation ผ่าน ADFS เป็นการ sign in เข้า AWS Console/API ไม่ใช่ SSO ของ WorkSpaces ไปยัง on-premises files จึงซับซ้อนกว่าและไม่ตรงข้อกำหนด"
+      },
+      "D": {
+        "explanation": "AD Connector อยู่ใน VPC ของ WorkSpaces เป็น proxy ส่ง authentication ผ่าน Direct Connect ไป on-premises AD เดิม โดยไม่ cache credentials บน cloud WorkSpaces จึง join domain เดิมและได้ SSO ไป files/services ใน AD ตรงทุกข้อ"
+      }
+    }
+  },
+  "sources": [
+    "https://docs.aws.amazon.com/directoryservice/latest/admin-guide/directory_ad_connector.html",
+    "https://docs.aws.amazon.com/workspaces/latest/adminguide/launch-workspaces-ad-connector.html"
+  ]
+}

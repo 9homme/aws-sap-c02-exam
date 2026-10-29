@@ -1,0 +1,21 @@
+{
+  "id": "csv-25",
+  "scope": "explanations",
+  "verdict": "FIX",
+  "verifiedCorrectIds": [
+    "A"
+  ],
+  "issues": [
+    "options.B.explanation: บอกแค่ 'ไม่ใช่ชื่อประเภท' ไม่บอกว่า Control Tower มี behavior 3 แบบและ Default ไม่ใช่หนึ่งในนั้น"
+  ],
+  "changes": {
+    "options": {
+      "B": {
+        "explanation": "Control Tower แบ่งตามวิธีทำงานเป็น 3 แบบ คือ preventive, detective, proactive ไม่มี behavior ชื่อ Default ส่วนคำอย่าง mandatory/strongly recommended/elective เป็นระดับ guidance ว่าควรเปิดหรือไม่ จึงไม่ตอบคำถามว่าใช้ CloudFormation hooks"
+      }
+    }
+  },
+  "sources": [
+    "https://docs.aws.amazon.com/controltower/latest/controlreference/control-behavior.html"
+  ]
+}

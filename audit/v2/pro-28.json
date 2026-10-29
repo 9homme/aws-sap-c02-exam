@@ -1,0 +1,60 @@
+{
+  "id": "pro-28",
+  "scope": "full",
+  "verdict": "FIX",
+  "originalCorrectIds": [
+    "C"
+  ],
+  "verifiedCorrectIds": [
+    "C"
+  ],
+  "issues": [
+    "options: ตัวลวงเดิมผิดอย่างชัดเจน (อ้างความสามารถที่บริการไม่มี) ทำให้ตอบได้จากการจำชื่อบริการ ไม่ใช่ระดับ SAP-C02 Professional; เขียนใหม่ให้แต่ละตัวลวงทำงานได้จริงบางส่วนแต่ตกเงื่อนไขหนึ่งข้อ",
+    "prompt: ลบประโยค boilerplate (architecture review board / workable for the stated environment)",
+    "review.reasoning: เดิมคัดลอก requirement ภาษาอังกฤษมาต่อกัน ไม่ได้อธิบายการตัดตัวเลือก"
+  ],
+  "changes": {
+    "prompt": "A ticketing platform keeps the authoritative reservation state in Amazon DynamoDB. Checkout writes are strongly consistent and cannot depend on an eventually consistent cache being fresh when validating the final seat inventory. The platform also serves a separate public event-details page that reads the same popular immutable event metadata millions of times, where eventual consistency is acceptable and reducing DynamoDB read load matters. Another in-house service uses Redis-compatible structures as its primary durable database and needs multi-AZ recoverability, not merely a best-effort volatile cache. The architect must select technology based on consistency and durability semantics. The solution must meet all of the following requirements: (1) Keep final seat allocation dependent on authoritative transactional reads and writes rather than a stale read cache; (2) Accelerate repetitive, eventually consistent DynamoDB metadata reads; (3) Provide a Redis-compatible durable primary data store for a separate service. Which solution meets these requirements with the LEAST operational overhead?",
+    "options": {
+      "A": {
+        "text": "Route all reads, including the final seat-inventory validation, through a DAX cluster to reduce DynamoDB load, and use Amazon MemoryDB for the Redis-compatible service.",
+        "explanation": "ตกข้อ (1): DAX และ MemoryDB ถูกเลือกถูกที่ แต่ถ้าการตรวจที่นั่งใช้ eventually consistent read ผ่าน cache อาจได้ค่าเก่าและขายที่นั่งซ้ำ การยืนยันสุดท้ายต้องใช้ conditional write หรือ transaction กับ DynamoDB โดยตรง (DAX ส่ง strongly consistent reads ผ่านไป DynamoDB โดยไม่ cache)"
+      },
+      "B": {
+        "text": "Use DAX for the event-metadata reads, confirm seats with DynamoDB conditional writes, and use an Amazon ElastiCache (Redis OSS) cluster with Multi-AZ and daily snapshots as the primary database for the Redis-compatible service.",
+        "explanation": "ตกข้อ (3): สองส่วนแรกถูกต้อง แต่ ElastiCache ใช้ asynchronous replication และ snapshot เป็นรอบ ๆ จึงอาจเสียข้อมูลที่เพิ่งเขียนเมื่อ node ล้ม เหมาะเป็น cache มากกว่า primary durable database ขณะที่ MemoryDB ใช้ Multi-AZ transaction log ที่ทนทาน"
+      },
+      "C": {
+        "text": "Use DAX for eventually consistent DynamoDB metadata reads, perform seat confirmation against DynamoDB with conditional writes, and use MemoryDB for the durable Redis-compatible application.",
+        "explanation": "ถูก: DAX cache metadata ที่ถูกอ่านซ้ำ ๆ แบบ eventually consistent โดยใช้ DynamoDB API เดิม การยืนยันที่นั่งใช้ conditional write (หรือ TransactWriteItems) กับ DynamoDB จึงขึ้นกับข้อมูลจริงไม่ใช่ cache ส่วน MemoryDB เก็บทุก write ใน distributed transaction log ข้ามหลาย AZ จึงใช้เป็น primary database ที่เข้ากันได้กับ Redis ได้"
+      },
+      "D": {
+        "text": "Add a cache-aside layer in Amazon ElastiCache (Redis OSS) for the event-metadata reads with application code for population and TTLs, confirm seats with DynamoDB conditional writes, and use MemoryDB for the Redis-compatible service.",
+        "explanation": "ตกข้อ (2) ด้าน overhead: ทำงานได้จริง แต่ต้องเขียน logic เติม cache, TTL และ invalidation เอง ขณะที่ DAX เข้ากันกับ DynamoDB API และเปลี่ยนเพียง client จึงเร่งการอ่านจาก DynamoDB ได้ด้วยงานพัฒนาและดูแลน้อยกว่า"
+      }
+    },
+    "review": {
+      "decisiveClue": "การยืนยันที่นั่งต้องใช้ข้อมูลจริงไม่ใช่ cache, metadata อ่านซ้ำแบบ eventual ได้, อีก service ต้องการ Redis-compatible durable primary database",
+      "reasoning": "1) แยกตาม consistency และ durability: seat allocation ต้องเขียน/ตรวจกับ DynamoDB โดยตรง ตัด A ที่ผ่าน cache 2) metadata ที่ยอม eventual consistency: DAX เร่งการอ่านด้วย API เดิม ส่วน ElastiCache cache-aside (D) ต้องเขียน code เพิ่ม 3) Redis-compatible ที่เป็น primary database ต้อง durable: MemoryDB ไม่ใช่ ElastiCache (B) 4) C จึงเลือกถูกทั้งสามส่วน",
+      "references": [
+        {
+          "title": "In-memory acceleration with DynamoDB Accelerator (DAX)",
+          "url": "https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/DAX.html"
+        },
+        {
+          "title": "DynamoDB condition expressions",
+          "url": "https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/Expressions.ConditionExpressions.html"
+        },
+        {
+          "title": "What is Amazon MemoryDB?",
+          "url": "https://docs.aws.amazon.com/memorydb/latest/devguide/what-is-memorydb.html"
+        }
+      ]
+    }
+  },
+  "sources": [
+    "https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/DAX.html",
+    "https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/Expressions.ConditionExpressions.html",
+    "https://docs.aws.amazon.com/memorydb/latest/devguide/what-is-memorydb.html"
+  ]
+}

@@ -1,0 +1,23 @@
+{
+  "id": "w8-53",
+  "scope": "explanations",
+  "verdict": "FIX",
+  "verifiedCorrectIds": [
+    "C"
+  ],
+  "issues": [
+    "options.D.explanation: ท้ายประโยคบอกว่าเลือก Aurora 'โดยไม่จำเป็น' ซึ่งอาจเข้าใจผิดว่า Aurora MySQL ใช้ไม่ได้; จุดที่ทำให้ D ผิดจริงคือ UI แบบ server-side ถูกย้ายไป static S3 และโจทย์ห้าม re-architect"
+  ],
+  "changes": {
+    "options": {
+      "D": {
+        "explanation": "Aurora MySQL เข้ากับ MySQL ได้ จึงไม่ใช่จุดผิด แต่การวาง UI ที่ใช้ server-side JavaScript ไว้บน static S3 ทำไม่ได้ เพราะ S3 รันโค้ดฝั่ง server ไม่ได้ ต้อง re-architect UI ซึ่งขัดกับโจทย์ที่ไม่ให้ re-architect"
+      }
+    }
+  },
+  "sources": [
+    "https://docs.aws.amazon.com/Route53/latest/DeveloperGuide/RoutingToS3Bucket.html",
+    "https://docs.aws.amazon.com/AmazonECS/latest/developerguide/AWS_Fargate.html",
+    "https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/AuroraMySQL.Migrating.html"
+  ]
+}

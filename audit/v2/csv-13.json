@@ -1,0 +1,21 @@
+{
+  "id": "csv-13",
+  "scope": "explanations",
+  "verdict": "FIX",
+  "verifiedCorrectIds": [
+    "D"
+  ],
+  "issues": [
+    "options.D.explanation: refers vaguely to 'เฉลยเดิมต้องการสื่อ'; does not say what CodeGuru Reviewer checks or its current status. Historical status/caveat retained as correct."
+  ],
+  "changes": {
+    "options": {
+      "D": {
+        "explanation": "CodeGuru Reviewer วิเคราะห์ source code ด้วย static analysis/ML หา bug และประเด็น security (เช่น hardcoded credentials) ก่อน deploy จึงตรงโจทย์. CodeGuru Profiler เน้น runtime performance ไม่ใช่ตัวตรวจนี้. ปัจจุบัน Reviewer ปิดรับ repository association ใหม่ (7 พ.ย. 2025) จึงเป็นเฉลยเชิง historical"
+      }
+    }
+  },
+  "sources": [
+    "https://docs.aws.amazon.com/codecommit/latest/userguide/how-to-amazon-codeguru-reviewer.html"
+  ]
+}

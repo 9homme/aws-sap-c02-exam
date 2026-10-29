@@ -1,0 +1,22 @@
+{
+  "id": "pro-09",
+  "scope": "full",
+  "verdict": "PASS",
+  "originalCorrectIds": [
+    "B",
+    "D",
+    "F"
+  ],
+  "verifiedCorrectIds": [
+    "B",
+    "D",
+    "F"
+  ],
+  "issues": [],
+  "changes": {},
+  "sources": [
+    "https://docs.aws.amazon.com/awscloudtrail/latest/userguide/cloudtrail-delegated-administrator.html",
+    "https://docs.aws.amazon.com/config/latest/developerguide/conformance-pack-organization-apis.html",
+    "https://docs.aws.amazon.com/securityhub/latest/userguide/finding-aggregation.html"
+  ]
+}

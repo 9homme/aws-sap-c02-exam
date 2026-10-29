@@ -1,0 +1,82 @@
+{
+  "id": "pro-104",
+  "sourceCategory": "professional",
+  "sourceLabel": "AI-authored · Professional multi-requirement",
+  "sourceDetail": "Original multi-constraint scenario — leaderboard ที่ต้องการ microsecond และ sorted sets",
+  "coreEligible": true,
+  "emerging": false,
+  "domain": "3",
+  "task": "Continuous improvement",
+  "topic": "leaderboard ที่ต้องการ microsecond และ sorted sets",
+  "type": "multiple-choice",
+  "selectCount": 1,
+  "prompt": "A mobile game studio is launching a global tournament mode with live leaderboards. Each match updates player scores many times per second, and the game client fetches the top 100 players and each player's rank several times per minute. Load tests predict 400,000 score updates per second and 1.5 million leaderboard reads per second at peak. The game servers need microsecond to sub-millisecond read latency for ranking queries and atomic increment operations on scores. Player profiles and the authoritative match history are already stored in Amazon DynamoDB, and the leaderboards can be rebuilt from DynamoDB within a few minutes if the leaderboard store is lost, so the leaderboard store does not need to be a durable system of record. The developers already use the open source Redis client library and its sorted-set commands in the game servers. The studio wants the best possible latency and throughput for the leaderboards. Tournaments last 2 hours, after which the final standings are written to DynamoDB. Each tournament has up to 5 million players. Which solution will provide the BEST performance for the leaderboards?",
+  "options": [
+    {
+      "id": "A",
+      "text": "Store the leaderboards in an Amazon MemoryDB cluster with multiple shards and replicas across Availability Zones, and use sorted sets for the rankings so that every score update is durably committed to the Multi-AZ transaction log. Use the existing Redis client library in the game servers.",
+      "explanation": "ทำงานได้แต่ไม่ใช่ performance สูงสุด: MemoryDB อ่านได้ระดับ microsecond และรองรับ sorted sets แต่ทุก write ต้องบันทึกลง Multi-AZ transaction log ก่อนตอบ ทำให้ write latency สูงกว่า สำหรับ 400,000 updates ต่อวินาทีที่ไม่ต้องการ durability เพราะสร้างใหม่ได้ จึงจ่ายค่า durability โดยไม่ได้ประโยชน์"
+    },
+    {
+      "id": "B",
+      "text": "Add a DynamoDB Accelerator (DAX) cluster in front of a DynamoDB table that stores the scores, and query the top 100 players by scanning the cached items and sorting them in the game servers. Use DAX write-through so that score updates reach DynamoDB and the cache together.",
+      "explanation": "ไม่ผ่าน: DAX cache item และ query ของ DynamoDB API แต่ไม่มีโครงสร้าง sorted set หรือคำสั่งหาอันดับ การ scan แล้ว sort ในเซิร์ฟเวอร์ทุกครั้งช้ามากที่ระดับล้าน reads ต่อวินาที และ write ยังต้องผ่าน DynamoDB ทุกครั้ง"
+    },
+    {
+      "id": "C",
+      "text": "Create a DynamoDB global secondary index with the tournament ID as the partition key and the score as the sort key, and query the index in descending order to return the top 100 players. Use on-demand capacity mode on the table so that it absorbs the write peaks automatically.",
+      "explanation": "ไม่ผ่านด้าน performance: GSI เรียง score ได้แต่ latency อยู่ระดับมิลลิวินาที partition ของแต่ละ tournament จะร้อนมากที่ 400,000 updates ต่อวินาที และ GSI เป็น eventually consistent จึงไม่ได้ microsecond ตามที่ต้องการ"
+    },
+    {
+      "id": "D",
+      "text": "Store the leaderboards in an Amazon ElastiCache (Redis OSS or Valkey) cluster with cluster mode enabled, multiple shards, and read replicas across Availability Zones, use sorted-set commands such as ZINCRBY and ZREVRANGE, and rebuild the leaderboards from DynamoDB if the cache is lost.",
+      "explanation": "ถูก: ElastiCache เก็บข้อมูลใน memory ให้ latency ระดับ sub-millisecond ทั้งอ่านและเขียน sorted sets รองรับการเพิ่มคะแนนแบบ atomic และการหาอันดับโดยตรง cluster mode กระจาย throughput ข้ามหลาย shards และ read replicas รับ reads จำนวนมาก เพราะ leaderboard สร้างใหม่จาก DynamoDB ได้ จึงไม่ต้องจ่าย write latency ของ durable log และใช้ Redis client เดิมได้ทันที"
+    }
+  ],
+  "correctIds": [
+    "D"
+  ],
+  "rationale": "1) ต้องใช้ sorted sets และ latency ระดับ microsecond จึงตัด DAX (B) และ GSI (C) ที่ไม่มีโครงสร้างนี้และช้ากว่า 2) ระหว่าง Redis-compatible สองแบบ: MemoryDB (A) durable แต่ write ต้องรอ Multi-AZ log ส่วน ElastiCache เขียนใน memory ได้เร็วกว่า 3) leaderboard สร้างใหม่ได้ จึงไม่ต้องการ durability 4) D จึงให้ performance สูงสุด",
+  "wrongAnswerHelp": "Start with the explicit business constraint, then eliminate choices that solve a different layer of the architecture or add unnecessary operational work.",
+  "references": [
+    "https://docs.aws.amazon.com/AmazonElastiCache/latest/dg/WhatIs.html",
+    "https://docs.aws.amazon.com/memorydb/latest/devguide/what-is-memorydb.html",
+    "https://docs.aws.amazon.com/AmazonElastiCache/latest/dg/related-services-choose-between-memorydb-and-redis.html"
+  ],
+  "products": [
+    "ElastiCache",
+    "MemoryDB",
+    "DynamoDB",
+    "DAX (DynamoDB Accelerator)"
+  ],
+  "requirements": [
+    "Microsecond reads of top-N rankings",
+    "Sorted-set operations at high write rate",
+    "Rankings can be rebuilt from DynamoDB"
+  ],
+  "review": {
+    "decisiveClue": "400,000 writes/s และ 1.5 ล้าน reads/s, ต้องการ microsecond/sub-ms, ใช้ sorted sets ของ Redis, สร้างใหม่จาก DynamoDB ได้จึงไม่ต้อง durable, ต้องการ performance สูงสุด",
+    "reasoning": "1) ต้องใช้ sorted sets และ latency ระดับ microsecond จึงตัด DAX (B) และ GSI (C) ที่ไม่มีโครงสร้างนี้และช้ากว่า 2) ระหว่าง Redis-compatible สองแบบ: MemoryDB (A) durable แต่ write ต้องรอ Multi-AZ log ส่วน ElastiCache เขียนใน memory ได้เร็วกว่า 3) leaderboard สร้างใหม่ได้ จึงไม่ต้องการ durability 4) D จึงให้ performance สูงสุด",
+    "options": {
+      "A": "ทำงานได้แต่ไม่ใช่ performance สูงสุด: MemoryDB อ่านได้ระดับ microsecond และรองรับ sorted sets แต่ทุก write ต้องบันทึกลง Multi-AZ transaction log ก่อนตอบ ทำให้ write latency สูงกว่า สำหรับ 400,000 updates ต่อวินาทีที่ไม่ต้องการ durability เพราะสร้างใหม่ได้ จึงจ่ายค่า durability โดยไม่ได้ประโยชน์",
+      "B": "ไม่ผ่าน: DAX cache item และ query ของ DynamoDB API แต่ไม่มีโครงสร้าง sorted set หรือคำสั่งหาอันดับ การ scan แล้ว sort ในเซิร์ฟเวอร์ทุกครั้งช้ามากที่ระดับล้าน reads ต่อวินาที และ write ยังต้องผ่าน DynamoDB ทุกครั้ง",
+      "C": "ไม่ผ่านด้าน performance: GSI เรียง score ได้แต่ latency อยู่ระดับมิลลิวินาที partition ของแต่ละ tournament จะร้อนมากที่ 400,000 updates ต่อวินาที และ GSI เป็น eventually consistent จึงไม่ได้ microsecond ตามที่ต้องการ",
+      "D": "ถูก: ElastiCache เก็บข้อมูลใน memory ให้ latency ระดับ sub-millisecond ทั้งอ่านและเขียน sorted sets รองรับการเพิ่มคะแนนแบบ atomic และการหาอันดับโดยตรง cluster mode กระจาย throughput ข้ามหลาย shards และ read replicas รับ reads จำนวนมาก เพราะ leaderboard สร้างใหม่จาก DynamoDB ได้ จึงไม่ต้องจ่าย write latency ของ durable log และใช้ Redis client เดิมได้ทันที"
+    },
+    "references": [
+      {
+        "title": "What is Amazon ElastiCache?",
+        "url": "https://docs.aws.amazon.com/AmazonElastiCache/latest/dg/WhatIs.html"
+      },
+      {
+        "title": "What is Amazon MemoryDB?",
+        "url": "https://docs.aws.amazon.com/memorydb/latest/devguide/what-is-memorydb.html"
+      },
+      {
+        "title": "Choosing between ElastiCache and MemoryDB",
+        "url": "https://docs.aws.amazon.com/AmazonElastiCache/latest/dg/related-services-choose-between-memorydb-and-redis.html"
+      }
+    ],
+    "reviewedAt": "2026-10-29"
+  }
+}

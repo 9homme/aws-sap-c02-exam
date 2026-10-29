@@ -1,0 +1,19 @@
+{
+  "id": "course-41",
+  "scope": "explanations",
+  "verdict": "FIX",
+  "verifiedCorrectIds": [
+    "A"
+  ],
+  "issues": [
+    "review.reasoning: 'ไม่เสียเวลาถกเถียงว่ากำลัง audit ใคร' is not tied to any option; does not explain B/C/D"
+  ],
+  "changes": {
+    "review": {
+      "reasoning": "ก่อน review (Prepare) ผู้นำ review ต้องเข้าใจ Framework และขั้นตอน review เชิญ stakeholders ที่รู้ทั้งด้านเทคนิคและธุรกิจ ส่งบริบทและประโยชน์ของ review ล่วงหน้า แล้วนัดหมาย จึงเลือก A ส่วน B ไม่เชิญเจ้าของแอปหรือฝ่ายธุรกิจ, C รอให้ไม่มี incident ทั้งที่ review มีไว้หาความเสี่ยง และ D เขียนแผนโดยไม่สัมภาษณ์ทีมจึงขาดบริบท"
+    }
+  },
+  "sources": [
+    "https://docs.aws.amazon.com/wellarchitected/latest/framework/the-review-process.html"
+  ]
+}

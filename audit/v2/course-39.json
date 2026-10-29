@@ -1,0 +1,19 @@
+{
+  "id": "course-39",
+  "scope": "explanations",
+  "verdict": "FIX",
+  "verifiedCorrectIds": [
+    "C"
+  ],
+  "issues": [
+    "review.reasoning: 'max speed regardless of resources' is not an option; not tied to A/B/D"
+  ],
+  "changes": {
+    "review": {
+      "reasoning": "Performance Efficiency คือการใช้ computing resources อย่างมีประสิทธิภาพให้ตรง requirement และคงประสิทธิภาพไว้เมื่อ demand และเทคโนโลยีเปลี่ยน จึงเลือก C ส่วน A เลือก storage ถูกสุดโดยไม่ดู response time, B ตรึง architecture เดิมไม่ทบทวนเมื่อเทคโนโลยีพัฒนา และ D เปิด server สูงสุดโดยไม่ดู demand ทำให้สิ้นเปลืองและไม่ใช่ประสิทธิภาพ"
+    }
+  },
+  "sources": [
+    "https://docs.aws.amazon.com/wellarchitected/latest/framework/performance-efficiency.html"
+  ]
+}

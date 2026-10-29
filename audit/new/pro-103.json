@@ -1,0 +1,83 @@
+{
+  "id": "pro-103",
+  "sourceCategory": "professional",
+  "sourceLabel": "AI-authored · Professional multi-requirement",
+  "sourceDetail": "Original multi-constraint scenario — ไม่ให้ order events หายเมื่อ consumer หรือ broker ล่ม",
+  "coreEligible": true,
+  "emerging": false,
+  "domain": "2",
+  "task": "New solution design",
+  "topic": "ไม่ให้ order events หายเมื่อ consumer หรือ broker ล่ม",
+  "type": "multiple-choice",
+  "selectCount": 1,
+  "prompt": "An e-commerce company publishes order events from several microservices to a custom Amazon EventBridge event bus. Rules route the events to a fulfillment service that polls an Amazon SQS queue, to a notification service that is subscribed through Amazon SNS, and to a legacy warehouse system that consumes JMS messages from a single-instance Amazon MQ for ActiveMQ broker. Last month, the fulfillment service was down for 6 hours after a bad deployment, and a code defect corrupted the processing of about 2 hours of events, which had to be reconstructed manually from database records. During a broker maintenance window, the warehouse system also stopped receiving messages for 20 minutes. The company now requires that no order event be lost when any consumer is down for several hours, that events can be reprocessed after a bug fix, and that the warehouse system keep receiving messages during broker maintenance or an Availability Zone failure. The legacy warehouse consumers cannot be rewritten this year. Order volume is about 2 million events per day. Which solution will MINIMIZE data loss and downtime for order processing?",
+  "options": [
+    {
+      "id": "A",
+      "text": "Enable an EventBridge archive on the custom event bus with an appropriate retention period and use replay after fixes, configure the SQS queue with a 14-day retention period and a dead-letter queue, add an SQS dead-letter queue to the SNS subscriptions, and replace the single-instance broker with an Amazon MQ active/standby broker across two Availability Zones.",
+      "explanation": "ถูก: EventBridge archive เก็บ events ไว้และ replay ไปยัง rules ได้หลังแก้ bug จึงไม่ต้องสร้างข้อมูลคืนด้วยมือ SQS เก็บ messages ได้ถึง 14 วันขณะ consumer ล่ม และ DLQ แยก messages ที่ล้มเหลวไว้ DLQ ของ SNS subscription เก็บ notification ที่ส่งไม่สำเร็จ ส่วน active/standby broker ข้ามสอง AZ failover อัตโนมัติระหว่าง maintenance หรือ AZ ล้ม โดย JMS consumers เดิมไม่ต้องเปลี่ยน"
+    },
+    {
+      "id": "B",
+      "text": "Replace the SQS queue with direct SNS subscriptions for the fulfillment service's AWS Lambda functions, configure Lambda asynchronous retries and an on-failure destination, and keep the single-instance broker with a weekly maintenance window outside business hours.",
+      "explanation": "ไม่ผ่าน: การส่งตรงผ่าน SNS ไป Lambda ไม่มี buffer ระยะยาว retry แบบ asynchronous ของ Lambda เก็บ event ได้ไม่เกิน 6 ชั่วโมง และไม่มีการ replay หลังแก้ bug อีกทั้ง single-instance broker ยังหยุดระหว่าง maintenance แม้จะย้ายไปนอกเวลางาน"
+    },
+    {
+      "id": "C",
+      "text": "Replace EventBridge, SNS, and Amazon MQ with a single Amazon Kinesis Data Streams stream with a 7-day retention period, and have every consumer, including the warehouse system, read from the stream with its own checkpoint. Use enhanced fan-out for the consumers that need the lowest latency.",
+      "explanation": "ไม่ผ่าน: Kinesis Data Streams เก็บและ replay ได้จริง แต่ระบบ warehouse ใช้ JMS ที่ไม่สามารถเขียนใหม่ในปีนี้ การบังคับให้ทุก consumer อ่านจาก stream จึงขัดข้อจำกัด และยังเปลี่ยน routing ตาม rules ของ EventBridge ไปเป็นการกรองใน consumer เอง"
+    },
+    {
+      "id": "D",
+      "text": "Increase the EventBridge retry policy to the maximum event age of 24 hours for each target, increase the SQS visibility timeout, and schedule broker maintenance windows during the lowest-traffic hour each week. Add CloudWatch alarms on the queue depth so that the team notices consumer outages sooner.",
+      "explanation": "ไม่ผ่าน: retry ของ EventBridge ช่วยเมื่อส่งไม่สำเร็จชั่วคราว แต่ไม่มี archive ให้ replay หลัง bug ประมวลผลผิด การเพิ่ม visibility timeout ไม่ได้ป้องกันข้อมูลหาย และ single-instance broker ยังหยุดทุกครั้งที่ maintenance หรือ AZ ล้ม"
+    }
+  ],
+  "correctIds": [
+    "A"
+  ],
+  "rationale": "1) ต้อง replay หลังแก้ bug: EventBridge archive and replay ตอบได้ ส่วนการเพิ่ม retry (D) และ Lambda async (B) ไม่ได้เก็บไว้ให้ replay 2) ต้องเก็บ messages ระหว่าง consumer ล่มหลายชั่วโมง: SQS retention + DLQ 3) warehouse ต้องไม่หยุดระหว่าง maintenance: active/standby broker แทน single-instance และต้องคง JMS ไว้ จึงตัด Kinesis (C) 4) A จึงลดทั้งการเสียข้อมูลและ downtime",
+  "wrongAnswerHelp": "Start with the explicit business constraint, then eliminate choices that solve a different layer of the architecture or add unnecessary operational work.",
+  "references": [
+    "https://docs.aws.amazon.com/eventbridge/latest/userguide/eb-archive.html",
+    "https://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/sqs-dead-letter-queues.html",
+    "https://docs.aws.amazon.com/amazon-mq/latest/developer-guide/amazon-mq-broker-architecture.html"
+  ],
+  "products": [
+    "EventBridge",
+    "SNS (Simple Notification Service)",
+    "SQS (Simple Queue Service)",
+    "Amazon MQ",
+    "Kinesis Data Streams"
+  ],
+  "requirements": [
+    "No order event lost when consumers are down for hours",
+    "Replay events after a bug fix",
+    "Legacy JMS consumers survive broker maintenance"
+  ],
+  "review": {
+    "decisiveClue": "consumer ล่มหลายชั่วโมงต้องไม่เสีย event, ต้อง replay หลังแก้ bug, warehouse JMS ต้องรับต่อระหว่าง maintenance/AZ ล้ม, ห้ามเขียน consumer เดิมใหม่",
+    "reasoning": "1) ต้อง replay หลังแก้ bug: EventBridge archive and replay ตอบได้ ส่วนการเพิ่ม retry (D) และ Lambda async (B) ไม่ได้เก็บไว้ให้ replay 2) ต้องเก็บ messages ระหว่าง consumer ล่มหลายชั่วโมง: SQS retention + DLQ 3) warehouse ต้องไม่หยุดระหว่าง maintenance: active/standby broker แทน single-instance และต้องคง JMS ไว้ จึงตัด Kinesis (C) 4) A จึงลดทั้งการเสียข้อมูลและ downtime",
+    "options": {
+      "A": "ถูก: EventBridge archive เก็บ events ไว้และ replay ไปยัง rules ได้หลังแก้ bug จึงไม่ต้องสร้างข้อมูลคืนด้วยมือ SQS เก็บ messages ได้ถึง 14 วันขณะ consumer ล่ม และ DLQ แยก messages ที่ล้มเหลวไว้ DLQ ของ SNS subscription เก็บ notification ที่ส่งไม่สำเร็จ ส่วน active/standby broker ข้ามสอง AZ failover อัตโนมัติระหว่าง maintenance หรือ AZ ล้ม โดย JMS consumers เดิมไม่ต้องเปลี่ยน",
+      "B": "ไม่ผ่าน: การส่งตรงผ่าน SNS ไป Lambda ไม่มี buffer ระยะยาว retry แบบ asynchronous ของ Lambda เก็บ event ได้ไม่เกิน 6 ชั่วโมง และไม่มีการ replay หลังแก้ bug อีกทั้ง single-instance broker ยังหยุดระหว่าง maintenance แม้จะย้ายไปนอกเวลางาน",
+      "C": "ไม่ผ่าน: Kinesis Data Streams เก็บและ replay ได้จริง แต่ระบบ warehouse ใช้ JMS ที่ไม่สามารถเขียนใหม่ในปีนี้ การบังคับให้ทุก consumer อ่านจาก stream จึงขัดข้อจำกัด และยังเปลี่ยน routing ตาม rules ของ EventBridge ไปเป็นการกรองใน consumer เอง",
+      "D": "ไม่ผ่าน: retry ของ EventBridge ช่วยเมื่อส่งไม่สำเร็จชั่วคราว แต่ไม่มี archive ให้ replay หลัง bug ประมวลผลผิด การเพิ่ม visibility timeout ไม่ได้ป้องกันข้อมูลหาย และ single-instance broker ยังหยุดทุกครั้งที่ maintenance หรือ AZ ล้ม"
+    },
+    "references": [
+      {
+        "title": "Archiving and replaying events in EventBridge",
+        "url": "https://docs.aws.amazon.com/eventbridge/latest/userguide/eb-archive.html"
+      },
+      {
+        "title": "Amazon SQS dead-letter queues",
+        "url": "https://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/sqs-dead-letter-queues.html"
+      },
+      {
+        "title": "Amazon MQ for ActiveMQ broker deployment options",
+        "url": "https://docs.aws.amazon.com/amazon-mq/latest/developer-guide/amazon-mq-broker-architecture.html"
+      }
+    ],
+    "reviewedAt": "2026-10-29"
+  }
+}

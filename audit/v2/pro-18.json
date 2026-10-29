@@ -1,0 +1,60 @@
+{
+  "id": "pro-18",
+  "scope": "full",
+  "verdict": "FIX",
+  "originalCorrectIds": [
+    "B"
+  ],
+  "verifiedCorrectIds": [
+    "B"
+  ],
+  "issues": [
+    "options: ตัวลวงเดิมผิดอย่างชัดเจน (อ้างความสามารถที่บริการไม่มี) ทำให้ตอบได้จากการจำชื่อบริการ ไม่ใช่ระดับ SAP-C02 Professional; เขียนใหม่ให้แต่ละตัวลวงทำงานได้จริงบางส่วนแต่ตกเงื่อนไขหนึ่งข้อ",
+    "prompt: ลบประโยค boilerplate (architecture review board / workable for the stated environment)",
+    "review.reasoning: เดิมคัดลอก requirement ภาษาอังกฤษมาต่อกัน ไม่ได้อธิบายการตัดตัวเลือก"
+  ],
+  "changes": {
+    "prompt": "A B2B analytics vendor operates three distinct services across two Availability Zones: a public HTTPS API with host- and path-based routing, a proprietary TCP ingestion protocol whose clients require TLS pass-through and a stable destination, and a fleet of transparent third-party inspection appliances that need to scale horizontally on the network path. A large customer also wants to consume the proprietary endpoint privately from another AWS account, without opening inbound access from the internet. Platform operators must keep appliance lifecycle management independent from the API targets. The solution must meet all of the following requirements: (1) Use HTTP layer-7 rules for the API and a layer-4 TCP service for proprietary ingestion; (2) Distribute traffic transparently to security appliances using an appliance-friendly load balancer; (3) Expose the proprietary service privately across account boundaries without routing the full remote VPC. Which solution meets these requirements with the LEAST operational overhead?",
+    "options": {
+      "A": {
+        "text": "Use an ALB for the HTTP API, an NLB with a TLS listener that terminates TLS for the proprietary TCP protocol and is published as a PrivateLink endpoint service, and a Gateway Load Balancer for the inspection appliances.",
+        "explanation": "ตกข้อ (1): โครงสร้างโดยรวมถูก แต่ client ของ protocol นี้ต้องการ TLS pass-through การใช้ TLS listener บน NLB จะถอดรหัสที่ load balancer ทำให้ backend ไม่ได้ TLS session เดิม ต้องใช้ TCP listener เพื่อส่ง TLS ผ่านไปยัง target"
+      },
+      "B": {
+        "text": "Use ALB for the HTTP API, NLB for the TCP endpoint and PrivateLink endpoint service, and GWLB for transparent inspection appliance fleets.",
+        "explanation": "ถูก: ALB ใช้ host/path rules ระดับ layer 7 NLB ที่มี TCP listener ส่ง TLS ผ่านไปยัง target และมี static IP ต่อ AZ ทั้งยังเป็น load balancer ที่ใช้ทำ PrivateLink endpoint service ให้ลูกค้าอีกบัญชีเข้าถึงแบบ private ได้ ส่วน GWLB กระจาย traffic แบบ transparent ไปยัง appliances ด้วย GENEVE และ scale แยกจาก API ได้"
+      },
+      "C": {
+        "text": "Use an ALB for the HTTP API and an NLB with a TCP listener published as a PrivateLink endpoint service. Place the inspection appliances behind a second NLB, disable source/destination checks on the appliances, and route traffic through the NLB.",
+        "explanation": "ตกข้อ (2): ALB และ NLB/PrivateLink ถูกต้อง แต่ NLB ไม่ได้ออกแบบให้เป็นจุด bump-in-the-wire บน route table และไม่ได้คง packet เดิมพร้อม flow stickiness แบบ GWLB ที่ใช้ GENEVE การวาง appliances หลัง NLB จึงไม่ transparent และจัดการ return path ยาก"
+      },
+      "D": {
+        "text": "Use an ALB for the HTTP API, an NLB with a TCP listener for the proprietary service, and a Gateway Load Balancer for the appliances. Give the customer access through a VPC peering connection and security group rules that allow only the NLB.",
+        "explanation": "ตกข้อ (3): load balancer ครบทั้งสามชนิด แต่ VPC peering สร้าง routing ระหว่างทั้งสอง VPC ซึ่งโจทย์ห้าม และใช้ไม่ได้ถ้า CIDR ซ้อนกัน การจำกัดด้วย security group ไม่ได้ลดขอบเขต routing ส่วน PrivateLink endpoint service เปิดเฉพาะ service นั้นทางเดียว"
+      }
+    },
+    "review": {
+      "decisiveClue": "API ต้องการ layer 7 rules, TCP ต้อง TLS pass-through, appliances ต้องเป็น transparent, ลูกค้าอีกบัญชีต้องเข้าแบบ private โดยไม่ route ทั้ง VPC",
+      "reasoning": "1) จับคู่ load balancer กับ layer: HTTP host/path = ALB, TCP pass-through = NLB แบบ TCP listener (ไม่ใช่ TLS listener ใน A), transparent appliances = GWLB (ไม่ใช่ NLB ใน C) 2) การเปิดให้อีกบัญชีใช้แบบ private โดยไม่ route ทั้ง VPC คือ PrivateLink endpoint service ที่อยู่หน้า NLB ไม่ใช่ peering (D) 3) B เป็นข้อเดียวที่ทุกชิ้นตรงกับ requirement ของตน",
+      "references": [
+        {
+          "title": "What is Elastic Load Balancing?",
+          "url": "https://docs.aws.amazon.com/elasticloadbalancing/latest/userguide/what-is-load-balancing.html"
+        },
+        {
+          "title": "What is a Gateway Load Balancer?",
+          "url": "https://docs.aws.amazon.com/elasticloadbalancing/latest/gateway/introduction.html"
+        },
+        {
+          "title": "Share your services through AWS PrivateLink",
+          "url": "https://docs.aws.amazon.com/vpc/latest/privatelink/privatelink-share-your-services.html"
+        }
+      ]
+    }
+  },
+  "sources": [
+    "https://docs.aws.amazon.com/elasticloadbalancing/latest/userguide/what-is-load-balancing.html",
+    "https://docs.aws.amazon.com/elasticloadbalancing/latest/gateway/introduction.html",
+    "https://docs.aws.amazon.com/vpc/latest/privatelink/privatelink-share-your-services.html"
+  ]
+}

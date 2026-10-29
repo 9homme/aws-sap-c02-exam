@@ -1,0 +1,60 @@
+{
+  "id": "pro-14",
+  "scope": "full",
+  "verdict": "FIX",
+  "originalCorrectIds": [
+    "B"
+  ],
+  "verifiedCorrectIds": [
+    "B"
+  ],
+  "issues": [
+    "options: ตัวลวงเดิมผิดอย่างชัดเจน (อ้างความสามารถที่บริการไม่มี) ทำให้ตอบได้จากการจำชื่อบริการ ไม่ใช่ระดับ SAP-C02 Professional; เขียนใหม่ให้แต่ละตัวลวงทำงานได้จริงบางส่วนแต่ตกเงื่อนไขหนึ่งข้อ",
+    "prompt: ลบประโยค boilerplate (architecture review board / workable for the stated environment)",
+    "review.reasoning: เดิมคัดลอก requirement ภาษาอังกฤษมาต่อกัน ไม่ได้อธิบายการตัดตัวเลือก"
+  ],
+  "changes": {
+    "prompt": "A SaaS provider has an Organization with production and sandbox organizational units across many AWS Regions. Security reviewers found that teams sometimes disable EBS encryption defaults or create publicly accessible resources after their accounts pass initial onboarding. New accounts also appear every month, and the company cannot rely on each development team to configure rules individually. Engineering needs to detect violations, retain configuration history for audits, and automatically apply preapproved fixes only for narrowly identified violations. Remediation must operate under explicit IAM execution roles, and infrastructure deployments still use versioned CloudFormation templates. The solution must meet all of the following requirements: (1) Detect actual resource-configuration noncompliance across participating accounts and Regions; (2) Trigger narrowly scoped automated corrective actions using approved operational documents; (3) Retain change history and avoid replacing drift detection with deployment-time validation. Which solution meets these requirements with the LEAST operational overhead?",
+    "options": {
+      "A": {
+        "text": "Validate every CloudFormation template with AWS CloudFormation Guard rules and CloudFormation Hooks before deployment, and run CloudFormation drift detection on a schedule to find changes made outside the templates.",
+        "explanation": "ตกข้อ (1)(3): การตรวจ template ก่อน deploy ป้องกันค่าที่ผิดใน template ได้ แต่ไม่ได้ตรวจสถานะจริงของ resource ที่สร้างหรือแก้นอก CloudFormation และ drift detection ครอบคลุมเฉพาะ resource ใน stack ไม่มี configuration history ระดับองค์กร ซึ่งโจทย์ห้ามใช้ deployment-time validation แทน"
+      },
+      "B": {
+        "text": "Configure AWS Config organization rules and aggregators with Systems Manager Automation remediation documents and controlled execution roles.",
+        "explanation": "ถูก: Config บันทึก configuration history และประเมิน resource จริงในทุกบัญชี/Region ที่ recorder ทำงาน organization rules ครอบคลุมบัญชีใหม่ aggregator ให้มุมมองรวม ส่วน remediation ผูก rule แต่ละตัวกับ Automation runbook ที่อนุมัติและ execution role ที่จำกัดสิทธิ์ จึงแก้เฉพาะ violation ที่ระบุ ไม่กระทบการ deploy ด้วย CloudFormation"
+      },
+      "C": {
+        "text": "Configure AWS Config organization rules and an aggregator, and send all noncompliant evaluations through Amazon EventBridge to an AWS Lambda function with AdministratorAccess that modifies any noncompliant resource to a compliant state.",
+        "explanation": "ตกข้อ (2): ส่วนการตรวจจับและ history ถูกต้อง แต่ Lambda ที่มี AdministratorAccess และแก้ทุก resource ที่ noncompliant เป็น custom code ที่ไม่ได้จำกัดเฉพาะ violation ที่อนุมัติ และไม่ใช้ approved operational documents กับ execution role ที่จำกัดสิทธิ์ตามโจทย์"
+      },
+      "D": {
+        "text": "Create Amazon EventBridge rules in each account that match CloudTrail events such as DisableEbsEncryptionByDefault and public-access changes, and start Systems Manager Automation runbooks to revert the change.",
+        "explanation": "ตกข้อ (1)(3): ใช้ approved runbooks ได้ แต่เป็นการตอบ API event ไม่ใช่การประเมินสถานะจริง resource ที่ผิดอยู่ก่อนแล้วหรือเปลี่ยนด้วยวิธีที่ไม่ตรง pattern จะไม่ถูกตรวจ ไม่มี configuration history สำหรับ audit และต้องดูแล rule ในทุกบัญชี/Region เอง"
+      }
+    },
+    "review": {
+      "decisiveClue": "ตรวจสถานะจริงของ resource ทั้งองค์กร, แก้อัตโนมัติด้วย runbook ที่อนุมัติและ role จำกัด, ต้องมี configuration history และห้ามใช้การตรวจตอน deploy แทน",
+      "reasoning": "1) ข้อ (1)(3) ต้องการ configuration state + history ซึ่งเป็นหน้าที่ของ AWS Config ไม่ใช่การตรวจ template (A) หรือการจับ API events (D) 2) ข้อ (2) remediation ต้องจำกัดเฉพาะ violation ที่อนุมัติด้วย Automation runbooks และ execution role ที่กำหนด ไม่ใช่ Lambda สิทธิ์ admin ที่แก้ทุกอย่าง (C) 3) B ใช้ organization rules ครอบคลุมบัญชีใหม่, aggregator ให้ภาพรวม และ remediation configuration ต่อ rule ครบทั้งสามข้อ",
+      "references": [
+        {
+          "title": "Remediating noncompliant resources with AWS Config",
+          "url": "https://docs.aws.amazon.com/config/latest/developerguide/remediation.html"
+        },
+        {
+          "title": "Managing AWS Config rules across all accounts in your organization",
+          "url": "https://docs.aws.amazon.com/config/latest/developerguide/config-rule-multi-account-deployment.html"
+        },
+        {
+          "title": "Detecting unmanaged configuration changes with drift detection",
+          "url": "https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-stack-drift.html"
+        }
+      ]
+    }
+  },
+  "sources": [
+    "https://docs.aws.amazon.com/config/latest/developerguide/remediation.html",
+    "https://docs.aws.amazon.com/config/latest/developerguide/config-rule-multi-account-deployment.html",
+    "https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-stack-drift.html"
+  ]
+}

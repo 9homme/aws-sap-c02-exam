@@ -1,0 +1,23 @@
+{
+  "id": "w8-54",
+  "scope": "explanations",
+  "verdict": "FIX",
+  "verifiedCorrectIds": [
+    "A"
+  ],
+  "issues": [
+    "options.D.explanation: คลุมเครือ ไม่ระบุว่าตาม AWS docs Evaluate Target Health ของ alias ไป API Gateway จะ fail เมื่อ API Gateway service ใน Region ล่มเท่านั้น ไม่เห็นปัญหาของ API/microservice เองหรือ CloudWatch metrics"
+  ],
+  "changes": {
+    "options": {
+      "D": {
+        "explanation": "Evaluate Target Health บน alias ไป API Gateway จะ fail เฉพาะตอนบริการ API Gateway ใน Region นั้นล่ม ไม่เห็น API หรือ microservice ที่พังบางส่วน และไม่ใช้ CloudWatch metrics ที่โจทย์มี จึงไม่ตอบ partial failure"
+      }
+    }
+  },
+  "sources": [
+    "https://docs.aws.amazon.com/apigateway/latest/developerguide/dns-failover.html",
+    "https://docs.aws.amazon.com/r53recovery/latest/dg/routing-control.html",
+    "https://docs.aws.amazon.com/r53recovery/latest/dg/readiness-what-is.html"
+  ]
+}

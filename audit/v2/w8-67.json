@@ -1,0 +1,30 @@
+{
+  "id": "w8-67",
+  "scope": "explanations",
+  "verdict": "FIX",
+  "verifiedCorrectIds": [
+    "B"
+  ],
+  "issues": [
+    "options.A.explanation: คลุมเครือ ไม่บอกว่าจ่ายค่า monitoring โดยไม่จำเป็นเมื่อ access pattern รู้ล่วงหน้า",
+    "options.B.explanation: ประโยคท้าย 'ต้องเลือกระดับ retrieval' กว้างและไม่ระบุเวลา Standard retrieval 3-5 ชม.",
+    "options.D.explanation: ไม่ชัดว่าล้มเพราะ Deep Archive ใช้เวลา restore เกิน 5 ชม. และ Standard-IA แพงกว่า One Zone-IA โดยไม่จำเป็น"
+  ],
+  "changes": {
+    "options": {
+      "A": {
+        "explanation": "Intelligent-Tiering เหมาะกับ access pattern ที่คาดเดาไม่ได้ และมีค่า monitoring/automation ต่อ object แต่ในโจทย์รู้ pattern ล่วงหน้า (อ่านทุกวัน 60 วัน แล้วเบาลง) การกำหนด lifecycle ไปยัง storage class ตรง ๆ จึงถูกกว่าเพราะไม่ต้องจ่ายค่า monitoring และ Standard ไม่มี retrieval fee ในช่วงอ่านบ่อย"
+      },
+      "B": {
+        "explanation": "Standard ช่วง 60 วันแรกที่อ่านทุกวัน (ไม่มี retrieval fee) แล้วย้ายไป One Zone-IA เมื่ออ่านน้อยลง ซึ่งถูกกว่า Standard-IA และรับ risk AZ เดียวได้เพราะไฟล์ recreate ได้ จากนั้นย้ายไป Glacier Flexible Retrieval ที่ restore แบบ Standard ประมาณ 3-5 ชม. ตรงกรอบ 5 ชั่วโมง จึงถูกที่สุด"
+      },
+      "D": {
+        "explanation": "Glacier Deep Archive ตกเพราะ restore แบบ Standard ใช้ได้ภายในประมาณ 12 ชม. (Bulk นานกว่านั้น) เกินกรอบ 5 ชั่วโมงของ policy นอกจากนี้ช่วงกลางใช้ Standard-IA ที่เก็บหลาย AZ และแพงกว่า One Zone-IA ทั้งที่ไฟล์ recreate ได้อยู่แล้ว จึงไม่คุ้มค่าที่สุด"
+      }
+    }
+  },
+  "sources": [
+    "https://docs.aws.amazon.com/AmazonS3/latest/userguide/restoring-objects-retrieval-options.html",
+    "https://docs.aws.amazon.com/AmazonS3/latest/userguide/storage-class-intro.html"
+  ]
+}

@@ -1,0 +1,60 @@
+{
+  "id": "pro-26",
+  "scope": "full",
+  "verdict": "FIX",
+  "originalCorrectIds": [
+    "A"
+  ],
+  "verifiedCorrectIds": [
+    "A"
+  ],
+  "issues": [
+    "options: ตัวลวงเดิมผิดอย่างชัดเจน (อ้างความสามารถที่บริการไม่มี) ทำให้ตอบได้จากการจำชื่อบริการ ไม่ใช่ระดับ SAP-C02 Professional; เขียนใหม่ให้แต่ละตัวลวงทำงานได้จริงบางส่วนแต่ตกเงื่อนไขหนึ่งข้อ",
+    "prompt: ลบประโยค boilerplate (architecture review board / workable for the stated environment)",
+    "review.reasoning: เดิมคัดลอก requirement ภาษาอังกฤษมาต่อกัน ไม่ได้อธิบายการตัดตัวเลือก"
+  ],
+  "changes": {
+    "prompt": "A manufacturing company has a network-attached file server inside its plant. Legacy controllers must keep reading files through SMB during a staged cloud migration and need low-latency access to frequently used content onsite. IT also needs an accelerated one-time movement of several hundred terabytes of historical directories to AWS, including permissions and verification, without leaving new agents on every machine indefinitely. Once application volumes are hosted in AWS, the security team wants centralized backup plans, cross-account recovery controls, and retention policies instead of hand-written snapshot cron jobs. The solution must meet all of the following requirements: (1) Keep an on-premises file interface with local caching for workloads not yet migrated; (2) Perform controlled high-volume data transfer into AWS with validation and metadata handling; (3) Centralize scheduled backups and retention for supported AWS resources after migration. Which solution meets these requirements with the LEAST operational overhead?",
+    "options": {
+      "A": {
+        "text": "Use Storage Gateway File Gateway for on-site SMB caching and S3-backed files, AWS DataSync for bulk transfer jobs, and AWS Backup for supported AWS backup plans.",
+        "explanation": "ถูก: S3 File Gateway ให้ SMB share ภายในโรงงานพร้อม local cache สำหรับไฟล์ที่ใช้บ่อย โดยเก็บข้อมูลจริงใน S3 DataSync ย้ายข้อมูลหลายร้อย TB พร้อม metadata, การตรวจสอบความถูกต้อง และการจำกัด bandwidth ผ่าน agent ที่ลบได้เมื่อย้ายเสร็จ ส่วน AWS Backup ใช้ backup plans, vault และ cross-account copy แทน cron scripts ต้องวางแผน ACL ของ SMB ให้สอดคล้องกับ AD"
+      },
+      "B": {
+        "text": "Use an S3 File Gateway for on-site SMB caching and AWS DataSync for the historical transfer. After migration, run Amazon EventBridge Scheduler rules that invoke AWS Lambda functions in each account to create snapshots and delete old ones.",
+        "explanation": "ตกข้อ (3): สองส่วนแรกถูกต้อง แต่การสร้าง snapshot ด้วย Lambda ตามตารางคือ hand-written cron jobs ที่ security ต้องการเลิกใช้ ต้องดูแล code ในทุกบัญชีเอง และไม่มี backup policy, vault lock หรือ cross-account recovery controls แบบรวมศูนย์ของ AWS Backup"
+      },
+      "C": {
+        "text": "Use AWS DataSync to move all directories to Amazon FSx for Windows File Server in AWS, point the plant controllers to the FSx share over the existing VPN, and protect FSx and other resources with AWS Backup.",
+        "explanation": "ตกข้อ (1): DataSync และ AWS Backup ถูกต้อง แต่ controllers ต้องการ low-latency access ภายในโรงงาน การให้ทุกการอ่านไฟล์วิ่งผ่าน VPN ไปยัง AWS ทำให้ latency สูงและขึ้นกับ WAN ตลอดเวลา โดยไม่มี local cache สำหรับเนื้อหาที่ใช้บ่อย"
+      },
+      "D": {
+        "text": "Deploy an S3 File Gateway, copy the several hundred terabytes of historical directories into the gateway's SMB share with Robocopy so that the gateway uploads them to Amazon S3, and use AWS Backup for the migrated AWS resources.",
+        "explanation": "ตกข้อ (2): File Gateway ตอบเรื่อง SMB caching และ AWS Backup ถูกต้อง แต่การใช้ gateway เป็นช่องทางย้ายข้อมูลจำนวนมากต้องผ่าน local cache ที่จำกัด อัปโหลดแบบ asynchronous และไม่มีการตรวจสอบ transfer แบบ end-to-end เหมือน DataSync งานย้ายจึงช้าและควบคุมยาก"
+      }
+    },
+    "review": {
+      "decisiveClue": "controllers ต้องใช้ SMB พร้อม local cache, ย้ายหลายร้อย TB พร้อม metadata และ verification, backup รวมศูนย์แทน cron scripts",
+      "reasoning": "1) แยกสามหน้าที่: hybrid file access, bulk migration และ backup governance 2) ข้อ (1) ต้องมี local cache ในโรงงาน = S3 File Gateway ไม่ใช่ให้ทุกการอ่านวิ่งไป AWS (C) 3) ข้อ (2) การย้ายข้อมูลจำนวนมากพร้อม verification = DataSync ไม่ใช่ copy ผ่าน gateway (D) 4) ข้อ (3) ต้องใช้ AWS Backup แทน Lambda/cron (B) A จึงใช้บริการที่ถูกต้องในแต่ละหน้าที่",
+      "references": [
+        {
+          "title": "What is Amazon S3 File Gateway?",
+          "url": "https://docs.aws.amazon.com/filegateway/latest/files3/what-is-file-s3.html"
+        },
+        {
+          "title": "How AWS DataSync verifies data integrity",
+          "url": "https://docs.aws.amazon.com/datasync/latest/userguide/configure-data-verification-options.html"
+        },
+        {
+          "title": "What is AWS Backup?",
+          "url": "https://docs.aws.amazon.com/aws-backup/latest/devguide/whatisbackup.html"
+        }
+      ]
+    }
+  },
+  "sources": [
+    "https://docs.aws.amazon.com/filegateway/latest/files3/what-is-file-s3.html",
+    "https://docs.aws.amazon.com/datasync/latest/userguide/configure-data-verification-options.html",
+    "https://docs.aws.amazon.com/aws-backup/latest/devguide/whatisbackup.html"
+  ]
+}

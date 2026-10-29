@@ -1,0 +1,82 @@
+{
+  "id": "pro-106",
+  "sourceCategory": "professional",
+  "sourceLabel": "AI-authored · Professional multi-requirement",
+  "sourceDetail": "Original multi-constraint scenario — อัปเกรด Elastic Beanstalk และ RDS major version แบบ near-zero downtime",
+  "coreEligible": true,
+  "emerging": false,
+  "domain": "2",
+  "task": "New solution design",
+  "topic": "อัปเกรด Elastic Beanstalk และ RDS major version แบบ near-zero downtime",
+  "type": "multiple-choice",
+  "selectCount": 1,
+  "prompt": "A subscription company runs its customer portal on AWS Elastic Beanstalk with a Node.js platform version that reaches end of support next month. The portal uses an Amazon RDS for PostgreSQL 13 Multi-AZ DB instance that was created separately from the Beanstalk environment, and PostgreSQL 13 also reaches end of standard support soon. The company must upgrade both the platform and the database to PostgreSQL 16. The portal serves customers in every time zone, so there is no acceptable maintenance window, and the business wants near-zero downtime and the ability to roll back quickly if the new version causes problems. Customers must keep using the same hostname, portal.example.com, which is a Route 53 alias record. The team has tested the application against the new platform and PostgreSQL 16 in a staging environment. The database is 2 TB and receives writes continuously. The Beanstalk environment runs six instances behind an Application Load Balancer. The application connects to the database through the RDS endpoint name, which is stored in an environment property. Which solution will MINIMIZE downtime during the upgrade?",
+  "options": [
+    {
+      "id": "A",
+      "text": "Update the Beanstalk environment to the new platform version in place with the all-at-once deployment policy, and then modify the RDS DB instance to PostgreSQL 16 with the apply-immediately option. Monitor the environment health in the Beanstalk console during both changes.",
+      "explanation": "ไม่ผ่าน: การอัปเดต platform แบบ all-at-once ทำให้ทุก instance หยุดพร้อมกัน และ major version upgrade แบบ in-place ทำให้ database ใช้งานไม่ได้ตลอดกระบวนการอัปเกรดซึ่งอาจนานหลายนาทีถึงชั่วโมงสำหรับ 2 TB ทั้งยัง rollback ได้ยาก"
+    },
+    {
+      "id": "B",
+      "text": "Use a rolling platform update for the Beanstalk environment, and take a snapshot of the RDS DB instance, restore it to a new DB instance running PostgreSQL 16, and point the application to the new instance after the restore completes. Update the environment property with the new endpoint name.",
+      "explanation": "ไม่ผ่าน: rolling update ลดผลกระทบฝั่ง application ได้ แต่ database ที่รับ write ตลอดเวลาจะมีข้อมูลใหม่หลัง snapshot ที่ไม่ได้ย้ายไป การชี้แอปไป instance ใหม่จึงเสียข้อมูลหรือต้องหยุด write นานระหว่าง restore และ upgrade"
+    },
+    {
+      "id": "C",
+      "text": "Create an RDS Blue/Green Deployment that upgrades the green database to PostgreSQL 16, clone the Beanstalk environment to a new environment on the new platform version, test the green stack, switch over the RDS Blue/Green Deployment, and swap the environment CNAMEs, keeping the old environment available for rollback.",
+      "explanation": "ถูก: RDS Blue/Green สร้าง green database ที่อัปเกรดแล้วและ replicate การเปลี่ยนแปลงจาก blue อย่างต่อเนื่อง switchover ใช้เวลาโดยทั่วไปไม่ถึงหนึ่งนาทีและคง endpoint เดิม ฝั่ง Beanstalk การ clone environment บน platform ใหม่แล้ว swap CNAME ย้าย traffic ได้ทันทีโดย hostname ไม่เปลี่ยน environment เก่ายังอยู่ให้สลับกลับได้เร็ว"
+    },
+    {
+      "id": "D",
+      "text": "Build a new Beanstalk environment and a new PostgreSQL 16 DB instance, replicate the data with AWS DMS, create Route 53 weighted records that shift 10% of users to the new stack every hour, and stop replication after all users move. Delete the old environment and database after one week.",
+      "explanation": "ไม่ผ่าน: การแบ่ง users ระหว่างสอง database ที่ต่างฝ่ายรับ write ทำให้ข้อมูลไม่สอดคล้อง เพราะ DMS replicate ทางเดียว และ weighted DNS ขึ้นกับ TTL/cache ทำให้ควบคุมการย้ายไม่แม่นยำ ทั้งซับซ้อนและเสี่ยงกว่าเครื่องมือ blue/green ที่มีอยู่"
+    }
+  ],
+  "correctIds": [
+    "C"
+  ],
+  "rationale": "1) in-place ทั้งสองส่วน (A) ทำให้ downtime ยาว 2) snapshot/restore (B) เสียข้อมูลที่เขียนหลัง snapshot 3) weighted DNS กับสอง database (D) ทำให้ข้อมูลแยกกัน 4) RDS Blue/Green replicate ต่อเนื่องและ switchover ไม่ถึงนาที ส่วน Beanstalk clone + swap CNAME ย้าย traffic ทันทีและสลับกลับได้ C จึงลด downtime ได้มากที่สุด",
+  "wrongAnswerHelp": "Start with the explicit business constraint, then eliminate choices that solve a different layer of the architecture or add unnecessary operational work.",
+  "references": [
+    "https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/blue-green-deployments.html",
+    "https://docs.aws.amazon.com/elasticbeanstalk/latest/dg/using-features.CNAMESwap.html",
+    "https://docs.aws.amazon.com/elasticbeanstalk/latest/dg/using-features.platform.upgrade.html"
+  ],
+  "products": [
+    "Elastic Beanstalk",
+    "RDS",
+    "Aurora",
+    "Route 53"
+  ],
+  "requirements": [
+    "Upgrade app platform and database major version",
+    "Near-zero downtime with fast rollback",
+    "Same endpoint for users"
+  ],
+  "review": {
+    "decisiveClue": "อัปเกรดทั้ง Beanstalk platform และ PostgreSQL 13→16, ไม่มี maintenance window, rollback เร็ว, hostname เดิม, database 2 TB รับ write ตลอด",
+    "reasoning": "1) in-place ทั้งสองส่วน (A) ทำให้ downtime ยาว 2) snapshot/restore (B) เสียข้อมูลที่เขียนหลัง snapshot 3) weighted DNS กับสอง database (D) ทำให้ข้อมูลแยกกัน 4) RDS Blue/Green replicate ต่อเนื่องและ switchover ไม่ถึงนาที ส่วน Beanstalk clone + swap CNAME ย้าย traffic ทันทีและสลับกลับได้ C จึงลด downtime ได้มากที่สุด",
+    "options": {
+      "A": "ไม่ผ่าน: การอัปเดต platform แบบ all-at-once ทำให้ทุก instance หยุดพร้อมกัน และ major version upgrade แบบ in-place ทำให้ database ใช้งานไม่ได้ตลอดกระบวนการอัปเกรดซึ่งอาจนานหลายนาทีถึงชั่วโมงสำหรับ 2 TB ทั้งยัง rollback ได้ยาก",
+      "B": "ไม่ผ่าน: rolling update ลดผลกระทบฝั่ง application ได้ แต่ database ที่รับ write ตลอดเวลาจะมีข้อมูลใหม่หลัง snapshot ที่ไม่ได้ย้ายไป การชี้แอปไป instance ใหม่จึงเสียข้อมูลหรือต้องหยุด write นานระหว่าง restore และ upgrade",
+      "C": "ถูก: RDS Blue/Green สร้าง green database ที่อัปเกรดแล้วและ replicate การเปลี่ยนแปลงจาก blue อย่างต่อเนื่อง switchover ใช้เวลาโดยทั่วไปไม่ถึงหนึ่งนาทีและคง endpoint เดิม ฝั่ง Beanstalk การ clone environment บน platform ใหม่แล้ว swap CNAME ย้าย traffic ได้ทันทีโดย hostname ไม่เปลี่ยน environment เก่ายังอยู่ให้สลับกลับได้เร็ว",
+      "D": "ไม่ผ่าน: การแบ่ง users ระหว่างสอง database ที่ต่างฝ่ายรับ write ทำให้ข้อมูลไม่สอดคล้อง เพราะ DMS replicate ทางเดียว และ weighted DNS ขึ้นกับ TTL/cache ทำให้ควบคุมการย้ายไม่แม่นยำ ทั้งซับซ้อนและเสี่ยงกว่าเครื่องมือ blue/green ที่มีอยู่"
+    },
+    "references": [
+      {
+        "title": "Using Amazon RDS Blue/Green Deployments for database updates",
+        "url": "https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/blue-green-deployments.html"
+      },
+      {
+        "title": "Blue/Green deployments with Elastic Beanstalk",
+        "url": "https://docs.aws.amazon.com/elasticbeanstalk/latest/dg/using-features.CNAMESwap.html"
+      },
+      {
+        "title": "Elastic Beanstalk platform updates",
+        "url": "https://docs.aws.amazon.com/elasticbeanstalk/latest/dg/using-features.platform.upgrade.html"
+      }
+    ],
+    "reviewedAt": "2026-10-29"
+  }
+}

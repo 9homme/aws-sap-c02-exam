@@ -1,0 +1,60 @@
+{
+  "id": "pro-47",
+  "scope": "full",
+  "verdict": "FIX",
+  "originalCorrectIds": [
+    "B"
+  ],
+  "verifiedCorrectIds": [
+    "B"
+  ],
+  "issues": [
+    "options: ตัวลวงเดิมผิดอย่างชัดเจน (อ้างความสามารถที่บริการไม่มี) ทำให้ตอบได้จากการจำชื่อบริการ ไม่ใช่ระดับ SAP-C02 Professional; เขียนใหม่ให้แต่ละตัวลวงทำงานได้จริงบางส่วนแต่ตกเงื่อนไขหนึ่งข้อ",
+    "prompt: ลบประโยค boilerplate (architecture review board / workable for the stated environment)",
+    "review.reasoning: เดิมคัดลอก requirement ภาษาอังกฤษมาต่อกัน ไม่ได้อธิบายการตัดตัวเลือก"
+  ],
+  "changes": {
+    "prompt": "A digital agency manages two unrelated customer environments. One is a predictable low-traffic brochure website with a simple monthly budget and no complex deployment pipeline. The other is a production web application with fluctuating traffic across multiple Availability Zones, managed rolling deployments, environment configuration, and automated capacity scaling behind a load balancer. The agency is comfortable maintaining application code but cannot justify building a custom deployment framework or a Kubernetes control plane for the second service. The owner requires an architecture that does not over-engineer the brochure site while protecting availability for the production system. The solution must meet all of the following requirements: (1) Minimize administration and predictable package pricing for the static low-traffic brochure workload; (2) Use managed web environment deployment and autoscaling with multi-AZ load balancing for the production application; (3) Avoid custom orchestration for application deployment and health replacement. Which solution meets these requirements with the LEAST operational overhead?",
+    "options": {
+      "A": {
+        "text": "Deploy both the brochure website and the production application to AWS Elastic Beanstalk environments with Application Load Balancers and EC2 Auto Scaling across multiple Availability Zones.",
+        "explanation": "ตกข้อ (1): ฝั่ง production ถูกต้อง แต่ brochure site ที่ traffic ต่ำและต้องการงบรายเดือนคงที่ไม่จำเป็นต้องมี load balancer และ Auto Scaling หลาย AZ ทำให้ค่าใช้จ่ายและสิ่งที่ต้องดูแลมากเกินจำเป็น ซึ่งเจ้าของไม่ต้องการ over-engineer"
+      },
+      "B": {
+        "text": "Use Lightsail for the small brochure deployment and Elastic Beanstalk with ALB and EC2 Auto Scaling capabilities for the dynamic production application.",
+        "explanation": "ถูก: Lightsail ให้ instance พร้อม storage และ data transfer ในราคารายเดือนคงที่และจัดการง่าย เหมาะกับเว็บเล็กที่ traffic คาดเดาได้ ส่วน Elastic Beanstalk จัดการ ALB, Auto Scaling group หลาย AZ, rolling deployments, environment configuration และ health-based replacement ให้ โดยทีมดูแลแค่ application code"
+      },
+      "C": {
+        "text": "Host the brochure website on a Lightsail instance, and run the production application on several Lightsail instances behind a Lightsail load balancer, adding instances manually during traffic spikes.",
+        "explanation": "ตกข้อ (2): Lightsail เหมาะกับ brochure site แต่สำหรับ production ที่ traffic ผันผวน Lightsail ไม่มี automated scaling และ managed rolling deployment แบบ Elastic Beanstalk การเพิ่ม instance ด้วยมือทำให้รับ spike ไม่ทันและเสี่ยงต่อ availability"
+      },
+      "D": {
+        "text": "Host the brochure website on Lightsail, and run the production application on an EC2 Auto Scaling group behind an ALB, deploying new versions with custom Systems Manager Run Command scripts that update instances in batches.",
+        "explanation": "ตกข้อ (3): Lightsail และ ASG + ALB ถูกต้อง แต่ script deploy แบบ batch ที่เขียนเอง คือ custom deployment framework ที่ agency ไม่ต้องการ ต้องจัดการ rollback, health check ระหว่าง deploy และ configuration เอง ขณะที่ Elastic Beanstalk มี rolling deployment ให้แล้ว"
+      }
+    },
+    "review": {
+      "decisiveClue": "brochure site ต้องการราคาคงที่และดูแลน้อย, production ต้องการ managed deployment + autoscaling หลาย AZ, ห้าม custom orchestration",
+      "reasoning": "1) เลือกตามขนาดและความต้องการของแต่ละ workload ไม่ใช้บริการเดียวกับทุกอย่าง 2) brochure: Lightsail ราคาคงที่และง่าย ตัด A ที่ over-engineer 3) production: ต้องมี autoscaling และ managed deployment ตัด Lightsail (C) และ custom scripts (D) 4) B จับคู่ Lightsail กับงานเล็ก และ Elastic Beanstalk กับงาน production",
+      "references": [
+        {
+          "title": "What is Amazon Lightsail?",
+          "url": "https://docs.aws.amazon.com/lightsail/latest/userguide/what-is-amazon-lightsail.html"
+        },
+        {
+          "title": "Elastic Beanstalk deployment policies",
+          "url": "https://docs.aws.amazon.com/elasticbeanstalk/latest/dg/using-features.rolling-version-deploy.html"
+        },
+        {
+          "title": "Auto Scaling group for your Elastic Beanstalk environment",
+          "url": "https://docs.aws.amazon.com/elasticbeanstalk/latest/dg/using-features.managing.as.html"
+        }
+      ]
+    }
+  },
+  "sources": [
+    "https://docs.aws.amazon.com/lightsail/latest/userguide/what-is-amazon-lightsail.html",
+    "https://docs.aws.amazon.com/elasticbeanstalk/latest/dg/using-features.rolling-version-deploy.html",
+    "https://docs.aws.amazon.com/elasticbeanstalk/latest/dg/using-features.managing.as.html"
+  ]
+}

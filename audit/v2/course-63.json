@@ -1,0 +1,19 @@
+{
+  "id": "course-63",
+  "scope": "explanations",
+  "verdict": "FIX",
+  "verifiedCorrectIds": [
+    "C"
+  ],
+  "issues": [
+    "review.reasoning: บอกแค่ 'จุดอ้างอิง' ไม่บอกว่า home Region เป็นที่เก็บข้อมูล discovery/tracking ของ Migration Hub จึงเลือกต้องทำก่อนใช้งาน"
+  ],
+  "changes": {
+    "review": {
+      "reasoning": "ก่อนใช้ Migration Hub (แบบเดิม) ต้องตั้งค่า 2 อย่าง: (1) home Region เป็น Region ที่ Migration Hub เก็บข้อมูล discovery และ migration tracking ทั้งหมด ต้องเลือกก่อนเริ่มติดตามงาน (2) IAM permissions ให้ผู้ใช้เรียก API และเข้าถึงข้อมูลได้ตามหน้าที่ (least privilege) ตัวเลือกที่เหลือผิด: EC2 key pair ใช้ login instance, ให้ root ทุกคนขัด least privilege, และ S3 bucket อย่างเดียวไม่แทน home Region/IAM ข้อควรระวัง: Migration Hub ปิดรับลูกค้าใหม่แล้ว เนื้อหานี้ใช้กับลูกค้าเดิม"
+    }
+  },
+  "sources": [
+    "https://docs.aws.amazon.com/migrationhub/latest/ug/whatishub.html"
+  ]
+}

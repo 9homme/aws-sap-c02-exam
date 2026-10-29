@@ -1,0 +1,30 @@
+{
+  "id": "w8-36",
+  "scope": "explanations",
+  "verdict": "AMBIGUOUS",
+  "verifiedCorrectIds": [
+    "A",
+    "C"
+  ],
+  "issues": [
+    "options.C.explanation: ใช้ถ้อยคำเชิงปฏิเสธข้อกล่าวหา (ไม่ใช่ความสามารถปลอม) ทำให้ไม่ชัดว่าทำไมไม่ใช่เฉลย",
+    "review.reasoning: เขียนปนว่าเหตุผลเดิมผิด ทำให้อ่านยาก ปรับเป็นลำดับขั้นตอน",
+    "Recorded key A debatable: C (tag policy enforcement) can also block noncompliant tag keys/values on supported resource types; A stays the expected answer because SCP enforces tag presence."
+  ],
+  "changes": {
+    "options": {
+      "C": {
+        "explanation": "Tag policy มี Prevent noncompliant operations ซึ่งบล็อกการใส่ key/ค่าที่ไม่ตรงนโยบายได้จริง แต่ครอบเฉพาะ resource types ที่รองรับ และไม่บังคับให้ resource ต้องมี tag ที่กำหนด โจทย์ต้องการ enforce มาตรฐาน tag ทั้งองค์กร A จึงใช้ SCP deny การสร้างที่ขาด tag เป็นเฉลยที่บันทึกไว้ C เป็นทางเลือกที่ถกเถียงได้"
+      }
+    },
+    "review": {
+      "reasoning": "ขั้นแรก tag policy กำหนดชื่อ/ค่า tag มาตรฐาน แนบที่ OU หรือ account ขั้นสองใช้ Resource Groups ดูรายงาน compliance หา resources ที่ tag ผิด แล้วแก้ที่ service ที่สร้าง resource ขั้นสามเมื่อแก้แล้วจึง enforce ด้วย SCP ที่ deny การสร้างหรือ tag ที่ไม่ตรง (aws:RequestTag, aws:TagKeys) จึงเลือก A ส่วน C ใช้ Prevent noncompliant operations ได้จริง แต่เฉพาะ resource types ที่รองรับและไม่บังคับให้ต้องมี tag",
+      "caveat": "เฉลยที่บันทึกคือ A ตีความ enforce เป็นการบังคับให้ต้องมี tag ที่กำหนดด้วย SCP ส่วน C ใช้ Prevent noncompliant operations ของ tag policy กันค่าที่ไม่ตรงมาตรฐานได้จริงบน resource types ที่รองรับ โจทย์ไม่แยกสองเงื่อนไขนี้ชัด จึงอย่าท่องว่า tag policy เป็นแค่ detective เสมอ",
+      "reviewStatus": "ambiguous"
+    }
+  },
+  "sources": [
+    "https://docs.aws.amazon.com/organizations/latest/userguide/orgs_manage_policies_tag-policies.html",
+    "https://docs.aws.amazon.com/organizations/latest/userguide/orgs_manage_policies_tag-policies-enforcement.html"
+  ]
+}

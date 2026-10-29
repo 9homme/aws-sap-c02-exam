@@ -1,0 +1,13 @@
+{
+  "id": "w8-30",
+  "scope": "explanations",
+  "verdict": "PASS",
+  "verifiedCorrectIds": [
+    "D"
+  ],
+  "issues": [],
+  "changes": {},
+  "sources": [
+    "https://docs.aws.amazon.com/global-accelerator/latest/dg/what-is-global-accelerator.html"
+  ]
+}

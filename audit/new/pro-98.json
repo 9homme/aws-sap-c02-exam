@@ -1,0 +1,83 @@
+{
+  "id": "pro-98",
+  "sourceCategory": "professional",
+  "sourceLabel": "AI-authored · Professional multi-requirement",
+  "sourceDetail": "Original multi-constraint scenario — ย้ายข้อมูล 80 TB ภายใน 7 วันเมื่อ network ช้า",
+  "coreEligible": true,
+  "emerging": false,
+  "domain": "4",
+  "task": "Migration and modernization",
+  "topic": "ย้ายข้อมูล 80 TB ภายใน 7 วันเมื่อ network ช้า",
+  "type": "multiple-choice",
+  "selectCount": 1,
+  "prompt": "A sports broadcaster must move 80 TB of raw match footage from its office storage arrays to Amazon S3 within 7 days so that a cloud-based editing team can start work on a documentary. The office has a single 1 Gbps internet connection that is also used by 300 staff during business hours, and measured throughput to AWS rarely exceeds 600 Mbps. The company has never used any AWS physical data transfer service. It owns several encrypted portable NVMe storage enclosures, and an AWS Data Transfer Terminal facility is located in the same city as the office, with upload sessions available for reservation this week. After the initial transfer, about 200 GB of new footage per day must be synchronized to S3 incrementally with verification. The security team requires that data be encrypted in transit and at rest. The footage consists of large video files of 20–50 GB each. The documentary team will start editing from the uploaded footage as soon as it lands in S3. Copying data from the arrays to the enclosures can run overnight at local disk speed of about 2 GB/s. Which solution will meet these requirements in the LEAST amount of time?",
+  "options": [
+    {
+      "id": "A",
+      "text": "Deploy an AWS DataSync agent in the office, create a task that copies the storage arrays to Amazon S3 over the internet with no bandwidth limit, and use the same task with scheduling for the daily incremental changes. Enable task verification for all transferred data. Review the design with the architecture board before rollout. Define the resources in AWS CloudFormation templates for repeatable deployment.",
+      "explanation": "ไม่ผ่านด้านเวลา: DataSync เหมาะกับ incremental sync แต่ที่ 600 Mbps การส่ง 80 TB ใช้เวลาประมาณ 12 วันในกรณีที่ดีที่สุด และลิงก์ยังใช้ร่วมกับพนักงาน 300 คน จึงไม่ทัน 7 วัน"
+    },
+    {
+      "id": "B",
+      "text": "Order AWS Snowball Edge Storage Optimized devices, copy the footage to the devices in the office, ship them to AWS for import into Amazon S3, and use AWS DataSync for the daily incremental changes. Track the shipment status in the AWS Snow Family console.",
+      "explanation": "ไม่ผ่าน: AWS Snowball Edge ไม่เปิดให้ลูกค้าใหม่แล้ว บริษัทที่ไม่เคยใช้จึงสั่งอุปกรณ์ไม่ได้ ถึงจะสั่งได้ การส่งอุปกรณ์ไปกลับก็ใช้เวลาหลายวัน"
+    },
+    {
+      "id": "C",
+      "text": "Create an AWS Transfer Family SFTP server with an Amazon S3 backend, and have the editors upload the footage from the office over the internet with parallel SFTP sessions, followed by daily uploads of the new footage. Encrypt the bucket with SSE-KMS.",
+      "explanation": "ไม่ผ่าน: Transfer Family ให้ SFTP endpoint แบบ managed แต่ยังจำกัดด้วยลิงก์ internet เดิมที่ประมาณ 600 Mbps จึงช้าพอ ๆ กับ online transfer อื่น และไม่มีการตรวจสอบ incremental แบบ DataSync สำหรับงานรายวัน"
+    },
+    {
+      "id": "D",
+      "text": "Copy the footage to the encrypted NVMe enclosures, reserve a session at the AWS Data Transfer Terminal, upload the data to Amazon S3 with server-side encryption over the terminal's high-speed connection, verify checksums after upload, and then use an AWS DataSync agent in the office for the daily incremental synchronization with verification.",
+      "explanation": "ถูก: Data Transfer Terminal ให้ลูกค้านำอุปกรณ์จัดเก็บของตัวเองไปเชื่อมต่อเครือข่ายความเร็วสูงของ AWS เพื่ออัปโหลดเข้า S3 ได้ภายในไม่กี่ชั่วโมง จึงไม่ติดลิงก์ 600 Mbps การใช้ enclosures ที่เข้ารหัสและ SSE ใน S3 ตอบเรื่องการเข้ารหัส ส่วน DataSync ส่งเฉพาะไฟล์ใหม่รายวันพร้อม verification ซึ่ง 200 GB ต่อวันส่งผ่านลิงก์เดิมได้สบาย"
+    }
+  ],
+  "correctIds": [
+    "D"
+  ],
+  "rationale": "1) คำนวณก่อน: 600 Mbps ≈ 6.5 TB/วัน 80 TB จึงใช้ราว 12 วัน online transfer (A, C) ไม่ทัน 2) Snowball Edge (B) ไม่รับลูกค้าใหม่ 3) Data Transfer Terminal ให้อัปโหลดจากอุปกรณ์ของบริษัทผ่านเครือข่ายความเร็วสูงได้ในสัปดาห์นี้ 4) งานรายวัน 200 GB ใช้ DataSync ผ่านลิงก์เดิมได้ D จึงเร็วที่สุด",
+  "wrongAnswerHelp": "Start with the explicit business constraint, then eliminate choices that solve a different layer of the architecture or add unnecessary operational work.",
+  "references": [
+    "https://docs.aws.amazon.com/datatransferterminal/latest/userguide/tech-requirements.html",
+    "https://docs.aws.amazon.com/snowball/latest/developer-guide/snowball-edge-availability-change.html",
+    "https://docs.aws.amazon.com/datasync/latest/userguide/what-is-datasync.html"
+  ],
+  "products": [
+    "AWS Data Transfer Terminal",
+    "DataSync",
+    "Snow Family",
+    "Storage Gateway",
+    "Transfer Family"
+  ],
+  "requirements": [
+    "Move 80 TB to S3 within 7 days",
+    "Only a 1 Gbps internet link is available",
+    "First-time customer for physical transfer options"
+  ],
+  "review": {
+    "decisiveClue": "80 TB ใน 7 วัน, ลิงก์จริงราว 600 Mbps และใช้ร่วมกับพนักงาน, ไม่เคยใช้ physical transfer, มี Data Transfer Terminal ในเมือง, ต้อง sync รายวันพร้อม verification",
+    "reasoning": "1) คำนวณก่อน: 600 Mbps ≈ 6.5 TB/วัน 80 TB จึงใช้ราว 12 วัน online transfer (A, C) ไม่ทัน 2) Snowball Edge (B) ไม่รับลูกค้าใหม่ 3) Data Transfer Terminal ให้อัปโหลดจากอุปกรณ์ของบริษัทผ่านเครือข่ายความเร็วสูงได้ในสัปดาห์นี้ 4) งานรายวัน 200 GB ใช้ DataSync ผ่านลิงก์เดิมได้ D จึงเร็วที่สุด",
+    "options": {
+      "A": "ไม่ผ่านด้านเวลา: DataSync เหมาะกับ incremental sync แต่ที่ 600 Mbps การส่ง 80 TB ใช้เวลาประมาณ 12 วันในกรณีที่ดีที่สุด และลิงก์ยังใช้ร่วมกับพนักงาน 300 คน จึงไม่ทัน 7 วัน",
+      "B": "ไม่ผ่าน: AWS Snowball Edge ไม่เปิดให้ลูกค้าใหม่แล้ว บริษัทที่ไม่เคยใช้จึงสั่งอุปกรณ์ไม่ได้ ถึงจะสั่งได้ การส่งอุปกรณ์ไปกลับก็ใช้เวลาหลายวัน",
+      "C": "ไม่ผ่าน: Transfer Family ให้ SFTP endpoint แบบ managed แต่ยังจำกัดด้วยลิงก์ internet เดิมที่ประมาณ 600 Mbps จึงช้าพอ ๆ กับ online transfer อื่น และไม่มีการตรวจสอบ incremental แบบ DataSync สำหรับงานรายวัน",
+      "D": "ถูก: Data Transfer Terminal ให้ลูกค้านำอุปกรณ์จัดเก็บของตัวเองไปเชื่อมต่อเครือข่ายความเร็วสูงของ AWS เพื่ออัปโหลดเข้า S3 ได้ภายในไม่กี่ชั่วโมง จึงไม่ติดลิงก์ 600 Mbps การใช้ enclosures ที่เข้ารหัสและ SSE ใน S3 ตอบเรื่องการเข้ารหัส ส่วน DataSync ส่งเฉพาะไฟล์ใหม่รายวันพร้อม verification ซึ่ง 200 GB ต่อวันส่งผ่านลิงก์เดิมได้สบาย"
+    },
+    "references": [
+      {
+        "title": "AWS Data Transfer Terminal technical requirements",
+        "url": "https://docs.aws.amazon.com/datatransferterminal/latest/userguide/tech-requirements.html"
+      },
+      {
+        "title": "AWS Snowball Edge availability change",
+        "url": "https://docs.aws.amazon.com/snowball/latest/developer-guide/snowball-edge-availability-change.html"
+      },
+      {
+        "title": "What is AWS DataSync?",
+        "url": "https://docs.aws.amazon.com/datasync/latest/userguide/what-is-datasync.html"
+      }
+    ],
+    "reviewedAt": "2026-10-29"
+  }
+}

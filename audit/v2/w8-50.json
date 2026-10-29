@@ -1,0 +1,27 @@
+{
+  "id": "w8-50",
+  "scope": "explanations",
+  "verdict": "FIX",
+  "verifiedCorrectIds": [
+    "B"
+  ],
+  "issues": [
+    "options.B.explanation: ถูกต้องแต่บางเกินไป ไม่ระบุว่า StackSets ช่วยให้ push template ที่อัปเดต mapping ไปทุก account/Region ในครั้งเดียว (ตรงกับ 'reduce manual work' เมื่อมี AMI ใหม่) และมี prerequisite เรื่อง IAM roles/trust",
+    "options.A.explanation: ควรระบุว่า parameter ต้องสร้างและอัปเดตทีละ account/Region เองด้วย และการใช้ template ใน main account ไม่ได้สร้าง stack ในบัญชีอื่น"
+  ],
+  "changes": {
+    "options": {
+      "B": {
+        "explanation": "Mapping + Fn::FindInMap เลือก AMI ID ตาม Region ใน template เดียว และ StackSets ส่ง template/stack instances ไปทุก account และ Region จากศูนย์กลาง เมื่อมี AMI ใหม่แก้ mapping แล้ว update stack set ครั้งเดียว (ต้องตั้ง StackSets IAM roles/trust ไว้ก่อน)"
+      },
+      "A": {
+        "explanation": "Parameter Store เก็บ AMI ID ตาม Region ได้ แต่ต้องสร้างและอัปเดต parameter ทีละ account/Region เอง และ template เดียวใน main account ไม่ได้สร้าง stack ให้บัญชีอื่นเอง เพราะไม่มี StackSets จึงไม่ลดงาน deploy ข้ามบัญชี"
+      }
+    }
+  },
+  "sources": [
+    "https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/stacksets-concepts.html",
+    "https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/stacksets-update.html",
+    "https://docs.aws.amazon.com/AWSCloudFormation/latest/TemplateReference/intrinsic-function-reference-findinmap.html"
+  ]
+}

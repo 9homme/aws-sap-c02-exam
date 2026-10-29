@@ -1,0 +1,82 @@
+{
+  "id": "pro-85",
+  "sourceCategory": "professional",
+  "sourceLabel": "AI-authored · Professional multi-requirement",
+  "sourceDetail": "Original multi-constraint scenario — ปล่อย Lambda เวอร์ชันใหม่แบบลด downtime",
+  "coreEligible": true,
+  "emerging": false,
+  "domain": "3",
+  "task": "Continuous improvement",
+  "topic": "ปล่อย Lambda เวอร์ชันใหม่แบบลด downtime",
+  "type": "multiple-choice",
+  "selectCount": 1,
+  "prompt": "A payments startup runs 25 AWS Lambda functions behind an Amazon API Gateway REST API. The team deploys several times a day by updating the function code through AWS CloudFormation, and API Gateway integrations invoke the unqualified function ARN. Twice last month, a faulty release caused a full outage for about 20 minutes before an engineer noticed the errors and redeployed the previous code. The company now requires that each release first receive a small share of production traffic, that it be rolled back automatically within minutes if the error rate or latency alarms enter the ALARM state, and that clients keep using the same API endpoint with no changes. The team wants to keep CloudFormation as its deployment tool and does not want to maintain custom traffic-shifting scripts. Each function already publishes Errors and Duration metrics to Amazon CloudWatch. Releases happen during business hours when traffic is highest. The team uses AWS SAM templates for most functions and is willing to change the integration targets once. Which solution will MINIMIZE customer-facing downtime caused by faulty releases?",
+  "options": [
+    {
+      "id": "A",
+      "text": "Continue to deploy to $LATEST through CloudFormation, but add a CloudWatch alarm on the Errors metric that notifies the on-call engineer through Amazon SNS so that the engineer can redeploy the previous template quickly. Keep the previous template version in Amazon S3 so that rollback requires only one command.",
+      "explanation": "ไม่ผ่าน: alarm ช่วยให้รู้เร็วขึ้น แต่ release ใหม่ยังรับ traffic ทั้งหมดทันที และการ rollback ยังต้องรอวิศวกรลงมือเอง downtime จึงยังขึ้นกับเวลาที่คนตอบสนอง ไม่ได้จำกัด blast radius ด้วย traffic ส่วนน้อย"
+    },
+    {
+      "id": "B",
+      "text": "Use API Gateway canary release settings on the production stage to send 10% of traffic to a new deployment that points to the new function versions, and have an engineer promote or delete the canary after reviewing the dashboards. Create CloudWatch alarms on the canary stage's 5XXError metric to alert the engineer. Validate the change in a staging environment before production.",
+      "explanation": "ช่วยได้บางส่วน: canary ของ stage จำกัด traffic ที่ไปยัง release ใหม่ได้จริง แต่การ promote หรือ rollback ยังเป็นงานที่คนต้องทำจาก dashboard ไม่ได้ย้อนกลับอัตโนมัติเมื่อ alarm เข้าสถานะ ALARM และต้องจัดการ deployment ของ stage กับ function version ให้สอดคล้องกันเอง"
+    },
+    {
+      "id": "C",
+      "text": "Create a weighted alias for each function that points to the old and new versions, and update the routing weight manually from 10% to 100% during each release while engineers watch the CloudWatch dashboards. Point the API Gateway integrations to the alias so that clients keep using the same endpoint.",
+      "explanation": "ช่วยได้บางส่วน: weighted alias แบ่ง traffic ได้ แต่การปรับน้ำหนักด้วยมือคือ custom traffic shifting ที่ทีมไม่ต้องการ และ rollback ยังขึ้นกับคนเฝ้า dashboard ไม่ได้ย้อนกลับอัตโนมัติตาม alarm"
+    },
+    {
+      "id": "D",
+      "text": "Point the API Gateway integrations to a live alias of each function, and add an AWS::Serverless::Function DeploymentPreference or a CodeDeploy deployment group in the CloudFormation template that uses a canary configuration such as LambdaCanary10Percent5Minutes with the Errors and Duration alarms for automatic rollback.",
+      "explanation": "ถูก: API Gateway เรียก alias ที่คงที่ client จึงใช้ endpoint เดิม CodeDeploy ค่อย ๆ ย้าย alias จากเวอร์ชันเก่าไปเวอร์ชันใหม่ตาม canary configuration และหยุดพร้อมย้อนกลับอัตโนมัติเมื่อ alarm เข้าสถานะ ALARM ทั้งหมดประกาศใน CloudFormation เดิมโดยไม่ต้องเขียน script ทำให้ faulty release กระทบเพียง traffic ส่วนน้อยในเวลาไม่กี่นาที"
+    }
+  ],
+  "correctIds": [
+    "D"
+  ],
+  "rationale": "1) ต้อง rollback อัตโนมัติ ตัดทางที่ต้องพึ่งคน: alarm แจ้งเตือน (A), stage canary ที่ promote ด้วยมือ (B) และ weighted alias ที่ปรับเอง (C) 2) CodeDeploy สำหรับ Lambda ย้าย traffic ของ alias ตาม canary/linear configuration และย้อนกลับตาม alarm 3) API Gateway ชี้ไปที่ alias ทำให้ endpoint ไม่เปลี่ยน และกำหนดทั้งหมดใน CloudFormation ได้ D จึงลด downtime ได้มากที่สุด",
+  "wrongAnswerHelp": "Start with the explicit business constraint, then eliminate choices that solve a different layer of the architecture or add unnecessary operational work.",
+  "references": [
+    "https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/automating-updates-to-serverless-apps.html",
+    "https://docs.aws.amazon.com/lambda/latest/dg/configuration-aliases.html",
+    "https://docs.aws.amazon.com/codedeploy/latest/userguide/deployment-configurations.html"
+  ],
+  "products": [
+    "Lambda",
+    "CloudWatch",
+    "CloudFormation",
+    "API Gateway"
+  ],
+  "requirements": [
+    "Shift a small share of traffic first",
+    "Roll back automatically on error alarms",
+    "Same API endpoint for clients"
+  ],
+  "review": {
+    "decisiveClue": "ส่ง traffic ส่วนน้อยก่อน, rollback อัตโนมัติตาม alarm ภายในไม่กี่นาที, endpoint เดิม, คง CloudFormation, ไม่เขียน script เอง",
+    "reasoning": "1) ต้อง rollback อัตโนมัติ ตัดทางที่ต้องพึ่งคน: alarm แจ้งเตือน (A), stage canary ที่ promote ด้วยมือ (B) และ weighted alias ที่ปรับเอง (C) 2) CodeDeploy สำหรับ Lambda ย้าย traffic ของ alias ตาม canary/linear configuration และย้อนกลับตาม alarm 3) API Gateway ชี้ไปที่ alias ทำให้ endpoint ไม่เปลี่ยน และกำหนดทั้งหมดใน CloudFormation ได้ D จึงลด downtime ได้มากที่สุด",
+    "options": {
+      "A": "ไม่ผ่าน: alarm ช่วยให้รู้เร็วขึ้น แต่ release ใหม่ยังรับ traffic ทั้งหมดทันที และการ rollback ยังต้องรอวิศวกรลงมือเอง downtime จึงยังขึ้นกับเวลาที่คนตอบสนอง ไม่ได้จำกัด blast radius ด้วย traffic ส่วนน้อย",
+      "B": "ช่วยได้บางส่วน: canary ของ stage จำกัด traffic ที่ไปยัง release ใหม่ได้จริง แต่การ promote หรือ rollback ยังเป็นงานที่คนต้องทำจาก dashboard ไม่ได้ย้อนกลับอัตโนมัติเมื่อ alarm เข้าสถานะ ALARM และต้องจัดการ deployment ของ stage กับ function version ให้สอดคล้องกันเอง",
+      "C": "ช่วยได้บางส่วน: weighted alias แบ่ง traffic ได้ แต่การปรับน้ำหนักด้วยมือคือ custom traffic shifting ที่ทีมไม่ต้องการ และ rollback ยังขึ้นกับคนเฝ้า dashboard ไม่ได้ย้อนกลับอัตโนมัติตาม alarm",
+      "D": "ถูก: API Gateway เรียก alias ที่คงที่ client จึงใช้ endpoint เดิม CodeDeploy ค่อย ๆ ย้าย alias จากเวอร์ชันเก่าไปเวอร์ชันใหม่ตาม canary configuration และหยุดพร้อมย้อนกลับอัตโนมัติเมื่อ alarm เข้าสถานะ ALARM ทั้งหมดประกาศใน CloudFormation เดิมโดยไม่ต้องเขียน script ทำให้ faulty release กระทบเพียง traffic ส่วนน้อยในเวลาไม่กี่นาที"
+    },
+    "references": [
+      {
+        "title": "Deploying serverless applications gradually with AWS SAM",
+        "url": "https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/automating-updates-to-serverless-apps.html"
+      },
+      {
+        "title": "Lambda function aliases",
+        "url": "https://docs.aws.amazon.com/lambda/latest/dg/configuration-aliases.html"
+      },
+      {
+        "title": "CodeDeploy deployment configurations",
+        "url": "https://docs.aws.amazon.com/codedeploy/latest/userguide/deployment-configurations.html"
+      }
+    ],
+    "reviewedAt": "2026-10-29"
+  }
+}

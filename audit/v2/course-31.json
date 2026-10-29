@@ -1,0 +1,11 @@
+{
+  "id": "course-31",
+  "scope": "explanations",
+  "verdict": "PASS",
+  "verifiedCorrectIds": [
+    "C"
+  ],
+  "issues": [],
+  "changes": {},
+  "sources": []
+}

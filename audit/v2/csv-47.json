@@ -1,0 +1,20 @@
+{
+  "id": "csv-47",
+  "scope": "explanations",
+  "verdict": "AMBIGUOUS",
+  "verifiedCorrectIds": [
+    "B"
+  ],
+  "issues": [
+    "Prompt does not say how the application is installed; C (new AMI referenced by the ASG) and D (modify CFN template that updates the launch template) are also plausible parts of a valid solution. Recorded key B is the expected answer (launch template is the ASG launch-configuration mechanism); existing caveat reworded to explain why B remains expected."
+  ],
+  "changes": {
+    "review": {
+      "caveat": "ข้อนี้กำกวม: C (สร้าง AMI ใหม่ที่ติดตั้งแอปแล้ว) และ D (แก้ CloudFormation template) ก็เป็นส่วนหนึ่งของวิธีที่ใช้ได้จริง และ launch template เปล่าก็ยังไม่ติดตั้งแอปเอง. แต่เฉลยที่บันทึกคือ B เพราะ launch template เป็นกลไกที่ ASG ใช้กำหนด AMI/user data ของเครื่องใหม่ (launch configuration ถูก deprecated แล้ว) และตัวเลือกอื่นไม่ใช่ตัวกำหนด configuration โดยตรง",
+      "reviewStatus": "ambiguous"
+    }
+  },
+  "sources": [
+    "https://docs.aws.amazon.com/autoscaling/ec2/userguide/launch-templates.html"
+  ]
+}

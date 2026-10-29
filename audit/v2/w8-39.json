@@ -1,0 +1,24 @@
+{
+  "id": "w8-39",
+  "scope": "explanations",
+  "verdict": "FIX",
+  "verifiedCorrectIds": [
+    "A",
+    "B",
+    "C"
+  ],
+  "issues": [
+    "options.E.explanation: ตั้งสมมติฐานว่า exception ต้องอนุญาตสิ่งที่ OU deny ซึ่งไม่มีในโจทย์ และไม่บอกเหตุผลหลักว่าทำไมต้องแยก OU"
+  ],
+  "changes": {
+    "options": {
+      "E": {
+        "explanation": "วาง unique workloads ใน OU เดียวกับ workloads ปกติ แล้วแก้ด้วย SCP ราย account ทำให้ OU ปะปนและจัดการยาก SCP รายบัญชีเพิ่มได้เฉพาะข้อจำกัดเพิ่มเติม ไม่ยกเลิก deny ที่สืบทอดจาก OU แม่ วิธีที่ชัดกว่าคือแยกเป็น OU Exceptions ตามข้อ C"
+      }
+    }
+  },
+  "sources": [
+    "https://docs.aws.amazon.com/organizations/latest/userguide/orgs_manage_policies_scps.html",
+    "https://docs.aws.amazon.com/whitepapers/latest/organizing-your-aws-environment/organizing-your-aws-environment.html"
+  ]
+}

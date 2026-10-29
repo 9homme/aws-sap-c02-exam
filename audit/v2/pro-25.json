@@ -1,0 +1,60 @@
+{
+  "id": "pro-25",
+  "scope": "full",
+  "verdict": "FIX",
+  "originalCorrectIds": [
+    "D"
+  ],
+  "verifiedCorrectIds": [
+    "D"
+  ],
+  "issues": [
+    "options: ตัวลวงเดิมผิดอย่างชัดเจน (อ้างความสามารถที่บริการไม่มี) ทำให้ตอบได้จากการจำชื่อบริการ ไม่ใช่ระดับ SAP-C02 Professional; เขียนใหม่ให้แต่ละตัวลวงทำงานได้จริงบางส่วนแต่ตกเงื่อนไขหนึ่งข้อ",
+    "prompt: ลบประโยค boilerplate (architecture review board / workable for the stated environment)",
+    "review.reasoning: เดิมคัดลอก requirement ภาษาอังกฤษมาต่อกัน ไม่ได้อธิบายการตัดตัวเลือก"
+  ],
+  "changes": {
+    "prompt": "A pharmaceutical company runs parallel genomic simulations on thousands of compute cores for several days each month. The simulations perform many parallel reads and writes to a POSIX-compatible shared namespace and require high aggregate throughput with low-latency access during active compute windows. Input data arrives as objects in a durable S3 data lake, and completed results need to be exported back to S3. The team does not want to maintain a custom Lustre cluster and can remove temporary compute scratch capacity between research campaigns. Existing ETL jobs separately process the archived results after simulations finish. The solution must meet all of the following requirements: (1) Provide a managed parallel filesystem suitable for HPC burst I/O patterns; (2) Integrate persistent S3 input/output with a temporary high-throughput filesystem; (3) Avoid operating a self-managed distributed scratch cluster for intermittent simulations. Which solution meets these requirements with the LEAST operational overhead?",
+    "options": {
+      "A": {
+        "text": "Create a persistent Amazon FSx for Lustre file system that runs all month, and copy input objects from Amazon S3 and results back to S3 with scheduled scripts on EC2 instances.",
+        "explanation": "ตกข้อ (2): FSx for Lustre ให้ประสิทธิภาพ HPC ได้ แต่การรันตลอดเดือนทั้งที่ใช้แค่ไม่กี่วันเสียค่าใช้จ่ายเกินจำเป็น และ script คัดลอกข้อมูลเองแทน data repository association ที่ import/export กับ S3 ให้อัตโนมัติ ทำให้ต้องดูแล EC2 และ script เพิ่ม"
+      },
+      "B": {
+        "text": "Use an Amazon EFS file system with Elastic throughput for the simulation working set, and copy results to Amazon S3 after each campaign.",
+        "explanation": "ตกข้อ (1): EFS เป็น managed shared file system ที่ใช้ง่าย แต่ออกแบบสำหรับงานทั่วไป ไม่ใช่ parallel file system ที่ให้ aggregate throughput สูงและ latency ต่ำระดับ sub-millisecond สำหรับหลายพัน core แบบ Lustre และไม่มีการเชื่อมกับ S3 data lake แบบ data repository"
+      },
+      "C": {
+        "text": "Deploy a self-managed Lustre cluster on EC2 instances with AWS ParallelCluster for each campaign, and synchronize data with Amazon S3 by using the Lustre HSM tools.",
+        "explanation": "ตกข้อ (3): ทำงานได้และใช้ Lustre จริง แต่ทีมต้องดูแล metadata/object storage servers, การ tune และ HSM integration เอง ซึ่งโจทย์ระบุว่าไม่ต้องการ maintain Lustre cluster เอง FSx for Lustre ให้ความสามารถเดียวกันแบบ managed"
+      },
+      "D": {
+        "text": "Provision Amazon FSx for Lustre integrated with S3 data repositories for active simulation data, and run compute jobs against its managed filesystem.",
+        "explanation": "ถูก: FSx for Lustre เป็น parallel file system แบบ managed ที่ให้ throughput สูงสำหรับ HPC data repository association กับ S3 ทำให้เห็น object เป็นไฟล์และ export ผลลัพธ์กลับไป S3 ได้ เลือก scratch deployment สำหรับข้อมูลชั่วคราวแล้วลบ file system เมื่อจบ campaign เพื่อลดต้นทุน ข้อมูลถาวรอยู่ใน S3 เสมอ"
+      }
+    },
+    "review": {
+      "decisiveClue": "HPC หลายพัน core ต้อง parallel file system throughput สูง, input/output อยู่ใน S3, ใช้แค่ช่วง campaign และไม่ดูแล Lustre เอง",
+      "reasoning": "1) ข้อ (1) ต้องการ parallel file system ระดับ HPC ซึ่ง EFS (B) ไม่ได้ออกแบบมาสำหรับรูปแบบ I/O นี้ 2) ข้อ (3) ห้ามดูแล Lustre เอง ตัด ParallelCluster + self-managed Lustre (C) 3) ข้อ (2) ต้องเชื่อม S3 กับ file system ชั่วคราว: data repository association ทำ import/export ให้ และสร้าง/ลบตาม campaign ได้ ส่วน A ใช้ script และรันตลอดเดือน 4) D จึงตรงทุกข้อ",
+      "references": [
+        {
+          "title": "What is Amazon FSx for Lustre?",
+          "url": "https://docs.aws.amazon.com/fsx/latest/LustreGuide/what-is.html"
+        },
+        {
+          "title": "Linking FSx for Lustre to an S3 data repository",
+          "url": "https://docs.aws.amazon.com/fsx/latest/LustreGuide/create-dra-linked-data-repo.html"
+        },
+        {
+          "title": "FSx for Lustre deployment options",
+          "url": "https://docs.aws.amazon.com/fsx/latest/LustreGuide/using-fsx-lustre.html"
+        }
+      ]
+    }
+  },
+  "sources": [
+    "https://docs.aws.amazon.com/fsx/latest/LustreGuide/what-is.html",
+    "https://docs.aws.amazon.com/fsx/latest/LustreGuide/create-dra-linked-data-repo.html",
+    "https://docs.aws.amazon.com/fsx/latest/LustreGuide/using-fsx-lustre.html"
+  ]
+}

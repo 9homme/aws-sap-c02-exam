@@ -1,0 +1,81 @@
+{
+  "id": "pro-93",
+  "sourceCategory": "professional",
+  "sourceLabel": "AI-authored · Professional multi-requirement",
+  "sourceDetail": "Original multi-constraint scenario — นำ organization ที่ซื้อมาเข้า governance ให้เร็วที่สุด",
+  "coreEligible": true,
+  "emerging": false,
+  "domain": "1",
+  "task": "Organizational complexity",
+  "topic": "นำ organization ที่ซื้อมาเข้า governance ให้เร็วที่สุด",
+  "type": "multiple-choice",
+  "selectCount": 1,
+  "prompt": "A media group has a mature AWS Control Tower landing zone with a Security OU, a Log Archive account, and Workloads OUs that enforce preventive and detective controls. It has just acquired a streaming company that runs production workloads in 60 AWS accounts inside its own separate organization in AWS Organizations. The board requires that the acquired accounts be governed by the parent's existing landing zone within 2 weeks, including the parent's controls, centralized CloudTrail logging, and AWS Config. The account IDs must not change because hundreds of partner integrations, IAM role trust policies, and Marketplace subscriptions reference them, and the workloads cannot be redeployed. The acquired accounts also need two additional baseline resources that the parent deploys to every account: an IAM role for the security team and a set of Amazon EventBridge rules. The parent's platform team has administrator access to the acquired organization's management account. The acquired organization's management account has no workloads and can be closed after the move. Which approach will meet these requirements in the LEAST amount of time?",
+  "options": [
+    {
+      "id": "A",
+      "text": "Create 60 new accounts in the parent organization through Control Tower Account Factory, migrate each workload into the new accounts with AWS Transform MGN and AWS DMS, update the partner integrations, and close the old accounts after cutover. Use the landing zone's baseline for the new accounts.",
+      "explanation": "ไม่ผ่าน: บัญชีใหม่ได้ governance ครบตั้งแต่ต้น แต่ account IDs เปลี่ยนซึ่งโจทย์ห้าม ต้อง redeploy workloads ทั้งหมด และต้องแก้ partner integrations, trust policies และ subscriptions จำนวนมาก ใช้เวลานานเกิน 2 สัปดาห์มาก"
+    },
+    {
+      "id": "B",
+      "text": "Set up a second Control Tower landing zone in the acquired organization that copies the parent's controls, configure a separate log archive account there, and connect the two organizations' security tooling through cross-account roles. Deploy the IAM role and EventBridge rules with StackSets in the acquired organization. Tag all new resources with the owning team and cost center. Validate the change in a staging environment before production.",
+      "explanation": "ไม่ผ่าน: ได้ guardrails คล้ายกันและไม่ต้องย้ายบัญชี แต่ยังเป็นสอง organization และสอง landing zone ที่ต้องดูแลแยก ไม่ใช่การนำบัญชีเข้า landing zone เดิมของบริษัทแม่ตามที่ board กำหนด และ log ก็ไม่ได้รวมศูนย์ใน Log Archive account เดิม"
+    },
+    {
+      "id": "C",
+      "text": "Remove the accounts from the acquired organization, invite them into the parent organization, and then enroll each account one at a time through Account Factory while the security team creates the IAM role and EventBridge rules manually in each account.",
+      "explanation": "ใช้ได้แต่ช้ากว่า: การ invite รักษา account ID ไว้ได้ถูกต้อง แต่การ enroll ทีละบัญชีและสร้าง baseline เพิ่มด้วยมือใน 60 บัญชีใช้เวลามากและผิดพลาดง่าย ทั้งไม่ได้รับประกันว่าบัญชีที่เพิ่มเข้า OU ในอนาคตจะได้ baseline เดียวกัน"
+    },
+    {
+      "id": "D",
+      "text": "Remove each member account from the acquired organization and accept an invitation from the parent organization, move the accounts into a new OU, register the OU with Control Tower so that all its accounts are enrolled with the landing zone controls and logging, and deploy the security role and EventBridge rules to the OU with service-managed CloudFormation StackSets with automatic deployment.",
+      "explanation": "ถูก: การ invite บัญชีเข้า organization ของบริษัทแม่รักษา account ID และ workloads เดิมไว้ การ register OU กับ Control Tower enroll ทุกบัญชีใน OU พร้อม controls, CloudTrail และ Config ของ landing zone ครั้งเดียว ส่วน StackSets แบบ service-managed ที่ตั้ง automatic deployment ลง baseline เพิ่มให้ทุกบัญชีใน OU รวมถึงบัญชีที่เข้ามาภายหลัง ต้องตรวจ prerequisites เช่นลบ Config recorder เดิมที่ขัดกับ Control Tower ก่อน"
+    }
+  ],
+  "correctIds": [
+    "D"
+  ],
+  "rationale": "1) ห้ามเปลี่ยน account ID และห้าม redeploy ตัดการสร้างบัญชีใหม่ (A) 2) ต้องอยู่ใน landing zone เดิม ตัดการตั้ง landing zone ที่สอง (B) 3) ทางที่เหลือคือ invite บัญชีเข้า organization ของบริษัทแม่ แล้วเลือกวิธีที่เร็วที่สุด: enroll ทีละบัญชีพร้อม baseline ด้วยมือ (C) ช้ากว่า register OU ที่ enroll ทุกบัญชีพร้อมกันและใช้ StackSets automatic deployment (D) 4) D จึงเร็วที่สุด",
+  "wrongAnswerHelp": "Start with the explicit business constraint, then eliminate choices that solve a different layer of the architecture or add unnecessary operational work.",
+  "references": [
+    "https://docs.aws.amazon.com/controltower/latest/userguide/importing-existing.html",
+    "https://docs.aws.amazon.com/organizations/latest/userguide/orgs_manage_accounts_invites.html",
+    "https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/stacksets-orgs-manage-auto-deployment.html"
+  ],
+  "products": [
+    "AWS Organizations",
+    "AWS Control Tower",
+    "CloudFormation StackSets"
+  ],
+  "requirements": [
+    "Bring an acquired 60-account organization under governance quickly",
+    "Keep existing workloads and account IDs",
+    "Apply baseline controls and logging"
+  ],
+  "review": {
+    "decisiveClue": "60 บัญชีในอีก organization, ต้องเข้า landing zone เดิมภายใน 2 สัปดาห์, account ID ห้ามเปลี่ยนและห้าม redeploy, ต้องเพิ่ม baseline อีกสองชิ้น",
+    "reasoning": "1) ห้ามเปลี่ยน account ID และห้าม redeploy ตัดการสร้างบัญชีใหม่ (A) 2) ต้องอยู่ใน landing zone เดิม ตัดการตั้ง landing zone ที่สอง (B) 3) ทางที่เหลือคือ invite บัญชีเข้า organization ของบริษัทแม่ แล้วเลือกวิธีที่เร็วที่สุด: enroll ทีละบัญชีพร้อม baseline ด้วยมือ (C) ช้ากว่า register OU ที่ enroll ทุกบัญชีพร้อมกันและใช้ StackSets automatic deployment (D) 4) D จึงเร็วที่สุด",
+    "options": {
+      "A": "ไม่ผ่าน: บัญชีใหม่ได้ governance ครบตั้งแต่ต้น แต่ account IDs เปลี่ยนซึ่งโจทย์ห้าม ต้อง redeploy workloads ทั้งหมด และต้องแก้ partner integrations, trust policies และ subscriptions จำนวนมาก ใช้เวลานานเกิน 2 สัปดาห์มาก",
+      "B": "ไม่ผ่าน: ได้ guardrails คล้ายกันและไม่ต้องย้ายบัญชี แต่ยังเป็นสอง organization และสอง landing zone ที่ต้องดูแลแยก ไม่ใช่การนำบัญชีเข้า landing zone เดิมของบริษัทแม่ตามที่ board กำหนด และ log ก็ไม่ได้รวมศูนย์ใน Log Archive account เดิม",
+      "C": "ใช้ได้แต่ช้ากว่า: การ invite รักษา account ID ไว้ได้ถูกต้อง แต่การ enroll ทีละบัญชีและสร้าง baseline เพิ่มด้วยมือใน 60 บัญชีใช้เวลามากและผิดพลาดง่าย ทั้งไม่ได้รับประกันว่าบัญชีที่เพิ่มเข้า OU ในอนาคตจะได้ baseline เดียวกัน",
+      "D": "ถูก: การ invite บัญชีเข้า organization ของบริษัทแม่รักษา account ID และ workloads เดิมไว้ การ register OU กับ Control Tower enroll ทุกบัญชีใน OU พร้อม controls, CloudTrail และ Config ของ landing zone ครั้งเดียว ส่วน StackSets แบบ service-managed ที่ตั้ง automatic deployment ลง baseline เพิ่มให้ทุกบัญชีใน OU รวมถึงบัญชีที่เข้ามาภายหลัง ต้องตรวจ prerequisites เช่นลบ Config recorder เดิมที่ขัดกับ Control Tower ก่อน"
+    },
+    "references": [
+      {
+        "title": "Register an existing organizational unit with Control Tower",
+        "url": "https://docs.aws.amazon.com/controltower/latest/userguide/importing-existing.html"
+      },
+      {
+        "title": "Inviting an AWS account to join your organization",
+        "url": "https://docs.aws.amazon.com/organizations/latest/userguide/orgs_manage_accounts_invites.html"
+      },
+      {
+        "title": "StackSets automatic deployment",
+        "url": "https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/stacksets-orgs-manage-auto-deployment.html"
+      }
+    ],
+    "reviewedAt": "2026-10-29"
+  }
+}

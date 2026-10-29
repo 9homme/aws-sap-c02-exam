@@ -1,0 +1,22 @@
+{
+  "id": "csv-06",
+  "scope": "explanations",
+  "verdict": "FIX",
+  "verifiedCorrectIds": [
+    "B"
+  ],
+  "issues": [
+    "options.A.explanation: 'ในชุดตัวเลือกเก่า' is vague and does not say what OpsWorks is; OpsWorks Stacks reached end of life on 2024-05-26."
+  ],
+  "changes": {
+    "options": {
+      "A": {
+        "explanation": "Elastic Beanstalk deploy และจัดการ environment ของแอป ส่วน OpsWorks (Chef/Puppet configuration management; OpsWorks Stacks สิ้นสุดบริการ 26 พ.ค. 2024) ทั้งคู่ไม่มี build/test runner และ pipeline orchestration สำหรับ CI จึงไม่ตอบ 'automating build and test'"
+      }
+    }
+  },
+  "sources": [
+    "https://docs.aws.amazon.com/codebuild/latest/userguide/welcome.html",
+    "https://docs.aws.amazon.com/codepipeline/latest/userguide/welcome.html"
+  ]
+}

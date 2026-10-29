@@ -1,0 +1,20 @@
+{
+  "id": "course-20",
+  "scope": "explanations",
+  "verdict": "FIX",
+  "verifiedCorrectIds": [
+    "D"
+  ],
+  "issues": [
+    "review.decisiveClue/reasoning: prompt only names 'Reliability practice area'; reasoning did not list the four Reliability areas or explain why Foundations is the only real area among options."
+  ],
+  "changes": {
+    "review": {
+      "decisiveClue": "โจทย์ถามชื่อ practice area ของ Reliability และ 'Foundations' เป็นตัวเลือกเดียวที่เป็นชื่อ area จริง",
+      "reasoning": "Reliability pillar แบ่งเป็น best practice areas คือ Foundations, Workload architecture, Change management และ Failure management ในตัวเลือกมีเพียง Foundations ที่เป็นชื่อ area จริง ส่วน CloudFront caching เป็นเรื่อง performance, การระบุเจ้าของ invoice เป็น cost และการเลือก instance ราคาถูกสุดโดยไม่ดู recovery requirement ไม่ใช่ practice area Foundations คือ prerequisites เช่น service quotas, network topology และ account design ถ้า quota เต็มหรือ network ไม่พร้อม Auto Scaling และ recovery ก็ทำงานไม่ได้"
+    }
+  },
+  "sources": [
+    "https://docs.aws.amazon.com/wellarchitected/latest/framework/reliability.html"
+  ]
+}

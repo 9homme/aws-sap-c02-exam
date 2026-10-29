@@ -1,0 +1,60 @@
+{
+  "id": "pro-19",
+  "scope": "full",
+  "verdict": "FIX",
+  "originalCorrectIds": [
+    "A"
+  ],
+  "verifiedCorrectIds": [
+    "A"
+  ],
+  "issues": [
+    "options: ตัวลวงเดิมผิดอย่างชัดเจน (อ้างความสามารถที่บริการไม่มี) ทำให้ตอบได้จากการจำชื่อบริการ ไม่ใช่ระดับ SAP-C02 Professional; เขียนใหม่ให้แต่ละตัวลวงทำงานได้จริงบางส่วนแต่ตกเงื่อนไขหนึ่งข้อ",
+    "prompt: ลบประโยค boilerplate (architecture review board / workable for the stated environment)",
+    "review.reasoning: เดิมคัดลอก requirement ภาษาอังกฤษมาต่อกัน ไม่ได้อธิบายการตัดตัวเลือก"
+  ],
+  "changes": {
+    "prompt": "A consulting firm has 1,200 traveling employees who must access an internal application in private AWS subnets and an intranet hosted in the on-premises data center. Employees connect from unmanaged hotel networks, so they cannot rely on a private corporate MPLS circuit at their current location. The organization already has redundant Direct Connect circuits between its data centers and AWS, but those circuits do not provide individual-user VPN access. The internal application uses a private Route 53 hosted zone, while the data-center intranet uses an on-premises DNS zone. Security requires federated authentication and authorization for each user plus a route to the corporate network over the existing hybrid connectivity. The solution must meet all of the following requirements: (1) Give individual remote clients encrypted authenticated access from arbitrary internet access networks; (2) Resolve AWS private and on-premises zones using DNS forwarding in the appropriate direction; (3) Preserve existing data-center connectivity without exposing internal application endpoints directly to internet clients. Which solution meets these requirements with the LEAST operational overhead?",
+    "options": {
+      "A": {
+        "text": "Deploy AWS Client VPN endpoints with authorized routes to the VPC and connected data center, and integrate the applicable Route 53 Resolver inbound/outbound forwarding rules.",
+        "explanation": "ถูก: Client VPN ให้ TLS VPN รายผู้ใช้จาก network ใดก็ได้ พร้อม federated authentication ผ่าน SAML และ authorization rules ตามกลุ่ม route ไป data center ใช้เส้นทาง Direct Connect ที่ VPC มีอยู่แล้ว DNS ของ client ชี้ไปที่ Resolver ใน VPC (หรือ inbound endpoint) ซึ่ง resolve private hosted zone ได้ และ outbound forwarding rule ส่ง query ของ zone on premises ไปยัง DNS ของ data center แอปจึงไม่ต้องเปิดสู่ internet"
+      },
+      "B": {
+        "text": "Publish the internal application through an internet-facing Application Load Balancer that uses Amazon Cognito authentication, and publish the intranet through a reverse proxy in a public subnet.",
+        "explanation": "ตกข้อ (3): Cognito ช่วยยืนยันตัวตนผู้ใช้ได้ แต่ทางนี้เปิด endpoint ของแอปภายในและ intranet ให้ client บน internet เข้าถึงโดยตรง ซึ่งโจทย์ห้าม และไม่ได้แก้เรื่อง DNS ภายในเพราะเปลี่ยนเป็นชื่อ public แทน"
+      },
+      "C": {
+        "text": "Deploy an AWS Client VPN endpoint with SAML-based federated authentication and authorization rules for the VPC and data-center CIDRs, and configure the endpoint to use only the VPC's Amazon-provided DNS server without any Resolver rules.",
+        "explanation": "ตกข้อ (2): ฝั่ง VPN และ routing ถูกต้อง Amazon-provided DNS resolve private hosted zone ได้ แต่ไม่รู้จัก DNS zone ของ data center หากไม่มี outbound endpoint และ forwarding rule ผู้ใช้จึงเปิด intranet ด้วยชื่อไม่ได้"
+      },
+      "D": {
+        "text": "Deploy an AWS Client VPN endpoint that uses mutual certificate authentication with one shared client certificate distributed to all employees, and configure Route 53 Resolver inbound and outbound endpoints with forwarding rules.",
+        "explanation": "ตกข้อ (1): DNS ออกแบบถูกต้อง แต่ certificate เดียวที่แจกทุกคนไม่ใช่ federated authentication รายบุคคล แยกและถอนสิทธิ์ผู้ใช้คนเดียวไม่ได้ และไม่มี authorization ตามกลุ่มผู้ใช้จาก IdP ตามที่ security ต้องการ"
+      }
+    },
+    "review": {
+      "decisiveClue": "ผู้ใช้ 1,200 คนจาก network ใดก็ได้ ต้อง federated auth ต่อคน, DNS ทั้ง private hosted zone และ zone on premises, ห้ามเปิดแอปสู่ internet",
+      "reasoning": "1) remote user รายคนจาก network ที่ควบคุมไม่ได้ = Client VPN (Direct Connect และ Site-to-Site VPN เป็นการเชื่อมระดับ site) 2) auth ต้องเป็น federated รายบุคคล ตัด shared certificate (D) 3) DNS ต้อง resolve ทั้งสองฝั่ง: VPC resolver รู้ private hosted zone แต่ต้องมี outbound forwarding rule สำหรับ zone on premises ตัด C 4) ห้ามเปิดแอปสู่ internet ตัด B A จึงครบทั้งสามข้อ",
+      "references": [
+        {
+          "title": "What is AWS Client VPN?",
+          "url": "https://docs.aws.amazon.com/vpn/latest/clientvpn-admin/what-is.html"
+        },
+        {
+          "title": "Client VPN authentication (SAML federation)",
+          "url": "https://docs.aws.amazon.com/vpn/latest/clientvpn-admin/client-authentication.html"
+        },
+        {
+          "title": "Forwarding outbound DNS queries to your network",
+          "url": "https://docs.aws.amazon.com/Route53/latest/DeveloperGuide/resolver-forwarding-outbound-queries.html"
+        }
+      ]
+    }
+  },
+  "sources": [
+    "https://docs.aws.amazon.com/vpn/latest/clientvpn-admin/what-is.html",
+    "https://docs.aws.amazon.com/vpn/latest/clientvpn-admin/client-authentication.html",
+    "https://docs.aws.amazon.com/Route53/latest/DeveloperGuide/resolver-forwarding-outbound-queries.html"
+  ]
+}

@@ -1,0 +1,59 @@
+{
+  "id": "original-08",
+  "scope": "full",
+  "verdict": "FIX",
+  "originalCorrectIds": [
+    "A"
+  ],
+  "verifiedCorrectIds": [
+    "A"
+  ],
+  "issues": [
+    "prompt: เดิมตัวลวง (IGW, NAT ยืนยันตัวตน) ผิดทางเทคนิคชัดเจน; เพิ่ม SSE-KMS และ expiring link เพื่อให้ต้องแยก OAC/OAI/signed URL",
+    "caveat: เดิมกังวลเรื่อง OAC ไม่ใช่ viewer authorization แก้ด้วยการเพิ่ม signed URL ในคำตอบและอธิบายใน reasoning"
+  ],
+  "changes": {
+    "prompt": "A media company stores subscriber-only PDF reports in an Amazon S3 bucket. The objects are encrypted with SSE-KMS by using a customer managed key. Subscribers around the world download the reports and complain about slow downloads. The company must deliver the files with low latency, ensure that the objects can never be retrieved directly from Amazon S3 by viewers, and allow only signed-in subscribers to download a report by using a link that expires after 1 hour. The S3 bucket must keep S3 Block Public Access enabled. Which solution meets these requirements?",
+    "correctIds": [
+      "A"
+    ],
+    "rationale": "CloudFront with origin access control supports SSE-KMS objects and locks the bucket to the distribution, while signed URLs from a trusted key group restrict viewers and expire after 1 hour.",
+    "options": {
+      "A": {
+        "text": "Create an Amazon CloudFront distribution with the bucket as an origin that uses origin access control (OAC). Allow s3:GetObject only for the CloudFront service principal with a condition on the distribution ARN, allow that principal to use the KMS key for decryption, and require CloudFront signed URLs that use a trusted key group with a 1-hour expiration.",
+        "explanation": "ถูก: CloudFront cache ไฟล์ที่ edge ทำให้ดาวน์โหลดเร็วทั่วโลก OAC รองรับ SSE-KMS และ bucket policy ที่จำกัดด้วย AWS:SourceArn ทำให้มีเพียง distribution นี้อ่าน object ได้ ส่วน signed URL จาก trusted key group จำกัดผู้ดาวน์โหลดและหมดอายุใน 1 ชั่วโมง ต้องเพิ่มสิทธิ์ kms:Decrypt ให้ CloudFront service principal ใน key policy ด้วย"
+      },
+      "B": {
+        "text": "Create a CloudFront distribution that uses an origin access identity (OAI) for the bucket, grant the OAI s3:GetObject in the bucket policy, and require CloudFront signed URLs with a 1-hour expiration.",
+        "explanation": "ไม่ผ่าน: OAI เป็นกลไกแบบเดิมที่ไม่รองรับ object ที่เข้ารหัสด้วย SSE-KMS CloudFront จึงดึงไฟล์เหล่านี้จาก S3 ไม่ได้ แม้ signed URL จะตอบเรื่องการจำกัดผู้ใช้ก็ตาม AWS แนะนำให้ใช้ OAC แทน OAI สำหรับ origin S3 ใหม่"
+      },
+      "C": {
+        "text": "Have the application generate S3 presigned URLs that expire after 1 hour and enable S3 Transfer Acceleration on the bucket so that subscribers download through the nearest edge location.",
+        "explanation": "ไม่ผ่าน: presigned URL ทำให้ viewer ดึง object จาก S3 โดยตรง ซึ่งขัดกับข้อห้ามเข้าถึง S3 ตรง Transfer Acceleration ช่วยเร่งการโอนผ่าน edge network แต่ไม่ได้ cache เนื้อหา ทุกดาวน์โหลดยังวิ่งกลับไปที่ bucket และมีค่าใช้จ่ายเพิ่ม"
+      },
+      "D": {
+        "text": "Enable S3 static website hosting and configure the website endpoint as a CloudFront custom origin. Add a secret Referer header in CloudFront and a bucket policy that allows reads only when the header matches, and use CloudFront signed cookies.",
+        "explanation": "ไม่ผ่าน: S3 website endpoint ต้องอนุญาตการอ่านแบบ public ซึ่งขัดกับ Block Public Access และไม่รองรับการให้บริการ object ที่เข้ารหัสด้วย SSE-KMS ส่วน Referer header เป็นความลับที่ปลอมได้ ไม่ใช่การควบคุมสิทธิ์ที่แข็งแรงเหมือน OAC"
+      }
+    },
+    "review": {
+      "decisiveClue": "SSE-KMS, ห้ามดึงจาก S3 ตรง, Block Public Access เปิดอยู่, ผู้ใช้ทั่วโลก, link หมดอายุ 1 ชั่วโมงสำหรับ subscriber",
+      "reasoning": "1) ผู้ใช้ทั่วโลกและไฟล์ซ้ำ ๆ ต้อง cache ที่ edge จึงต้องใช้ CloudFront ซึ่ง Transfer Acceleration (C) ไม่ได้ทำ และ presigned URL ยังเป็นการเข้า S3 ตรง 2) ห้ามดึงจาก S3 ตรงและต้องคง Block Public Access จึงต้องใช้ OAC/OAI ไม่ใช่ website endpoint (D) 3) object ใช้ SSE-KMS: OAI ไม่รองรับ แต่ OAC รองรับเมื่อให้สิทธิ์ใน key policy จึงตัด B 4) การจำกัด subscriber และอายุ link ทำด้วย CloudFront signed URLs/cookies โปรดจำว่า OAC คุม origin access ส่วน signed URL คุม viewer access",
+      "references": [
+        {
+          "title": "Restricting access to an Amazon S3 origin (OAC)",
+          "url": "https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/private-content-restricting-access-to-s3.html"
+        },
+        {
+          "title": "Serving private content with signed URLs and signed cookies",
+          "url": "https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/PrivateContent.html"
+        }
+      ],
+      "reviewStatus": null
+    }
+  },
+  "sources": [
+    "https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/private-content-restricting-access-to-s3.html",
+    "https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/PrivateContent.html"
+  ]
+}

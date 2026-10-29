@@ -1,0 +1,81 @@
+{
+  "id": "pro-69",
+  "sourceCategory": "professional",
+  "sourceLabel": "AI-authored · Professional multi-requirement",
+  "sourceDetail": "Original multi-constraint scenario — desktop ส่วนตัวสำหรับพนักงาน part-time ที่ถูกที่สุด",
+  "coreEligible": true,
+  "emerging": false,
+  "domain": "4",
+  "task": "Migration and modernization",
+  "topic": "desktop ส่วนตัวสำหรับพนักงาน part-time ที่ถูกที่สุด",
+  "type": "multiple-choice",
+  "selectCount": 1,
+  "prompt": "A utility company runs a customer call center with 300 part-time agents who work irregular shifts. Each agent currently has a dedicated Windows PC in the office, and the PCs are due for replacement next quarter. Agents must keep their own persistent Windows desktop with personal settings, browser profiles, and a locally installed softphone between sessions. Usage reports show that each agent is signed in for about 3 hours per working day, or roughly 60–70 hours per month, and almost never more than 80 hours in a month. Agents sign in with their existing accounts in the company's on-premises Active Directory, which is reachable from AWS over an existing Site-to-Site VPN connection. The IT team has two administrators and does not want to build or patch a remote desktop infrastructure. Finance wants a predictable cost model and has asked the team to analyze the expected monthly spend before committing to a design. The company plans to buy thin clients for the office and allow agents to work from home on the same desktops. Which solution will meet these requirements MOST cost-effectively?",
+  "options": [
+    {
+      "id": "A",
+      "text": "Deploy Amazon WorkSpaces Personal with the AlwaysOn running mode for all 300 agents, register the WorkSpaces directory with AD Connector to the on-premises Active Directory, and use Cost Explorer to track the monthly WorkSpaces charges by cost allocation tag.",
+      "explanation": "ทำงานได้และตรงเรื่อง persistent desktop แต่ AlwaysOn คิดค่าบริการรายเดือนเต็มไม่ว่าใช้กี่ชั่วโมง สำหรับผู้ใช้ราว 60–70 ชั่วโมงต่อเดือน AutoStop ที่คิดค่าฐานรายเดือนต่ำบวกค่ารายชั่วโมงจะถูกกว่า AlwaysOn คุ้มเมื่อใช้งานเกินจุดคุ้มทุนประมาณ 80 ชั่วโมงขึ้นไป"
+    },
+    {
+      "id": "B",
+      "text": "Deploy Amazon WorkSpaces Personal with the AutoStop running mode and a short automatic stop timeout for all 300 agents, register the WorkSpaces directory with AD Connector to the on-premises Active Directory, and use Cost Explorer to compare actual hourly usage against the AlwaysOn break-even point each month.",
+      "explanation": "ถูก: WorkSpaces Personal ให้ desktop ส่วนตัวที่คงสภาพไว้ AutoStop คิดค่าฐานรายเดือนต่ำบวกค่ารายชั่วโมงเฉพาะเวลาที่ใช้ เหมาะกับผู้ใช้ 60–70 ชั่วโมงต่อเดือนที่ต่ำกว่าจุดคุ้มทุน AD Connector ใช้ AD เดิมโดยไม่ต้องสร้าง directory ใหม่ ทีมไม่ต้องดูแล VDI infrastructure และ Cost Explorer ช่วยยืนยันว่าควรสลับบางคนเป็น AlwaysOn หรือไม่"
+    },
+    {
+      "id": "C",
+      "text": "Launch one Amazon EC2 Windows instance per agent from a standard AMI, join the instances to the on-premises Active Directory, stop each instance when the agent signs out by using an AWS Lambda function, and give agents access through Remote Desktop over the VPN.",
+      "explanation": "ไม่ผ่านด้านต้นทุนรวม: EC2 คิดตามชั่วโมงที่รันจริงก็จริง แต่ยังต้องจ่าย EBS ตลอดเวลา, ค่า Windows license และต้องสร้างระบบเปิด/ปิดเครื่อง, patch และการจับคู่ผู้ใช้กับเครื่องเอง ซึ่งทีม 2 คนไม่ต้องการดูแล และ Remote Desktop ผ่าน VPN จากบ้านยังต้องจัดการ access เพิ่ม"
+    },
+    {
+      "id": "D",
+      "text": "Deploy Amazon WorkSpaces Pools with a pool sized for the peak number of concurrent agents, enable application settings persistence, and connect the pool to the on-premises Active Directory through the existing VPN connection. Configure scheduled scaling so that pool capacity follows the shift roster and shrinks at night.",
+      "explanation": "ไม่ผ่าน: WorkSpaces Pools เป็น desktop แบบ non-persistent ที่ใช้ร่วมกัน ถึงจะเก็บ application settings ได้บางส่วน แต่ softphone ที่ติดตั้งเองและสภาพ desktop ทั้งหมดของแต่ละคนจะไม่คงอยู่ระหว่าง session ซึ่งขัดกับ requirement persistent personal desktop"
+    }
+  ],
+  "correctIds": [
+    "B"
+  ],
+  "rationale": "1) ต้องการ persistent personal desktop จึงตัด WorkSpaces Pools (D) ที่เป็น non-persistent 2) ห้ามดูแล remote desktop infrastructure เอง EC2 รายคน (C) จึงเพิ่มงานและค่า EBS/license 3) เหลือ WorkSpaces Personal สองโหมด: ผู้ใช้ 60–70 ชั่วโมงต่อเดือนต่ำกว่าจุดคุ้มทุนของ AlwaysOn ดังนั้น AutoStop (B) ถูกกว่า AlwaysOn (A) 4) AD Connector ใช้ AD เดิมผ่าน VPN ที่มีอยู่",
+  "wrongAnswerHelp": "Start with the explicit business constraint, then eliminate choices that solve a different layer of the architecture or add unnecessary operational work.",
+  "references": [
+    "https://docs.aws.amazon.com/workspaces/latest/adminguide/running-mode.html",
+    "https://docs.aws.amazon.com/workspaces/latest/adminguide/launch-workspace-ad-connector.html",
+    "https://docs.aws.amazon.com/cost-management/latest/userguide/ce-what-is.html"
+  ],
+  "products": [
+    "EC2",
+    "Cost Explorer",
+    "Amazon WorkSpaces Personal"
+  ],
+  "requirements": [
+    "Each agent keeps a persistent personal Windows desktop",
+    "Desktops used ~3 h/day on irregular shifts",
+    "Keep existing corporate AD sign-in"
+  ],
+  "review": {
+    "decisiveClue": "desktop ส่วนตัวที่คงสภาพ, ใช้ 60–70 ชั่วโมง/เดือน, ใช้ AD เดิม, ไม่ดูแล VDI, ต้นทุนต่ำสุด",
+    "reasoning": "1) ต้องการ persistent personal desktop จึงตัด WorkSpaces Pools (D) ที่เป็น non-persistent 2) ห้ามดูแล remote desktop infrastructure เอง EC2 รายคน (C) จึงเพิ่มงานและค่า EBS/license 3) เหลือ WorkSpaces Personal สองโหมด: ผู้ใช้ 60–70 ชั่วโมงต่อเดือนต่ำกว่าจุดคุ้มทุนของ AlwaysOn ดังนั้น AutoStop (B) ถูกกว่า AlwaysOn (A) 4) AD Connector ใช้ AD เดิมผ่าน VPN ที่มีอยู่",
+    "options": {
+      "A": "ทำงานได้และตรงเรื่อง persistent desktop แต่ AlwaysOn คิดค่าบริการรายเดือนเต็มไม่ว่าใช้กี่ชั่วโมง สำหรับผู้ใช้ราว 60–70 ชั่วโมงต่อเดือน AutoStop ที่คิดค่าฐานรายเดือนต่ำบวกค่ารายชั่วโมงจะถูกกว่า AlwaysOn คุ้มเมื่อใช้งานเกินจุดคุ้มทุนประมาณ 80 ชั่วโมงขึ้นไป",
+      "B": "ถูก: WorkSpaces Personal ให้ desktop ส่วนตัวที่คงสภาพไว้ AutoStop คิดค่าฐานรายเดือนต่ำบวกค่ารายชั่วโมงเฉพาะเวลาที่ใช้ เหมาะกับผู้ใช้ 60–70 ชั่วโมงต่อเดือนที่ต่ำกว่าจุดคุ้มทุน AD Connector ใช้ AD เดิมโดยไม่ต้องสร้าง directory ใหม่ ทีมไม่ต้องดูแล VDI infrastructure และ Cost Explorer ช่วยยืนยันว่าควรสลับบางคนเป็น AlwaysOn หรือไม่",
+      "C": "ไม่ผ่านด้านต้นทุนรวม: EC2 คิดตามชั่วโมงที่รันจริงก็จริง แต่ยังต้องจ่าย EBS ตลอดเวลา, ค่า Windows license และต้องสร้างระบบเปิด/ปิดเครื่อง, patch และการจับคู่ผู้ใช้กับเครื่องเอง ซึ่งทีม 2 คนไม่ต้องการดูแล และ Remote Desktop ผ่าน VPN จากบ้านยังต้องจัดการ access เพิ่ม",
+      "D": "ไม่ผ่าน: WorkSpaces Pools เป็น desktop แบบ non-persistent ที่ใช้ร่วมกัน ถึงจะเก็บ application settings ได้บางส่วน แต่ softphone ที่ติดตั้งเองและสภาพ desktop ทั้งหมดของแต่ละคนจะไม่คงอยู่ระหว่าง session ซึ่งขัดกับ requirement persistent personal desktop"
+    },
+    "references": [
+      {
+        "title": "Manage the running mode of WorkSpaces Personal",
+        "url": "https://docs.aws.amazon.com/workspaces/latest/adminguide/running-mode.html"
+      },
+      {
+        "title": "Create a directory for WorkSpaces Personal with AD Connector",
+        "url": "https://docs.aws.amazon.com/workspaces/latest/adminguide/launch-workspace-ad-connector.html"
+      },
+      {
+        "title": "Analyzing your costs with Cost Explorer",
+        "url": "https://docs.aws.amazon.com/cost-management/latest/userguide/ce-what-is.html"
+      }
+    ],
+    "reviewedAt": "2026-10-29"
+  }
+}

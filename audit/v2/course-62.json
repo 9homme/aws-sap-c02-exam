@@ -1,0 +1,19 @@
+{
+  "id": "course-62",
+  "scope": "explanations",
+  "verdict": "FIX",
+  "verifiedCorrectIds": [
+    "B"
+  ],
+  "issues": [
+    "review.reasoning: ใช้คำคลุมเครือ 'ตามความสามารถที่รองรับ' ไม่บอกว่า agent ติดตั้งบน server/VM และเก็บข้อมูลอะไร ซึ่งตรงกับ wording ของโจทย์"
+  ],
+  "changes": {
+    "review": {
+      "reasoning": "โจทย์ถามถึง agent ที่ติดตั้งบน on-premises server หรือ VM เพื่อ discovery ซึ่งคือ AWS Application Discovery Agent (ของ Application Discovery Service) ติดตั้งบนเครื่องแต่ละตัว (physical หรือ VM) แล้วเก็บ system configuration, performance, running processes และ network connections เพื่อสร้าง inventory และดู dependencies ก่อนวางแผนย้าย อย่าสับสนกับ MGN replication agent ซึ่งใช้ replicate disk เพื่อ rehost ไม่ได้ทำ discovery และ AWS Config ดูได้เฉพาะ AWS resources"
+    }
+  },
+  "sources": [
+    "https://docs.aws.amazon.com/migrationhub/latest/ug/whatishub.html"
+  ]
+}

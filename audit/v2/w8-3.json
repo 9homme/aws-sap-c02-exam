@@ -1,0 +1,21 @@
+{
+  "id": "w8-3",
+  "scope": "explanations",
+  "verdict": "FIX",
+  "verifiedCorrectIds": [
+    "B"
+  ],
+  "issues": [
+    "review.reasoning: ไม่ระบุว่าอ่านว่า flow log นี้เป็น ENI ของ Instance B (inbound ACCEPT แล้ว outbound REJECT) และไม่อธิบายว่าทำไม SG ไม่ใช่สาเหตุ ทั้งที่เป็นสมมติฐานที่คำตอบ B พึ่งพา"
+  ],
+  "changes": {
+    "review": {
+      "reasoning": "flow log ขาแรก 172.31.16.139:20641 → 10.10.128.14:5001 เป็น ACCEPT แต่ขากลับ 5001 → 20641 เป็น REJECT บน ENI เดียวกัน อ่านว่าเป็น ENI ของ Instance B: รับ request เข้าได้ แต่ reply ขาออกถูกปฏิเสธ port 5001 คือ port เซิร์ฟเวอร์ ส่วน 20641 คือ ephemeral port ของ client Security group เป็น stateful จึงปล่อย reply ของ connection ที่อนุญาตแล้วโดยไม่ต้องมีกฎเพิ่ม ส่วน network ACL เป็น stateless ตรวจขาออกแยกต่างหาก จึงต้องเพิ่ม outbound allow ที่ NACL ของ subnet B สำหรับ port 20641 (ในทางปฏิบัติเปิดช่วง ephemeral) ตาม B"
+    }
+  },
+  "sources": [
+    "https://docs.aws.amazon.com/vpc/latest/userguide/vpc-network-acls.html",
+    "https://docs.aws.amazon.com/vpc/latest/userguide/flow-logs-records-examples.html",
+    "https://docs.aws.amazon.com/vpc/latest/userguide/vpc-security-groups.html"
+  ]
+}

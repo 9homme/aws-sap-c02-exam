@@ -1,0 +1,30 @@
+{
+  "id": "w8-64",
+  "scope": "explanations",
+  "verdict": "FIX",
+  "verifiedCorrectIds": [
+    "A"
+  ],
+  "issues": [
+    "options.A.explanation: ประโยคท้ายคลุมเครือ ไม่บอกว่า managed rotation ลด development effort อย่างไร",
+    "options.B.explanation: ไม่ระบุว่า Parameter Store ไม่มี managed rotation สำหรับ RDS และการเปลี่ยนรหัสใน DB ไม่ใช่ event ที่ trigger ได้ง่าย",
+    "options.D.explanation: ไม่ชัดว่าทำไม alternating ซับซ้อนกว่า"
+  ],
+  "changes": {
+    "options": {
+      "A": {
+        "explanation": "Secrets Manager เก็บ credential แทน hardcode โดยโค้ด Lambda แค่ดึง secret ตอนรัน (คุมสิทธิ์ด้วย IAM) และมี managed rotation สำหรับ RDS ในตัว Single-user rotation ใช้ DB user ตัวเดียวที่ Lambda ทุกตัวใช้ร่วมกันอยู่ จึงแก้ปัญหารหัสเปลี่ยนแล้วพัง และใช้ development effort น้อยสุด ควรมี retry ดึง secret ใหม่เมื่อ auth ล้มเหลว"
+      },
+      "B": {
+        "explanation": "Parameter Store เก็บ SecureString ได้ แต่ไม่มี managed rotation สำหรับรหัส RDS ตัวเลือกนี้ต้องเขียน EventBridge rule + Lambda เอง และการเปลี่ยนรหัสด้วยคำสั่งใน DB ไม่ใช่ RDS API event ที่ trigger ได้ง่าย อาจทำให้ค่าใน Parameter Store ไม่ตรงกับ DB จึงมี development effort สูงกว่าและไม่น่าเชื่อถือเท่า A"
+      },
+      "D": {
+        "explanation": "Alternating users rotation ต้องสร้าง DB user ตัวที่สองที่ clone สิทธิ์ไว้ และมี master secret แยกให้ rotation function ใช้จัดการ user สลับกัน ตั้งค่าและดูแลมากกว่า เหมาะเมื่อต้องการไม่ให้ connection หลุดตอน rotate แต่โจทย์ให้ Lambda ใช้ user เดียวร่วมกันและเน้น LEAST development effort จึง single-user ตรงกว่า"
+      }
+    }
+  },
+  "sources": [
+    "https://docs.aws.amazon.com/secretsmanager/latest/userguide/rotation-strategy.html",
+    "https://docs.aws.amazon.com/secretsmanager/latest/userguide/hardcoded-db-creds.html"
+  ]
+}

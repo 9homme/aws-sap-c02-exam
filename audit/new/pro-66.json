@@ -1,0 +1,80 @@
+{
+  "id": "pro-66",
+  "sourceCategory": "professional",
+  "sourceLabel": "AI-authored · Professional multi-requirement",
+  "sourceDetail": "Original multi-constraint scenario — branch ขนาดเล็กเชื่อม AWS แบบ private ที่ประหยัด",
+  "coreEligible": true,
+  "emerging": false,
+  "domain": "1",
+  "task": "Organizational complexity",
+  "topic": "branch ขนาดเล็กเชื่อม AWS แบบ private ที่ประหยัด",
+  "type": "multiple-choice",
+  "selectCount": 1,
+  "prompt": "An insurance company is opening a regional claims branch that will host 40 employees. The branch must connect to a claims application that runs in a VPC attached to the company's transit gateway in us-east-1. Peak traffic from the branch is about 100 Mbps. Company policy states that branch-to-AWS traffic must not traverse the public internet and must be encrypted in transit. A local AWS Direct Connect Delivery Partner can provide hosted connections of 50 Mbps to 10 Gbps from the branch building to a nearby Direct Connect location. The branch router supports IPsec and BGP. The headquarters already uses a Direct Connect gateway that is associated with the transit gateway. The CFO has asked the network team to choose the option with the lowest monthly cost that meets the policy, and the team does not expect the branch to grow beyond 200 Mbps in the next 3 years. The solution must not require the team to operate network appliances in AWS. The branch lease starts in 3 months, which leaves enough time for any provider circuit to be delivered, and the headquarters network team will manage all branch routing remotely. Which solution will meet these requirements MOST cost-effectively?",
+  "options": [
+    {
+      "id": "A",
+      "text": "Order a 1 Gbps dedicated Direct Connect connection for the branch, enable MACsec on the connection for encryption, and create a transit virtual interface to the existing Direct Connect gateway. Configure BGP on the branch router and advertise only the branch prefixes to the transit gateway.",
+      "explanation": "ไม่ผ่าน: MACsec ของ Direct Connect รองรับเฉพาะ dedicated connection ความเร็วสูง (10 Gbps ขึ้นไป) ที่ location ที่รองรับ จึงเปิดบน 1 Gbps ไม่ได้ และพอร์ต dedicated 1 Gbps ก็แพงเกินกว่าความต้องการ 100–200 Mbps"
+    },
+    {
+      "id": "B",
+      "text": "Order a 200 Mbps hosted connection from the Delivery Partner, create a transit virtual interface to the existing Direct Connect gateway, and create a private IP Site-to-Site VPN connection over it that terminates on the transit gateway. Use two tunnels with BGP and advertise only the branch prefixes so that the transit gateway route tables stay unchanged.",
+      "explanation": "ถูก: hosted connection 200 Mbps ราคาต่ำกว่า dedicated port มากและพอสำหรับการเติบโต 3 ปี traffic อยู่บน Direct Connect ไม่ผ่าน internet ส่วน private IP VPN ใส่ IPsec ให้ traffic โดยใช้ private IP ที่ปลาย tunnel และใช้ Transit Gateway เดิม ไม่ต้องดูแล appliance ค่า VPN attachment ต่อชั่วโมงยังน้อยกว่าส่วนต่างของพอร์ต"
+    },
+    {
+      "id": "C",
+      "text": "Order a 10 Gbps MACsec-capable dedicated connection for the branch at the nearby Direct Connect location, enable MACsec, and create a transit virtual interface to the existing Direct Connect gateway. Configure BGP on the branch router and leave capacity for future branches to share the port through additional virtual interfaces. Review the design with the architecture board before rollout.",
+      "explanation": "ทำงานได้และเข้ารหัสได้จริง แต่พอร์ต 10 Gbps ใหญ่กว่า 100 Mbps ถึง 100 เท่า ค่าพอร์ตรายชั่วโมงและค่า cross-connect สูงกว่ามาก จึงไม่ใช่ทางที่คุ้มค่าที่สุด"
+    },
+    {
+      "id": "D",
+      "text": "Use the branch's existing business internet connection to create a standard Site-to-Site VPN connection to the transit gateway, and enable acceleration to keep latency low. Use two tunnels with BGP for redundancy and keep the existing transit gateway route tables for the claims VPC.",
+      "explanation": "ราคาต่ำที่สุดแต่ไม่ผ่าน policy: แม้จะเข้ารหัสด้วย IPsec และ accelerated VPN ใช้ AWS backbone ภายหลัง แต่ traffic ยังผ่าน public internet ซึ่งนโยบายห้ามไว้"
+    }
+  ],
+  "correctIds": [
+    "B"
+  ],
+  "rationale": "1) ตัดทาง internet (D) แม้จะถูกที่สุด เพราะผิด policy 2) ทางที่เหลือต้องอยู่บน Direct Connect และเข้ารหัส: MACsec ใช้ได้เฉพาะ dedicated 10 Gbps ขึ้นไป จึงตัด 1 Gbps (A) ส่วน 10 Gbps (C) ใช้ได้แต่ใหญ่เกินมาก 3) hosted connection ขนาดเล็ก + private IP VPN บน Transit Gateway เดิมให้ IPsec โดยไม่ผ่าน internet และไม่มี appliance 4) B จึงคุ้มค่าที่สุด",
+  "wrongAnswerHelp": "Start with the explicit business constraint, then eliminate choices that solve a different layer of the architecture or add unnecessary operational work.",
+  "references": [
+    "https://docs.aws.amazon.com/directconnect/latest/UserGuide/hosted_connection.html",
+    "https://docs.aws.amazon.com/vpn/latest/s2svpn/private-ip-dx.html",
+    "https://docs.aws.amazon.com/directconnect/latest/UserGuide/MACsec.html"
+  ],
+  "products": [
+    "Direct Connect",
+    "Site-to-Site VPN",
+    "Transit Gateway"
+  ],
+  "requirements": [
+    "Private connectivity for a 100 Mbps branch, no internet path",
+    "Encrypt traffic in transit between branch and VPC"
+  ],
+  "review": {
+    "decisiveClue": "100–200 Mbps, ห้ามผ่าน internet และต้องเข้ารหัส, ต้นทุนต่ำสุด, ไม่ดูแล appliance",
+    "reasoning": "1) ตัดทาง internet (D) แม้จะถูกที่สุด เพราะผิด policy 2) ทางที่เหลือต้องอยู่บน Direct Connect และเข้ารหัส: MACsec ใช้ได้เฉพาะ dedicated 10 Gbps ขึ้นไป จึงตัด 1 Gbps (A) ส่วน 10 Gbps (C) ใช้ได้แต่ใหญ่เกินมาก 3) hosted connection ขนาดเล็ก + private IP VPN บน Transit Gateway เดิมให้ IPsec โดยไม่ผ่าน internet และไม่มี appliance 4) B จึงคุ้มค่าที่สุด",
+    "options": {
+      "A": "ไม่ผ่าน: MACsec ของ Direct Connect รองรับเฉพาะ dedicated connection ความเร็วสูง (10 Gbps ขึ้นไป) ที่ location ที่รองรับ จึงเปิดบน 1 Gbps ไม่ได้ และพอร์ต dedicated 1 Gbps ก็แพงเกินกว่าความต้องการ 100–200 Mbps",
+      "B": "ถูก: hosted connection 200 Mbps ราคาต่ำกว่า dedicated port มากและพอสำหรับการเติบโต 3 ปี traffic อยู่บน Direct Connect ไม่ผ่าน internet ส่วน private IP VPN ใส่ IPsec ให้ traffic โดยใช้ private IP ที่ปลาย tunnel และใช้ Transit Gateway เดิม ไม่ต้องดูแล appliance ค่า VPN attachment ต่อชั่วโมงยังน้อยกว่าส่วนต่างของพอร์ต",
+      "C": "ทำงานได้และเข้ารหัสได้จริง แต่พอร์ต 10 Gbps ใหญ่กว่า 100 Mbps ถึง 100 เท่า ค่าพอร์ตรายชั่วโมงและค่า cross-connect สูงกว่ามาก จึงไม่ใช่ทางที่คุ้มค่าที่สุด",
+      "D": "ราคาต่ำที่สุดแต่ไม่ผ่าน policy: แม้จะเข้ารหัสด้วย IPsec และ accelerated VPN ใช้ AWS backbone ภายหลัง แต่ traffic ยังผ่าน public internet ซึ่งนโยบายห้ามไว้"
+    },
+    "references": [
+      {
+        "title": "Direct Connect hosted connections",
+        "url": "https://docs.aws.amazon.com/directconnect/latest/UserGuide/hosted_connection.html"
+      },
+      {
+        "title": "Private IP VPN with AWS Direct Connect",
+        "url": "https://docs.aws.amazon.com/vpn/latest/s2svpn/private-ip-dx.html"
+      },
+      {
+        "title": "MACsec in AWS Direct Connect",
+        "url": "https://docs.aws.amazon.com/directconnect/latest/UserGuide/MACsec.html"
+      }
+    ],
+    "reviewedAt": "2026-10-29"
+  }
+}

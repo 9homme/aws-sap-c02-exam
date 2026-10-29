@@ -1,0 +1,20 @@
+{
+  "id": "course-50",
+  "scope": "explanations",
+  "verdict": "FIX",
+  "verifiedCorrectIds": [
+    "B"
+  ],
+  "issues": [
+    "review.reviewStatus/caveat: 'ambiguous' flag is stale. It referred to an original wording claiming minimal application changes; the actual prompt explicitly accepts schema/SQL compatibility work, wants live data movement with short cutover and read scaling, so SCT + DMS + Aurora PostgreSQL readers is unambiguous. Removing the flag."
+  ],
+  "changes": {
+    "review": {
+      "reviewStatus": null
+    }
+  },
+  "sources": [
+    "https://docs.aws.amazon.com/dms/latest/userguide/Welcome.html",
+    "https://docs.aws.amazon.com/SchemaConversionTool/latest/userguide/CHAP_Welcome.html"
+  ]
+}

@@ -1,0 +1,82 @@
+{
+  "id": "pro-95",
+  "sourceCategory": "professional",
+  "sourceLabel": "AI-authored · Professional multi-requirement",
+  "sourceDetail": "Original multi-constraint scenario — ให้ทีม self-service stack ที่อนุมัติให้เร็วที่สุด",
+  "coreEligible": true,
+  "emerging": false,
+  "domain": "1",
+  "task": "Organizational complexity",
+  "topic": "ให้ทีม self-service stack ที่อนุมัติให้เร็วที่สุด",
+  "type": "multiple-choice",
+  "selectCount": 1,
+  "prompt": "A software company has 70 AWS accounts in an organization in AWS Organizations, grouped into development and production OUs. The platform team already maintains tested AWS CloudFormation templates for an Amazon RDS for PostgreSQL database, an Amazon ECS service, and a static website, and it stores approved AMI IDs and network settings in AWS Systems Manager Parameter Store. Product teams currently open tickets for each new stack, and the backlog is 3 weeks long. Leadership wants product teams to launch these approved stacks themselves starting tomorrow, choosing only from versions that the platform team publishes. Developers must not receive broad IAM permissions such as the ability to create IAM roles or RDS instances directly, and new accounts that join the OUs must get access automatically. The platform team has two engineers and cannot build a custom portal or pipeline this quarter. The production OU requires that every stack be tagged with a cost center. Developers already sign in through IAM Identity Center permission sets that are assigned per OU. Which solution will meet these requirements in the LEAST amount of time?",
+  "options": [
+    {
+      "id": "A",
+      "text": "Build an AWS CodePipeline pipeline for each product team that deploys the approved templates when the team commits a parameter file to a repository, and grant the pipeline's role the permissions to create the stacks in each target account. Store the template versions in a shared repository.",
+      "explanation": "ไม่ผ่านด้านเวลา: pipeline ใช้ควบคุมการ deploy ได้ แต่ต้องสร้างและทดสอบ pipeline ให้แต่ละทีมพร้อม cross-account roles และกลไกเลือกเวอร์ชัน ซึ่งทีม 2 คนทำไม่ทันพรุ่งนี้ และบัญชีใหม่ไม่ได้สิทธิ์อัตโนมัติ"
+    },
+    {
+      "id": "B",
+      "text": "Grant the developers the AdministratorAccess managed policy in their accounts for 30 days so that they can launch the approved templates directly from the CloudFormation console, and then remove the permission after the backlog is cleared. Monitor their actions with AWS CloudTrail.",
+      "explanation": "ไม่ผ่าน: เร็วที่สุดในทางปฏิบัติแต่ขัดกับข้อกำหนดที่ห้ามให้สิทธิ์กว้าง developers สร้าง IAM roles และ RDS ได้โดยตรง และไม่ได้จำกัดให้ใช้เฉพาะ template และเวอร์ชันที่อนุมัติ"
+    },
+    {
+      "id": "C",
+      "text": "Create AWS Service Catalog products from the existing CloudFormation templates with versioned provisioning artifacts, add them to a portfolio with a launch constraint that uses an IAM role allowed to create the resources, share the portfolio with the development and production OUs through AWS Organizations, and grant the developers' permission set access to the portfolio.",
+      "explanation": "ถูก: Service Catalog ใช้ template เดิมเป็น product ได้ทันทีโดยไม่ต้องสร้าง portal launch constraint ให้ role ของ portfolio สร้าง resources แทน developers จึงไม่ต้องมีสิทธิ์กว้าง provisioning artifacts คุมเวอร์ชันที่เลือกได้ และการแชร์ portfolio กับ OU ผ่าน Organizations ทำให้บัญชีใหม่ใน OU เข้าถึงได้อัตโนมัติ templates ยังอ่าน AMI IDs จาก Parameter Store ได้เหมือนเดิม"
+    },
+    {
+      "id": "D",
+      "text": "Share the Amazon S3 bucket that stores the CloudFormation templates with all accounts through AWS RAM, and instruct developers to launch the templates from the bucket with their existing permissions. Keep the approved AMI IDs in Parameter Store as today and reference them from the templates. Define the resources in AWS CloudFormation templates for repeatable deployment. Validate the change in a staging environment before production.",
+      "explanation": "ไม่ผ่าน: AWS RAM ไม่ได้รองรับการแชร์ S3 buckets และแม้ developers จะอ่าน template ได้ การ launch ยังต้องใช้สิทธิ์ของตัวเองในการสร้าง IAM roles และ RDS ซึ่งขัดกับข้อกำหนด และไม่ได้คุมเวอร์ชันที่อนุมัติ"
+    }
+  ],
+  "correctIds": [
+    "C"
+  ],
+  "rationale": "1) ห้ามให้สิทธิ์กว้าง ตัด AdministratorAccess (B) และการ launch ด้วยสิทธิ์ตัวเอง (D) ซึ่ง RAM ก็ไม่ได้แชร์ S3 bucket 2) pipeline ต่อทีม (A) ควบคุมได้แต่สร้างไม่ทันและทีมห้ามสร้าง 3) Service Catalog ใช้ template เดิมเป็น product, มี launch constraint และ version control และแชร์กับ OU ได้ในวันเดียว 4) C จึงเร็วที่สุดและปลอดภัย",
+  "wrongAnswerHelp": "Start with the explicit business constraint, then eliminate choices that solve a different layer of the architecture or add unnecessary operational work.",
+  "references": [
+    "https://docs.aws.amazon.com/servicecatalog/latest/adminguide/constraints-launch.html",
+    "https://docs.aws.amazon.com/servicecatalog/latest/adminguide/catalogs_portfolios_sharing_how-to-share.html",
+    "https://docs.aws.amazon.com/ram/latest/userguide/shareable.html"
+  ],
+  "products": [
+    "AWS Service Catalog",
+    "CloudFormation",
+    "Systems Manager",
+    "AWS RAM (Resource Access Manager)"
+  ],
+  "requirements": [
+    "Teams launch approved RDS and app stacks self-service today",
+    "Reuse existing CloudFormation templates",
+    "No broad IAM permissions to developers"
+  ],
+  "review": {
+    "decisiveClue": "ต้องเริ่มพรุ่งนี้, ใช้ template เดิมและเฉพาะเวอร์ชันที่อนุมัติ, developers ห้ามมีสิทธิ์กว้าง, บัญชีใหม่ได้สิทธิ์อัตโนมัติ, ห้ามสร้าง portal/pipeline",
+    "reasoning": "1) ห้ามให้สิทธิ์กว้าง ตัด AdministratorAccess (B) และการ launch ด้วยสิทธิ์ตัวเอง (D) ซึ่ง RAM ก็ไม่ได้แชร์ S3 bucket 2) pipeline ต่อทีม (A) ควบคุมได้แต่สร้างไม่ทันและทีมห้ามสร้าง 3) Service Catalog ใช้ template เดิมเป็น product, มี launch constraint และ version control และแชร์กับ OU ได้ในวันเดียว 4) C จึงเร็วที่สุดและปลอดภัย",
+    "options": {
+      "A": "ไม่ผ่านด้านเวลา: pipeline ใช้ควบคุมการ deploy ได้ แต่ต้องสร้างและทดสอบ pipeline ให้แต่ละทีมพร้อม cross-account roles และกลไกเลือกเวอร์ชัน ซึ่งทีม 2 คนทำไม่ทันพรุ่งนี้ และบัญชีใหม่ไม่ได้สิทธิ์อัตโนมัติ",
+      "B": "ไม่ผ่าน: เร็วที่สุดในทางปฏิบัติแต่ขัดกับข้อกำหนดที่ห้ามให้สิทธิ์กว้าง developers สร้าง IAM roles และ RDS ได้โดยตรง และไม่ได้จำกัดให้ใช้เฉพาะ template และเวอร์ชันที่อนุมัติ",
+      "C": "ถูก: Service Catalog ใช้ template เดิมเป็น product ได้ทันทีโดยไม่ต้องสร้าง portal launch constraint ให้ role ของ portfolio สร้าง resources แทน developers จึงไม่ต้องมีสิทธิ์กว้าง provisioning artifacts คุมเวอร์ชันที่เลือกได้ และการแชร์ portfolio กับ OU ผ่าน Organizations ทำให้บัญชีใหม่ใน OU เข้าถึงได้อัตโนมัติ templates ยังอ่าน AMI IDs จาก Parameter Store ได้เหมือนเดิม",
+      "D": "ไม่ผ่าน: AWS RAM ไม่ได้รองรับการแชร์ S3 buckets และแม้ developers จะอ่าน template ได้ การ launch ยังต้องใช้สิทธิ์ของตัวเองในการสร้าง IAM roles และ RDS ซึ่งขัดกับข้อกำหนด และไม่ได้คุมเวอร์ชันที่อนุมัติ"
+    },
+    "references": [
+      {
+        "title": "AWS Service Catalog launch constraints",
+        "url": "https://docs.aws.amazon.com/servicecatalog/latest/adminguide/constraints-launch.html"
+      },
+      {
+        "title": "Sharing portfolios with AWS Organizations",
+        "url": "https://docs.aws.amazon.com/servicecatalog/latest/adminguide/catalogs_portfolios_sharing_how-to-share.html"
+      },
+      {
+        "title": "Shareable AWS resources (AWS RAM)",
+        "url": "https://docs.aws.amazon.com/ram/latest/userguide/shareable.html"
+      }
+    ],
+    "reviewedAt": "2026-10-29"
+  }
+}

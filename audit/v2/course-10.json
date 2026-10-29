@@ -1,0 +1,13 @@
+{
+  "id": "course-10",
+  "scope": "explanations",
+  "verdict": "PASS",
+  "verifiedCorrectIds": [
+    "B"
+  ],
+  "issues": [],
+  "changes": {},
+  "sources": [
+    "https://docs.aws.amazon.com/wellarchitected/latest/framework/the-review-process.html"
+  ]
+}

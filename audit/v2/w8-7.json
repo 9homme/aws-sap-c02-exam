@@ -1,0 +1,43 @@
+{
+  "id": "w8-7",
+  "scope": "explanations",
+  "verdict": "AMBIGUOUS",
+  "verifiedCorrectIds": [
+    "B",
+    "C"
+  ],
+  "issues": [
+    "options.A.explanation: ไม่บอกว่า MGN replicate เฉพาะ block device ของ VM ข้อมูล Db2 บน NAS จึงไม่ถูกย้าย",
+    "options.C.explanation: 'SCT replication agent' ไม่ใช่ชื่อ component มาตรฐาน และไม่ระบุข้อจำกัด",
+    "options.D.explanation: ไม่บอกว่า SCT data extraction agent ไม่ได้คู่กับ DataSync",
+    "options.B.explanation: ไม่ผูกกับ physical server / ไม่มี source code / 90 วัน",
+    "review.caveat: เพิ่ม caveat ว่าชื่อเครื่องมือใน C ไม่แม่นและมีทางเลือกจริงอื่น (RDS for Db2)"
+  ],
+  "changes": {
+    "options": {
+      "A": {
+        "explanation": "Rehost VM Db2 ด้วย MGN ไป EC2 ยังต้องดูแล OS/Db2 เอง ไม่ใช่ managed service และ MGN replicate เฉพาะดิสก์ของ VM ข้อมูลฐานข้อมูลที่เก็บบน NAS จึงไม่ถูกย้ายไปด้วย ต้องมีงานย้ายข้อมูลเพิ่ม ตัวเลือกนี้ขัดเงื่อนไข 'ใช้ managed services เมื่อทำได้'"
+      },
+      "B": {
+        "explanation": "MGN รองรับ physical server จึง rehost Windows เดิมทั้ง OS และ application ไป EC2 ได้โดยไม่ต้องแก้ code ซึ่งเหมาะกับกรณีไม่มี source code, มี hardcoded OS config และต้องปิด data center ใน 90 วัน (refactor ไม่ได้จริง)"
+      },
+      "C": {
+        "explanation": "DMS ย้ายข้อมูลและ AWS SCT แปลง schema/object ข้าม engine จาก Db2 ไป RDS for MySQL จึงได้ managed database ตามเงื่อนไข 'ใช้ managed services เมื่อทำได้' คำว่า 'SCT replication agent' ไม่ใช่ชื่อ component มาตรฐาน และต้องประเมินความเข้ากันได้ของ Db2 ก่อน แต่ในตัวเลือกนี้เป็นตัวเดียวที่ไปถึง managed DB"
+      },
+      "D": {
+        "explanation": "DataSync คัดลอกไฟล์ระหว่าง storage (NFS/SMB/S3 ฯลฯ) ไม่ใช่เครื่องมือ migrate ฐานข้อมูลและไม่แปลง schema ส่วน SCT data extraction agent ออกแบบใช้คู่กับ SCT/DMS ไม่ใช่ DataSync การคัดลอกไฟล์ Db2 จึงไม่ได้ทำให้ได้ฐานข้อมูล RDS for MySQL"
+      }
+    },
+    "review": {
+      "caveat": "ชื่อ 'AWS SCT replication agent' ใน C ไม่แม่นยำ (การย้ายจริงใช้ SCT แปลง schema คู่กับ DMS) และในปัจจุบันมี Amazon RDS for Db2 เป็นทางเลือก managed ที่ไม่อยู่ในตัวเลือก อย่างไรก็ตาม A, D, E ผิดชัดเจน เฉลยที่คาดหวังจึงยังเป็น B และ C",
+      "reviewStatus": "ambiguous"
+    }
+  },
+  "sources": [
+    "https://docs.aws.amazon.com/mgn/latest/ug/what-is-mgn.html",
+    "https://docs.aws.amazon.com/SchemaConversionTool/latest/userguide/CHAP_Source.DB2LUW.html",
+    "https://docs.aws.amazon.com/dms/latest/userguide/CHAP_Source.DB2.html",
+    "https://docs.aws.amazon.com/datasync/latest/userguide/what-is-datasync.html",
+    "https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/db2-migration-approaches.html"
+  ]
+}

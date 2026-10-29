@@ -1,0 +1,81 @@
+{
+  "id": "pro-70",
+  "sourceCategory": "professional",
+  "sourceLabel": "AI-authored · Professional multi-requirement",
+  "sourceDetail": "Original multi-constraint scenario — desktop non-persistent สำหรับนักศึกษาจำนวนมากที่ถูกที่สุด",
+  "coreEligible": true,
+  "emerging": false,
+  "domain": "2",
+  "task": "New solution design",
+  "topic": "desktop non-persistent สำหรับนักศึกษาจำนวนมากที่ถูกที่สุด",
+  "type": "multiple-choice",
+  "selectCount": 1,
+  "prompt": "A university runs a 4-month professional training program each year for 2,000 students. Every student uses the same set of Windows applications, including a statistics package and a licensed simulation tool that the IT team installs on a standard image. Students attend scheduled lab sessions, so concurrency peaks at about 600 users during weekday mornings and drops close to zero at night and on weekends. No student needs a personal desktop, local administrator rights, or any operating system state between sessions, and all coursework is saved to an Amazon S3 bucket through the learning portal. The university wants capacity to follow the class schedule automatically, wants to avoid paying for idle desktops, and does not want to patch individual student machines. Students will connect from their own laptops through a web browser or client. The IT budget for the program is fixed and the finance office will select the lowest-cost option that meets these requirements. The licensed simulation tool is licensed per concurrent user, and the university's network team will allow outbound access from the desktops only to the learning portal and the S3 bucket. Which solution will meet these requirements MOST cost-effectively?",
+  "options": [
+    {
+      "id": "A",
+      "text": "Provision 2,000 Amazon WorkSpaces Personal desktops with the AutoStop running mode from a custom bundle that contains the applications, and delete the WorkSpaces at the end of each program. Join the WorkSpaces to the university directory and apply application updates by rebuilding each WorkSpace from the updated bundle.",
+      "explanation": "ทำงานได้แต่ไม่คุ้ม: Personal desktop ต้องมีหนึ่งเครื่องต่อนักศึกษาทั้ง 2,000 คนแม้ใช้งานพร้อมกันเพียง 600 และ AutoStop ยังมีค่าฐานรายเดือนต่อ WorkSpace รวมถึงต้องดูแล image และ patch แยกทีละเครื่อง ทั้งที่ไม่มีใครต้องการ desktop ส่วนตัว"
+    },
+    {
+      "id": "B",
+      "text": "Build a Remote Desktop Services farm on Amazon EC2 session hosts in an Auto Scaling group with scheduled scaling, store user profiles on Amazon FSx for Windows File Server, and publish the applications through RD Web Access. Patch the session hosts monthly by replacing them with instances launched from an updated AMI.",
+      "explanation": "ทำงานได้และ scale ตามตารางได้ แต่ต้องจัดการ RDS gateway/broker, session hosts, licensing และ patch เอง และต้องจ่าย FSx สำหรับ profile ที่ไม่ต้องเก็บ ซึ่งเพิ่มต้นทุนรวมและงานดูแลเมื่อเทียบกับบริการ managed แบบ pool"
+    },
+    {
+      "id": "C",
+      "text": "Create an Amazon WorkSpaces Pools pool from a custom image that contains the applications, configure schedule-based and utilization-based scaling so that capacity follows the lab timetable, and do not enable user settings persistence because students save coursework to Amazon S3.",
+      "explanation": "ถูก: Pools ให้ desktop แบบ non-persistent ที่ใช้ร่วมกันและคิดตามชั่วโมงที่ใช้ จึงจ่ายเฉพาะ capacity ราว 600 sessions ช่วงเรียน ไม่ใช่ 2,000 เครื่อง scheduled และ utilization-based scaling ลด capacity ช่วงกลางคืนและวันหยุดอัตโนมัติ image เดียวจัดการ patch ได้ที่เดียว และงานของนักศึกษาอยู่ใน S3 จึงไม่ต้องเก็บ state"
+    },
+    {
+      "id": "D",
+      "text": "Launch a fixed fleet of 600 Amazon EC2 Windows instances that run continuously during the program, install the applications on each instance, and assign students to free instances through a custom web portal. Patch the instances during the weekend maintenance window by using AWS Systems Manager Patch Manager.",
+      "explanation": "ไม่ผ่าน: fleet คงที่จ่ายค่า 600 instances ตลอดทั้งคืนและวันหยุดที่แทบไม่มีผู้ใช้ ไม่ scale ตามตาราง และต้องสร้าง portal จัดสรรเครื่องพร้อมดูแล patch เองทุกเครื่อง ซึ่งขัดกับข้อกำหนดเรื่อง idle cost และงานดูแล"
+    }
+  ],
+  "correctIds": [
+    "C"
+  ],
+  "rationale": "1) ไม่มีใครต้องการ desktop ส่วนตัว และงานเก็บใน S3 จึงไม่จำเป็นต้องใช้ persistent desktop (A) ที่ต้องมี 2,000 เครื่อง 2) ต้องจ่ายตาม concurrency จริงและ scale ตามตาราง: fleet คงที่ (D) จ่ายช่วงว่าง 3) RDS farm บน EC2 (B) scale ได้แต่ต้องดูแลเองและจ่าย profile storage 4) WorkSpaces Pools เป็น non-persistent ที่ scale ตาม schedule/utilization และดูแล image เดียว จึงคุ้มที่สุด",
+  "wrongAnswerHelp": "Start with the explicit business constraint, then eliminate choices that solve a different layer of the architecture or add unnecessary operational work.",
+  "references": [
+    "https://docs.aws.amazon.com/workspaces/latest/adminguide/managing-wsp-pools.html",
+    "https://docs.aws.amazon.com/workspaces/latest/adminguide/autoscaling.html",
+    "https://docs.aws.amazon.com/autoscaling/ec2/userguide/ec2-auto-scaling-scheduled-scaling.html"
+  ],
+  "products": [
+    "EC2",
+    "S3",
+    "Auto Scaling"
+  ],
+  "requirements": [
+    "2,000 students need identical apps for 4 months",
+    "No per-user OS state retained; files saved to S3",
+    "Capacity must scale with class schedules"
+  ],
+  "review": {
+    "decisiveClue": "2,000 คนใช้แอปชุดเดียวกัน, พร้อมกันสูงสุด 600, ไม่ต้องเก็บ state, capacity ตามตารางเรียน, ต้นทุนต่ำสุด",
+    "reasoning": "1) ไม่มีใครต้องการ desktop ส่วนตัว และงานเก็บใน S3 จึงไม่จำเป็นต้องใช้ persistent desktop (A) ที่ต้องมี 2,000 เครื่อง 2) ต้องจ่ายตาม concurrency จริงและ scale ตามตาราง: fleet คงที่ (D) จ่ายช่วงว่าง 3) RDS farm บน EC2 (B) scale ได้แต่ต้องดูแลเองและจ่าย profile storage 4) WorkSpaces Pools เป็น non-persistent ที่ scale ตาม schedule/utilization และดูแล image เดียว จึงคุ้มที่สุด",
+    "options": {
+      "A": "ทำงานได้แต่ไม่คุ้ม: Personal desktop ต้องมีหนึ่งเครื่องต่อนักศึกษาทั้ง 2,000 คนแม้ใช้งานพร้อมกันเพียง 600 และ AutoStop ยังมีค่าฐานรายเดือนต่อ WorkSpace รวมถึงต้องดูแล image และ patch แยกทีละเครื่อง ทั้งที่ไม่มีใครต้องการ desktop ส่วนตัว",
+      "B": "ทำงานได้และ scale ตามตารางได้ แต่ต้องจัดการ RDS gateway/broker, session hosts, licensing และ patch เอง และต้องจ่าย FSx สำหรับ profile ที่ไม่ต้องเก็บ ซึ่งเพิ่มต้นทุนรวมและงานดูแลเมื่อเทียบกับบริการ managed แบบ pool",
+      "C": "ถูก: Pools ให้ desktop แบบ non-persistent ที่ใช้ร่วมกันและคิดตามชั่วโมงที่ใช้ จึงจ่ายเฉพาะ capacity ราว 600 sessions ช่วงเรียน ไม่ใช่ 2,000 เครื่อง scheduled และ utilization-based scaling ลด capacity ช่วงกลางคืนและวันหยุดอัตโนมัติ image เดียวจัดการ patch ได้ที่เดียว และงานของนักศึกษาอยู่ใน S3 จึงไม่ต้องเก็บ state",
+      "D": "ไม่ผ่าน: fleet คงที่จ่ายค่า 600 instances ตลอดทั้งคืนและวันหยุดที่แทบไม่มีผู้ใช้ ไม่ scale ตามตาราง และต้องสร้าง portal จัดสรรเครื่องพร้อมดูแล patch เองทุกเครื่อง ซึ่งขัดกับข้อกำหนดเรื่อง idle cost และงานดูแล"
+    },
+    "references": [
+      {
+        "title": "What is WorkSpaces Pools?",
+        "url": "https://docs.aws.amazon.com/workspaces/latest/adminguide/managing-wsp-pools.html"
+      },
+      {
+        "title": "Auto Scaling for WorkSpaces Pools",
+        "url": "https://docs.aws.amazon.com/workspaces/latest/adminguide/autoscaling.html"
+      },
+      {
+        "title": "Scheduled scaling for Amazon EC2 Auto Scaling",
+        "url": "https://docs.aws.amazon.com/autoscaling/ec2/userguide/ec2-auto-scaling-scheduled-scaling.html"
+      }
+    ],
+    "reviewedAt": "2026-10-29"
+  }
+}

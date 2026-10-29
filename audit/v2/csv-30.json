@@ -1,0 +1,21 @@
+{
+  "id": "csv-30",
+  "scope": "explanations",
+  "verdict": "FIX",
+  "verifiedCorrectIds": [
+    "C"
+  ],
+  "issues": [
+    "options.A.explanation: ไม่บอกลักษณะของ Relocate (ย้ายระดับ hypervisor ไม่ปรับแต่ง) ทำให้แยกจาก Replatform ไม่ชัด"
+  ],
+  "changes": {
+    "options": {
+      "A": {
+        "explanation": "Relocate คือย้ายเซิร์ฟเวอร์ทั้งชุดในระดับ hypervisor/platform เช่น VMware ไป VMware Cloud on AWS โดยไม่แก้ application หรือ OS และไม่ได้ปรับแต่งเพื่อใช้ประโยชน์ cloud จึงต่างจาก Replatform ที่มีการปรับแต่งเล็กน้อย"
+      }
+    }
+  },
+  "sources": [
+    "https://docs.aws.amazon.com/prescriptive-guidance/latest/large-migration-guide/migration-strategies.html"
+  ]
+}

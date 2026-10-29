@@ -1,0 +1,60 @@
+{
+  "id": "pro-49",
+  "scope": "full",
+  "verdict": "FIX",
+  "originalCorrectIds": [
+    "D"
+  ],
+  "verifiedCorrectIds": [
+    "D"
+  ],
+  "issues": [
+    "options: ตัวลวงเดิมผิดอย่างชัดเจน (อ้างความสามารถที่บริการไม่มี) ทำให้ตอบได้จากการจำชื่อบริการ ไม่ใช่ระดับ SAP-C02 Professional; เขียนใหม่ให้แต่ละตัวลวงทำงานได้จริงบางส่วนแต่ตกเงื่อนไขหนึ่งข้อ",
+    "prompt: ลบประโยค boilerplate (architecture review board / workable for the stated environment)",
+    "review.reasoning: เดิมคัดลอก requirement ภาษาอังกฤษมาต่อกัน ไม่ได้อธิบายการตัดตัวเลือก"
+  ],
+  "changes": {
+    "prompt": "A holding company has acquired a regulated fintech with 45 AWS accounts and plans to onboard 200 more within one year. The current root organizational structure has manually created accounts, inconsistent audit logging, and no clear distinction between experimental and production environments. Finance has complained that monthly consolidated invoices expose unexpected spending only after the accounting period has ended. They want a centralized way to view service and account spending trends and receive threshold alerts before a new acquired unit exceeds its allocation. The operating team has no capacity to hand-configure governance or cost tracking in every newly created account. The solution must meet all of the following requirements: (1) New accounts and eligible existing accounts need a centrally governed enrollment path with preventive and detective baseline controls; (2) Finance must be able to analyze cost trends across accounts and allocate budgets with threshold notifications; (3) Account owners may still build workloads within their assigned organizational units without obtaining management-account administrator credentials. Which solution meets these requirements with the LEAST operational overhead?",
+    "options": {
+      "A": {
+        "text": "Use AWS Control Tower with Account Factory and AWS Organizations OUs for enrollment and controls, and create Amazon CloudWatch billing alarms on the EstimatedCharges metric in the management account for cost tracking.",
+        "explanation": "ตกข้อ (2): governance ถูกต้อง แต่ billing alarm ดูได้เพียงยอดรวมโดยประมาณ ไม่มีการวิเคราะห์แนวโน้มแยกตาม account/service และไม่ได้กำหนดงบต่อหน่วยธุรกิจที่ถูกซื้อมา finance จึงไม่เห็นว่าหน่วยใดใช้เกินจัดสรรก่อนสิ้นงวด"
+      },
+      "B": {
+        "text": "Use AWS Control Tower, Organizations, Cost Explorer, and AWS Budgets, and give each account owner an IAM user in the management account with administrator permissions so that they can create resources in their accounts.",
+        "explanation": "ตกข้อ (3): Control Tower และเครื่องมือด้าน cost ถูกต้อง แต่การให้สิทธิ์ admin ใน management account เปิดให้แก้ governance ทั้งองค์กรได้ ซึ่งโจทย์ห้าม account owners ควรเข้าบัญชีของตนผ่าน IAM Identity Center ภายใต้ controls ของ OU"
+      },
+      "C": {
+        "text": "Use AWS Organizations with SCPs attached to experimental and production OUs, have the operations team create and configure each account manually from a runbook, and use Cost Explorer and AWS Budgets for finance.",
+        "explanation": "ตกข้อ (1): SCP เป็น preventive control ได้ และ Cost Explorer/Budgets ตอบเรื่อง finance แต่การสร้างบัญชีด้วยมือไม่ใช่ enrollment path ที่บริหารจากส่วนกลาง ไม่มี detective controls และ baseline logging ที่สม่ำเสมอ ทีมที่ไม่มีเวลาจึงทำซ้ำ 200 บัญชีไม่ไหว"
+      },
+      "D": {
+        "text": "Use Control Tower for the landing zone and account enrollment, AWS Organizations for the account hierarchy, Cost Explorer for spend analysis and AWS Budgets for threshold alerts.",
+        "explanation": "ถูก: Control Tower ให้ Account Factory และ enroll บัญชีเดิมที่เข้าเงื่อนไข พร้อม preventive/detective controls และ log archive Organizations จัด OU แยก experimental/production และรวม billing Cost Explorer วิเคราะห์แนวโน้มตาม account/service ส่วน Budgets แจ้งเตือนเมื่อ actual หรือ forecast ใกล้เกินงบ account owners ทำงานในบัญชีของตนผ่าน Identity Center โดยไม่ต้องมีสิทธิ์ใน management account"
+      }
+    },
+    "review": {
+      "decisiveClue": "enrollment บัญชีใหม่และเดิมพร้อม controls, finance ต้องวิเคราะห์ cost ข้ามบัญชีและเตือนงบล่วงหน้า, owners ไม่ได้สิทธิ์ admin ใน management account",
+      "reasoning": "1) ข้อ (1) ต้องการ enrollment ที่บริหารจากส่วนกลาง = Control Tower ไม่ใช่สร้างบัญชีด้วยมือ (C) 2) ข้อ (2) ต้องการวิเคราะห์ตาม account/service และงบต่อหน่วย = Cost Explorer + Budgets ไม่ใช่ billing alarm (A) 3) ข้อ (3) owners ต้องไม่มีสิทธิ์ใน management account ตัด B 4) D ใช้ governance และ cost tools แยกหน้าที่ครบทั้งสามข้อ",
+      "references": [
+        {
+          "title": "What is AWS Control Tower?",
+          "url": "https://docs.aws.amazon.com/controltower/latest/userguide/what-is-control-tower.html"
+        },
+        {
+          "title": "Managing your costs with AWS Budgets",
+          "url": "https://docs.aws.amazon.com/cost-management/latest/userguide/budgets-managing-costs.html"
+        },
+        {
+          "title": "Analyzing your costs with Cost Explorer",
+          "url": "https://docs.aws.amazon.com/cost-management/latest/userguide/ce-what-is.html"
+        }
+      ]
+    }
+  },
+  "sources": [
+    "https://docs.aws.amazon.com/controltower/latest/userguide/what-is-control-tower.html",
+    "https://docs.aws.amazon.com/cost-management/latest/userguide/budgets-managing-costs.html",
+    "https://docs.aws.amazon.com/cost-management/latest/userguide/ce-what-is.html"
+  ]
+}

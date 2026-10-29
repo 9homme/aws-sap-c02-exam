@@ -1,0 +1,14 @@
+{
+  "id": "w8-19",
+  "scope": "explanations",
+  "verdict": "PASS",
+  "verifiedCorrectIds": [
+    "A"
+  ],
+  "issues": [],
+  "changes": {},
+  "sources": [
+    "https://docs.aws.amazon.com/batch/latest/userguide/managed_compute_environments.html",
+    "https://docs.aws.amazon.com/batch/latest/userguide/fargate-compute-environments.html"
+  ]
+}

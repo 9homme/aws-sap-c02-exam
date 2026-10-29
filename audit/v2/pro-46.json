@@ -1,0 +1,60 @@
+{
+  "id": "pro-46",
+  "scope": "full",
+  "verdict": "FIX",
+  "originalCorrectIds": [
+    "A"
+  ],
+  "verifiedCorrectIds": [
+    "A"
+  ],
+  "issues": [
+    "options: ตัวลวงเดิมผิดอย่างชัดเจน (อ้างความสามารถที่บริการไม่มี) ทำให้ตอบได้จากการจำชื่อบริการ ไม่ใช่ระดับ SAP-C02 Professional; เขียนใหม่ให้แต่ละตัวลวงทำงานได้จริงบางส่วนแต่ตกเงื่อนไขหนึ่งข้อ",
+    "prompt: ลบประโยค boilerplate (architecture review board / workable for the stated environment)",
+    "review.reasoning: เดิมคัดลอก requirement ภาษาอังกฤษมาต่อกัน ไม่ได้อธิบายการตัดตัวเลือก"
+  ],
+  "changes": {
+    "prompt": "A publicly listed company operates sensitive databases and EBS volumes across many AWS accounts. A ransomware review found that some workload administrators could delete local backups and change their retention. The resilience team requires centralized backup plans, copies in a separate security-controlled account, and a way to prevent premature deletion for specified retention windows. Backup copies need appropriately managed encryption permissions and documented restore tests. Not every application uses the same database engine, so the solution must use native support where available and avoid pretending that taking a snapshot is equivalent to demonstrating application recovery. The solution must meet all of the following requirements: (1) Apply centrally governed backup plans across enrolled accounts and supported resource types; (2) Prevent unauthorized deletion during specified retention and isolate copies from compromised workload accounts; (3) Handle cross-account copy permissions and KMS access while testing actual restore procedures. Which solution meets these requirements with the LEAST operational overhead?",
+    "options": {
+      "A": {
+        "text": "Use AWS Backup policies with Organizations, approved cross-account backup copies and vault lock where appropriate, and configure KMS permissions and tested restore workflows.",
+        "explanation": "ถูก: backup policies ใน Organizations กำหนดแผนสำรองให้ทุกบัญชีจากส่วนกลาง copy rule ส่ง recovery points ไปยัง vault ในบัญชี security ที่แยกออกจาก workload และ Vault Lock แบบ compliance mode ป้องกันการลบก่อนครบ retention แม้แต่ root ต้องใช้ customer managed KMS key ที่ key policy อนุญาตบัญชีปลายทาง และใช้ AWS Backup restore testing เพื่อพิสูจน์ว่ากู้คืนได้จริง"
+      },
+      "B": {
+        "text": "Use AWS Backup policies with Organizations to create backup plans in every account, store the recovery points in a vault in each workload account, and attach vault access policies that deny deletion to everyone except the account's backup administrators.",
+        "explanation": "ตกข้อ (2): แผนสำรองรวมศูนย์ถูกต้อง แต่สำเนาทั้งหมดยังอยู่ในบัญชี workload หากบัญชีถูกยึดสิทธิ์ ผู้โจมตีที่ได้สิทธิ์ admin สามารถแก้ vault access policy แล้วลบได้ ไม่มีสำเนาแยกในบัญชีที่ security ควบคุมและไม่มี Vault Lock ที่ล็อกถาวร"
+      },
+      "C": {
+        "text": "Use AWS Backup policies with Organizations and copy recovery points to a vault with AWS Backup Vault Lock in compliance mode in the security account. Encrypt the source resources with the AWS managed keys and rely on successful backup job status as proof of recoverability.",
+        "explanation": "ตกข้อ (3): การแยกบัญชีและ Vault Lock ถูกต้อง แต่ snapshot ที่เข้ารหัสด้วย AWS managed key แชร์หรือ copy ข้ามบัญชีไม่ได้สำหรับหลายประเภท resource จึงต้องใช้ customer managed key และสถานะ backup job สำเร็จไม่ได้พิสูจน์ว่าแอปกู้คืนได้ ต้องมี restore testing"
+      },
+      "D": {
+        "text": "Deploy an AWS Lambda function in each account that creates EBS and database snapshots on a schedule, exports them to an Amazon S3 bucket with S3 Object Lock in a security account, and records each run in a spreadsheet.",
+        "explanation": "ตกข้อ (1): Object Lock ช่วยเรื่องการลบ แต่ script ในทุกบัญชีไม่ใช่แผนสำรองที่บริหารจากส่วนกลาง ต้องเขียนรองรับแต่ละ engine เอง และหลาย resource ไม่สามารถ export snapshot ไป S3 เป็นรูปแบบที่กู้คืนได้ตรง ๆ AWS Backup รองรับประเภท resource เหล่านี้แบบ native"
+      }
+    },
+    "review": {
+      "decisiveClue": "แผนสำรองรวมศูนย์ทุกบัญชี, สำเนาแยกบัญชีที่ลบก่อนกำหนดไม่ได้, สิทธิ์ KMS ข้ามบัญชี และทดสอบการกู้คืนจริง",
+      "reasoning": "1) ข้อ (1) ต้องใช้ AWS Backup policies ผ่าน Organizations ไม่ใช่ script รายบัญชี (D) 2) ข้อ (2) ต้องมีสำเนาในบัญชีที่แยกและล็อกด้วย Vault Lock ไม่ใช่เพียง access policy ในบัญชีเดิม (B) 3) ข้อ (3) การ copy ข้ามบัญชีต้องใช้ customer managed KMS key และต้องทดสอบ restore ไม่ใช่ดูแค่ job status (C) 4) A ครบทั้งสามข้อ",
+      "references": [
+        {
+          "title": "AWS Backup Vault Lock",
+          "url": "https://docs.aws.amazon.com/aws-backup/latest/devguide/vault-lock.html"
+        },
+        {
+          "title": "Creating backup copies across AWS accounts",
+          "url": "https://docs.aws.amazon.com/aws-backup/latest/devguide/create-cross-account-backup.html"
+        },
+        {
+          "title": "Restore testing",
+          "url": "https://docs.aws.amazon.com/aws-backup/latest/devguide/restore-testing.html"
+        }
+      ]
+    }
+  },
+  "sources": [
+    "https://docs.aws.amazon.com/aws-backup/latest/devguide/vault-lock.html",
+    "https://docs.aws.amazon.com/aws-backup/latest/devguide/create-cross-account-backup.html",
+    "https://docs.aws.amazon.com/aws-backup/latest/devguide/restore-testing.html"
+  ]
+}

@@ -1,0 +1,13 @@
+{
+  "id": "course-01",
+  "scope": "explanations",
+  "verdict": "PASS",
+  "verifiedCorrectIds": [
+    "A"
+  ],
+  "issues": [],
+  "changes": {},
+  "sources": [
+    "https://docs.aws.amazon.com/vpc/latest/tgw/tgw-transit-gateways.html"
+  ]
+}

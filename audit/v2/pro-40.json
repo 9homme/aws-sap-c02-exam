@@ -1,0 +1,65 @@
+{
+  "id": "pro-40",
+  "scope": "full",
+  "verdict": "FIX",
+  "originalCorrectIds": [
+    "C"
+  ],
+  "verifiedCorrectIds": [
+    "C"
+  ],
+  "issues": [
+    "options: ตัวลวงเดิมผิดอย่างชัดเจน (อ้างความสามารถที่บริการไม่มี) ทำให้ตอบได้จากการจำชื่อบริการ ไม่ใช่ระดับ SAP-C02 Professional; เขียนใหม่ให้แต่ละตัวลวงทำงานได้จริงบางส่วนแต่ตกเงื่อนไขหนึ่งข้อ",
+    "prompt: ลบประโยค boilerplate (architecture review board / workable for the stated environment)",
+    "review.reasoning: เดิมคัดลอก requirement ภาษาอังกฤษมาต่อกัน ไม่ได้อธิบายการตัดตัวเลือก"
+  ],
+  "changes": {
+    "prompt": "In 2026, a manufacturing group that has never used AWS Migration Hub or AWS Application Discovery Service plans to move 450 virtual machines from two data centers into AWS over twelve months. Application owners lack a reliable dependency map, and several servers are documented under outdated names. The portfolio team wants discovery, migration wave planning and a consolidated migration progress view. Most application binaries cannot change before the data-center lease expires, and teams will first move them to EC2 before considering containers or managed databases. During cutover, the company wants repeatable tests and block-level replication rather than a manual sequence of reinstallations for every machine. The architects must use services available to new AWS customers in 2026. The solution must meet all of the following requirements: (1) Collect server inventory and dependency information before sequencing migration waves; (2) Track migration progress in a centralized portfolio view; (3) Rehost supported workloads to EC2 with ongoing replication and cutover tests, minimizing application changes. Which solution meets these requirements with the LEAST operational overhead?",
+    "options": {
+      "A": {
+        "text": "Install AWS Application Discovery Service agents on the servers, track the portfolio in AWS Migration Hub, and use AWS Transform MGN to replicate and cut over the servers to EC2.",
+        "explanation": "ตกข้อ (1)(2): สถาปัตยกรรมนี้ใช้ได้กับลูกค้าเดิม แต่ AWS Migration Hub และ AWS Application Discovery Service ไม่เปิดให้ลูกค้าใหม่แล้ว บริษัทที่ไม่เคยใช้จึงเริ่มใช้ไม่ได้ในปี 2026 AWS แนะนำ AWS Transform สำหรับ discovery และการวางแผนแทน"
+      },
+      "B": {
+        "text": "Use AWS Transform for server discovery, dependency analysis, and migration wave planning, and then rehost each virtual machine by exporting its disk images and importing them with VM Import/Export.",
+        "explanation": "ตกข้อ (3): discovery และ wave planning ถูกต้อง แต่ VM Import/Export เป็นการแปลง image ครั้งเดียว ไม่มี continuous block-level replication หรือ test/cutover workflow ทุกการเปลี่ยนแปลงหลังการ export จะหายและต้องหยุดเครื่องนาน สำหรับ 450 VMs จึงเพิ่มงานและ downtime"
+      },
+      "C": {
+        "text": "Use AWS Transform for server discovery, dependency analysis, migration wave planning and progress visibility; use its supported server migration workflow backed by AWS Transform MGN for replication-based EC2 rehosting and test cutovers.",
+        "explanation": "ถูก: AWS Transform รวบรวม inventory และ dependency เพื่อจัด migration waves และติดตามความคืบหน้า แล้วใช้ AWS Transform MGN (เดิมชื่อ AWS Application Migration Service) ทำ continuous block-level replication ไป EC2 พร้อม launch test instances ก่อน cutover จริง แอปจึงไม่ต้องเปลี่ยนก่อนหมดสัญญาเช่า และ modernization ทำต่อภายหลังได้"
+      },
+      "D": {
+        "text": "Use AWS Transform for discovery and wave planning, replicate the servers with AWS Elastic Disaster Recovery, launch recovery instances in AWS as the cutover, and track each wave in a shared spreadsheet.",
+        "explanation": "ตกข้อ (2)(3) ด้านความเหมาะสม: DRS ทำ block-level replication ได้จริงแต่ออกแบบสำหรับ disaster recovery และ failback ไม่ใช่ migration workflow ที่มีสถานะ test/cutover สำหรับ waves และการติดตามด้วย spreadsheet ไม่ใช่ portfolio view รวมศูนย์ตามที่ทีมต้องการ"
+      }
+    },
+    "review": {
+      "decisiveClue": "ลูกค้าใหม่ในปี 2026, ต้องการ discovery + dependency + wave planning + progress view, rehost 450 VMs ด้วย replication และ test cutover",
+      "reasoning": "1) ตรวจ availability ก่อน: Migration Hub และ Application Discovery Service ไม่เปิดรับลูกค้าใหม่ ตัด A 2) ข้อ (1)(2) ใช้ AWS Transform ที่ทำ discovery, wave planning และติดตามความคืบหน้า 3) ข้อ (3) ต้องการ continuous replication และ test cutover = AWS Transform MGN ไม่ใช่ VM Import/Export (B) หรือ DRS + spreadsheet (D) 4) C จึงครบทุกข้อ",
+      "references": [
+        {
+          "title": "AWS Transform for VMware",
+          "url": "https://docs.aws.amazon.com/transform/latest/userguide/vmware-jobs.html"
+        },
+        {
+          "title": "AWS Migration Hub availability change",
+          "url": "https://docs.aws.amazon.com/migrationhub/latest/ug/migrationhub-availability-change.html"
+        },
+        {
+          "title": "AWS Application Discovery Service availability change",
+          "url": "https://docs.aws.amazon.com/application-discovery/latest/userguide/application-discovery-service-availability-change.html"
+        },
+        {
+          "title": "Application Migration Service workflow",
+          "url": "https://docs.aws.amazon.com/mgn/latest/ug/what-is-mgn.html"
+        }
+      ]
+    }
+  },
+  "sources": [
+    "https://docs.aws.amazon.com/transform/latest/userguide/vmware-jobs.html",
+    "https://docs.aws.amazon.com/migrationhub/latest/ug/migrationhub-availability-change.html",
+    "https://docs.aws.amazon.com/application-discovery/latest/userguide/application-discovery-service-availability-change.html",
+    "https://docs.aws.amazon.com/mgn/latest/ug/what-is-mgn.html"
+  ]
+}

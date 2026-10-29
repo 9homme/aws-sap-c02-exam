@@ -1,0 +1,34 @@
+{
+  "id": "w8-4",
+  "scope": "explanations",
+  "verdict": "AMBIGUOUS",
+  "verifiedCorrectIds": [
+    "A",
+    "D"
+  ],
+  "issues": [
+    "options.A.explanation: บอกว่าทำได้จริงแต่ไม่บอกว่าทำไมเฉลยบันทึกเป็น D จึงทำให้ผู้เรียนสับสน",
+    "options.D.explanation: ไม่ระบุว่านโยบายจาก Firewall Manager สมาชิกบัญชีแก้ทับไม่ได้ และต้องส่ง traffic ผ่าน firewall endpoint",
+    "review.reasoning/caveat: ไม่ใช่ขั้นตอนตัดสินใจ และ caveat ไม่อธิบายว่าทำไมยังต้องตอบ D ในข้อสอบ"
+  ],
+  "changes": {
+    "options": {
+      "A": {
+        "explanation": "ทางเทคนิคทำได้: stateful rule group แบบ strict order ใน Network Firewall ที่จัดการผ่าน Firewall Manager ให้ pass trusted CIDR ที่ priority เลขน้อยก่อน แล้ว drop TCP/22 ที่เหลือได้ แต่เฉลยที่บันทึกไว้คือ D (แนวคิดของคอร์ส: stateless เรียงตามเลข priority) จึงเป็นทางเลือกที่ถูกในทางเทคนิคแต่ไม่ใช่คีย์ที่คาดหวัง"
+      },
+      "D": {
+        "explanation": "เป็นคีย์ที่บันทึก: Firewall Manager ปักนโยบาย Network Firewall ไปทุกบัญชี stateless rule group ประมวลผลตามเลข priority ต่ำสุดก่อน (ไม่ใช่ความสำคัญต่ำ) จึง pass trusted CIDR ก่อนแล้ว drop SSH จาก 0.0.0.0/0 ได้ นโยบายที่ FMS บังคับสมาชิกบัญชีแก้ทับไม่ได้ แต่ต้อง route traffic ผ่าน firewall endpoint ด้วย"
+      }
+    },
+    "review": {
+      "reasoning": "โจทย์ต้องการ SSH allowlist ทั้ง 50 บัญชีที่บังคับจากส่วนกลางและบัญชีอื่นแก้ไม่ได้ ซึ่งเป็นงานของ Firewall Manager ที่ปักนโยบาย Network Firewall ไม่ใช่ security group policy ที่แค่ตรวจหรือแก้ย้อนหลัง (B, C) ต่อมาต้องเรียงกฎให้ pass trusted CIDR ก่อน drop SSH ที่เหลือ ในเฉลยที่บันทึกคือ stateless rule group ที่ประมวลผลเลข priority น้อยสุดก่อน จึงเลือก D แม้ A แบบ stateful strict order ก็ทำได้ในทางเทคนิค",
+      "caveat": "A (stateful strict order) ก็ pass trusted CIDR ก่อน drop SSH ที่เหลือได้จริง จึงมีสองตัวเลือกที่ใช้ได้ในทางเทคนิค แต่เฉลยที่บันทึกคือ D ตามแนวคิด stateless เรียงตามเลข priority ให้ตอบ D ในข้อสอบนี้ และอย่าตัด A ทิ้งเพียงเพราะเป็น stateful",
+      "reviewStatus": "ambiguous"
+    }
+  },
+  "sources": [
+    "https://docs.aws.amazon.com/network-firewall/latest/developerguide/suricata-rule-evaluation-order.html",
+    "https://docs.aws.amazon.com/waf/latest/developerguide/fms-manage-network-firewall.html",
+    "https://docs.aws.amazon.com/network-firewall/latest/developerguide/stateless-rule-groups-standard.html"
+  ]
+}

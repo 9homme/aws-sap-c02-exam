@@ -1,0 +1,21 @@
+{
+  "id": "csv-05",
+  "scope": "explanations",
+  "verdict": "FIX",
+  "verifiedCorrectIds": [
+    "A"
+  ],
+  "issues": [
+    "options.B.explanation: vague ('point is lifecycle of identity'); does not say what the option claims or why it is not a benefit; rewritten."
+  ],
+  "changes": {
+    "options": {
+      "B": {
+        "explanation": "Identity Center ไม่ได้เพิ่มความจุในการเก็บ credentials และ 'ที่เก็บรหัสผ่านเยอะขึ้น' ไม่ใช่คุณค่าของบริการ. ประโยชน์หลักคือผู้ใช้ sign in ครั้งเดียวผ่าน access portal แล้วเข้าหลายบัญชีตาม permission sets ที่กำหนดจากส่วนกลาง โดยไม่ต้องสร้าง IAM user แยกทุกบัญชี"
+      }
+    }
+  },
+  "sources": [
+    "https://docs.aws.amazon.com/singlesignon/latest/userguide/what-is.html"
+  ]
+}

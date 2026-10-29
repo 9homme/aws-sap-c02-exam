@@ -1,0 +1,22 @@
+{
+  "id": "w8-21",
+  "scope": "explanations",
+  "verdict": "FIX",
+  "verifiedCorrectIds": [
+    "A"
+  ],
+  "issues": [
+    "options.B.explanation: vague 'มีการดูแล deployment เพิ่ม'; StackSets can auto-deploy to new accounts, real weaknesses are no org-level inheritance and the template must also define vaults/selection/roles"
+  ],
+  "changes": {
+    "options": {
+      "B": {
+        "explanation": "StackSets deploy backup plan ข้ามบัญชีได้ และตั้ง auto-deployment ให้บัญชีใหม่ได้ แต่เป็นการกระจาย stack แยกต่อบัญชี ต้องใส่ BackupSelection, vault, IAM role เองและตามดูสถานะ stack ไม่ใช่ policy ที่ inherit จาก root แบบ A จึงควบคุมสม่ำเสมอน้อยกว่า"
+      }
+    }
+  },
+  "sources": [
+    "https://docs.aws.amazon.com/organizations/latest/userguide/orgs_manage_policies_backup.html",
+    "https://docs.aws.amazon.com/organizations/latest/userguide/orgs_manage_policies_backup_best-practices.html"
+  ]
+}

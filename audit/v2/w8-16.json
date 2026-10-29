@@ -1,0 +1,21 @@
+{
+  "id": "w8-16",
+  "scope": "explanations",
+  "verdict": "FIX",
+  "verifiedCorrectIds": [
+    "D"
+  ],
+  "issues": [
+    "options.B.explanation: typo 'จำทำ' and did not state clearly that per-account attachment misses future accounts (prompt requires 'existing and future')"
+  ],
+  "changes": {
+    "options": {
+      "B": {
+        "explanation": "การแนบ SCP1 ให้ทุกบัญชีและ SCP2 ให้แต่ละ Dev account ได้ผลกับบัญชีที่มีอยู่ แต่ต้องแนบด้วยมือทุกครั้งที่มีบัญชีใหม่ ไม่ตรง 'existing and future' และไม่ใช่ LEAST operational overhead เพราะ OU/root inheritance ครอบคลุมบัญชีใหม่อัตโนมัติ"
+      }
+    }
+  },
+  "sources": [
+    "https://docs.aws.amazon.com/organizations/latest/userguide/orgs_manage_policies_scps.html"
+  ]
+}

@@ -1,0 +1,82 @@
+{
+  "id": "pro-78",
+  "sourceCategory": "professional",
+  "sourceLabel": "AI-authored · Professional multi-requirement",
+  "sourceDetail": "Original multi-constraint scenario — ให้พนักงานใช้บัญชี AD เดิม sign in ทุก AWS account ให้เร็วที่สุด",
+  "coreEligible": true,
+  "emerging": false,
+  "domain": "1",
+  "task": "Organizational complexity",
+  "topic": "ให้พนักงานใช้บัญชี AD เดิม sign in ทุก AWS account ให้เร็วที่สุด",
+  "type": "multiple-choice",
+  "selectCount": 1,
+  "prompt": "A healthcare company has 120 AWS accounts in an organization in AWS Organizations. Engineers currently sign in with IAM users that are created by a script in each account, and an audit found 900 IAM users with long-term passwords. The CISO has ordered that by the end of this week all engineers must sign in to the AWS accounts with their existing on-premises Active Directory credentials and that the IAM users be removed. Access must be assigned per account based on the engineers' existing AD security groups. User passwords must not be copied or synchronized into AWS, and the company does not want to manage a federation server. The data center is connected to a shared-services VPC through an AWS Site-to-Site VPN connection, and the on-premises domain controllers are reachable from that VPC. The identity team can create one service account in AD for directory lookups. Some engineers need access to more than 30 accounts, and the security team wants a single sign-in portal and a central record of every account assignment. Which solution will meet these requirements in the LEAST amount of time?",
+  "options": [
+    {
+      "id": "A",
+      "text": "Deploy Active Directory Federation Services on Amazon EC2 instances behind a load balancer, create a SAML identity provider and IAM roles in each of the 120 accounts, and map AD groups to the roles through claim rules. Deploy the IAM roles to all accounts with CloudFormation StackSets and then delete the IAM users.",
+      "explanation": "ทำได้แต่ช้าที่สุด: ต้องสร้างและดูแล ADFS farm ซึ่งโจทย์ไม่ต้องการ และต้องสร้าง SAML provider กับ roles ในทุก 120 บัญชีพร้อม claim rules ใช้เวลานานเกินสัปดาห์และเพิ่มจุดที่ต้องดูแลระยะยาว"
+    },
+    {
+      "id": "B",
+      "text": "Create an AWS Managed Microsoft AD directory, establish a two-way forest trust with the on-premises domain, set the managed directory as the identity source for IAM Identity Center, and assign permission sets to groups from the trusted forest. Configure DNS conditional forwarding between the two domains and then delete the IAM users.",
+      "explanation": "ทำงานได้และไม่คัดลอก password แต่ไม่ใช่ทางที่เร็วที่สุด: ต้องสร้าง Managed AD, ตั้ง DNS forwarding และ forest trust ซึ่งต้องประสานกับทีม AD on premises และทดสอบเพิ่ม ขณะที่ AD Connector เชื่อมกับ AD เดิมได้โดยตรงด้วย service account เดียว"
+    },
+    {
+      "id": "C",
+      "text": "Use a third-party tool to synchronize the AD users and password hashes into the IAM Identity Center identity store, and assign permission sets to the synchronized groups. Schedule the synchronization to run every hour so that group changes in AD are reflected quickly, and then delete the IAM users.",
+      "explanation": "ไม่ผ่าน: การ synchronize password hashes เข้าสู่ AWS ขัดกับข้อกำหนดโดยตรง และ Identity Center identity store ก็ไม่ได้ใช้ password hash จาก AD ในการยืนยันตัวตนอยู่แล้ว จึงต้องตั้ง password ใหม่หรือใช้ IdP ภายนอก"
+    },
+    {
+      "id": "D",
+      "text": "Create an AD Connector in the shared-services VPC that points to the on-premises domain controllers over the VPN by using the service account, set the AD Connector as the identity source for IAM Identity Center, configure AD sync for the required groups, assign permission sets to those groups per account, and then delete the IAM users.",
+      "explanation": "ถูก: AD Connector ส่ง authentication ไปยัง domain controllers เดิมโดยไม่เก็บ password ใน AWS ตั้งค่าได้เร็วด้วย service account เดียวผ่าน VPN ที่มีอยู่ Identity Center ใช้ AD Connector เป็น identity source ซิงก์เฉพาะ users/groups (ไม่ใช่ password) แล้วกำหนด permission sets ต่อ group ต่อบัญชีจากที่เดียวสำหรับทั้ง 120 บัญชี ไม่มี federation server ให้ดูแล"
+    }
+  ],
+  "correctIds": [
+    "D"
+  ],
+  "rationale": "1) ห้ามคัดลอก password ตัด C 2) ห้ามดูแล federation server และ ADFS ต้องตั้งค่าทุกบัญชี ตัด A 3) ระหว่าง Managed AD + trust (B) กับ AD Connector (D) ทั้งคู่ใช้ได้ แต่ qualifier คือเวลา: AD Connector ใช้ AD เดิมผ่าน VPN ด้วย service account เดียว ไม่ต้องสร้าง trust 4) Identity Center กำหนด permission sets ต่อ group ได้ทั้ง 120 บัญชีจากที่เดียว D จึงเร็วที่สุด",
+  "wrongAnswerHelp": "Start with the explicit business constraint, then eliminate choices that solve a different layer of the architecture or add unnecessary operational work.",
+  "references": [
+    "https://docs.aws.amazon.com/singlesignon/latest/userguide/manage-your-identity-source-ad.html",
+    "https://docs.aws.amazon.com/directoryservice/latest/admin-guide/directory_ad_connector.html",
+    "https://docs.aws.amazon.com/singlesignon/latest/userguide/permissionsetsconcept.html"
+  ],
+  "products": [
+    "IAM Identity Center",
+    "AWS Organizations",
+    "AD Connector",
+    "Site-to-Site VPN"
+  ],
+  "requirements": [
+    "Employees sign in to 120 AWS accounts with on-prem AD credentials",
+    "Do not copy passwords or users into AWS",
+    "Access assigned by AD group per account"
+  ],
+  "review": {
+    "decisiveClue": "ภายในสัปดาห์นี้, ใช้ credentials AD เดิม, สิทธิ์ตาม AD group ต่อบัญชี, ห้ามคัดลอก password, ไม่ดูแล federation server",
+    "reasoning": "1) ห้ามคัดลอก password ตัด C 2) ห้ามดูแล federation server และ ADFS ต้องตั้งค่าทุกบัญชี ตัด A 3) ระหว่าง Managed AD + trust (B) กับ AD Connector (D) ทั้งคู่ใช้ได้ แต่ qualifier คือเวลา: AD Connector ใช้ AD เดิมผ่าน VPN ด้วย service account เดียว ไม่ต้องสร้าง trust 4) Identity Center กำหนด permission sets ต่อ group ได้ทั้ง 120 บัญชีจากที่เดียว D จึงเร็วที่สุด",
+    "options": {
+      "A": "ทำได้แต่ช้าที่สุด: ต้องสร้างและดูแล ADFS farm ซึ่งโจทย์ไม่ต้องการ และต้องสร้าง SAML provider กับ roles ในทุก 120 บัญชีพร้อม claim rules ใช้เวลานานเกินสัปดาห์และเพิ่มจุดที่ต้องดูแลระยะยาว",
+      "B": "ทำงานได้และไม่คัดลอก password แต่ไม่ใช่ทางที่เร็วที่สุด: ต้องสร้าง Managed AD, ตั้ง DNS forwarding และ forest trust ซึ่งต้องประสานกับทีม AD on premises และทดสอบเพิ่ม ขณะที่ AD Connector เชื่อมกับ AD เดิมได้โดยตรงด้วย service account เดียว",
+      "C": "ไม่ผ่าน: การ synchronize password hashes เข้าสู่ AWS ขัดกับข้อกำหนดโดยตรง และ Identity Center identity store ก็ไม่ได้ใช้ password hash จาก AD ในการยืนยันตัวตนอยู่แล้ว จึงต้องตั้ง password ใหม่หรือใช้ IdP ภายนอก",
+      "D": "ถูก: AD Connector ส่ง authentication ไปยัง domain controllers เดิมโดยไม่เก็บ password ใน AWS ตั้งค่าได้เร็วด้วย service account เดียวผ่าน VPN ที่มีอยู่ Identity Center ใช้ AD Connector เป็น identity source ซิงก์เฉพาะ users/groups (ไม่ใช่ password) แล้วกำหนด permission sets ต่อ group ต่อบัญชีจากที่เดียวสำหรับทั้ง 120 บัญชี ไม่มี federation server ให้ดูแล"
+    },
+    "references": [
+      {
+        "title": "Connect to a Microsoft AD directory with IAM Identity Center",
+        "url": "https://docs.aws.amazon.com/singlesignon/latest/userguide/manage-your-identity-source-ad.html"
+      },
+      {
+        "title": "AD Connector",
+        "url": "https://docs.aws.amazon.com/directoryservice/latest/admin-guide/directory_ad_connector.html"
+      },
+      {
+        "title": "Permission sets in IAM Identity Center",
+        "url": "https://docs.aws.amazon.com/singlesignon/latest/userguide/permissionsetsconcept.html"
+      }
+    ],
+    "reviewedAt": "2026-10-29"
+  }
+}

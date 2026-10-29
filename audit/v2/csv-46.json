@@ -1,0 +1,15 @@
+{
+  "id": "csv-46",
+  "scope": "explanations",
+  "verdict": "PASS",
+  "verifiedCorrectIds": [
+    "A",
+    "B",
+    "C"
+  ],
+  "issues": [],
+  "changes": {},
+  "sources": [
+    "https://docs.aws.amazon.com/"
+  ]
+}

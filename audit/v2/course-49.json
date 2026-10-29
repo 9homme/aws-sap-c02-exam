@@ -1,0 +1,25 @@
+{
+  "id": "course-49",
+  "scope": "explanations",
+  "verdict": "FIX",
+  "verifiedCorrectIds": [
+    "A"
+  ],
+  "issues": [
+    "review.decisiveClue: did not tie to the prompt wording 'online'; re-anchored.",
+    "options.B.explanation: conditional 'if the question requires...' is vague; now ties to 'online' migration requirement."
+  ],
+  "changes": {
+    "options": {
+      "B": {
+        "explanation": "การ copy snapshot ครั้งเดียวแล้วให้ source รับ write ต่อ ทำให้ write ที่เกิดหลัง snapshot หายไปจากปลายทาง ขัดกับโจทย์ online migration ที่ต้องลดช่วงหยุดและไม่ให้ข้อมูลตกหล่น ต้องใช้ DMS full load + CDC ตาม change จนซิงค์กันก่อนสลับ"
+      }
+    },
+    "review": {
+      "decisiveClue": "'online' migration + fully managed: ต้อง full load แล้วตาม CDC ก่อน cutover"
+    }
+  },
+  "sources": [
+    "https://docs.aws.amazon.com/dms/latest/userguide/CHAP_Source.MongoDB.html"
+  ]
+}

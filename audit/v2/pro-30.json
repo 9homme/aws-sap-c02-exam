@@ -1,0 +1,60 @@
+{
+  "id": "pro-30",
+  "scope": "full",
+  "verdict": "FIX",
+  "originalCorrectIds": [
+    "A"
+  ],
+  "verifiedCorrectIds": [
+    "A"
+  ],
+  "issues": [
+    "options: ตัวลวงเดิมผิดอย่างชัดเจน (อ้างความสามารถที่บริการไม่มี) ทำให้ตอบได้จากการจำชื่อบริการ ไม่ใช่ระดับ SAP-C02 Professional; เขียนใหม่ให้แต่ละตัวลวงทำงานได้จริงบางส่วนแต่ตกเงื่อนไขหนึ่งข้อ",
+    "prompt: ลบประโยค boilerplate (architecture review board / workable for the stated environment)",
+    "review.reasoning: เดิมคัดลอก requirement ภาษาอังกฤษมาต่อกัน ไม่ได้อธิบายการตัดตัวเลือก"
+  ],
+  "changes": {
+    "prompt": "A retail chain already has a reporting warehouse that runs repeatable dashboards joining terabytes of structured sales and customer datasets. Business analysts need predictable interactive performance for high-concurrency BI sessions and access to governance-controlled dashboards. Separately, operations engineers must search semi-structured application logs by keyword and rapidly inspect recent error events. Rare audit queries scan archived compressed Parquet files directly in S3 and may run only once every few weeks. Finance insists that the low-frequency archive queries should not require a continuously provisioned analytics warehouse. The solution must meet all of the following requirements: (1) Serve frequent concurrent warehouse-style joins and governed business dashboards; (2) Support low-latency full-text search of operational logs; (3) Query occasional S3 archive data without paying for a permanently running query cluster. Which solution meets these requirements with the LEAST operational overhead?",
+    "options": {
+      "A": {
+        "text": "Use Redshift for repeatable warehouse analytics with QuickSight dashboards, OpenSearch Service for searchable logs, and Athena for occasional S3 archive queries.",
+        "explanation": "ถูก: Redshift รองรับ join ขนาดใหญ่และ concurrency สูงสำหรับ BI ได้คาดเดาได้ QuickSight ให้ dashboard ที่จัดการสิทธิ์ได้ OpenSearch Service ทำ inverted index สำหรับค้นหา log ด้วย keyword แบบ latency ต่ำ ส่วน Athena เป็น serverless คิดเงินตามข้อมูลที่สแกน จึงเหมาะกับการ query Parquet ใน S3 เป็นครั้งคราวโดยไม่มี cluster ที่ต้องเปิดไว้"
+      },
+      "B": {
+        "text": "Use Amazon Redshift with QuickSight dashboards for the warehouse, load the application logs into Redshift tables and search them with LIKE predicates, and use Athena for the S3 archive queries.",
+        "explanation": "ตกข้อ (2): Redshift และ Athena ถูกต้องในส่วนของตน แต่ Redshift เป็น columnar warehouse ไม่ได้ทำ full-text index การค้นหา log กึ่งโครงสร้างด้วย LIKE ต้องสแกนข้อมูลจำนวนมาก จึงไม่ได้ latency ต่ำสำหรับการตรวจ error ล่าสุดอย่างรวดเร็ว"
+      },
+      "C": {
+        "text": "Use Amazon Athena with QuickSight for both the high-concurrency dashboards and the archive queries, and use OpenSearch Service for the application logs.",
+        "explanation": "ตกข้อ (1): Athena เหมาะกับการ query S3 เป็นครั้งคราว แต่ dashboard ที่ join ข้อมูลหลาย TB ด้วยผู้ใช้จำนวนมากพร้อมกันต้องการประสิทธิภาพที่คาดเดาได้ Athena มี query concurrency quota และ latency ขึ้นกับขนาดการสแกน warehouse อย่าง Redshift จึงเหมาะกว่า"
+      },
+      "D": {
+        "text": "Use Redshift with QuickSight for the dashboards and OpenSearch Service for the logs, and load the archived Parquet files into a second provisioned Redshift cluster that is reserved for audit queries.",
+        "explanation": "ตกข้อ (3): สองส่วนแรกถูกต้อง แต่ cluster ที่สองที่เปิดไว้สำหรับ query ไม่กี่ครั้งต่อเดือนคือการจ่ายค่า warehouse ตลอดเวลาที่ finance ไม่ยอมรับ และต้องโหลดข้อมูลซ้ำ Athena query Parquet ใน S3 ได้โดยตรงและจ่ายตามการสแกน"
+      }
+    },
+    "review": {
+      "decisiveClue": "BI join หลาย TB ผู้ใช้พร้อมกันจำนวนมาก, ค้นหา log ด้วย keyword แบบเร็ว, query archive ใน S3 นาน ๆ ครั้งโดยไม่มี cluster เปิดตลอด",
+      "reasoning": "1) จับคู่ access pattern กับ engine: warehouse join + concurrency = Redshift, full-text search = OpenSearch, ad hoc บน S3 นาน ๆ ครั้ง = Athena 2) B ใช้ warehouse ค้นหา text ซึ่งไม่ได้ทำ index สำหรับงานนี้ 3) C ใช้ Athena สำหรับ BI ที่ต้องการประสิทธิภาพคาดเดาได้ 4) D เปิด cluster ถาวรสำหรับงานนาน ๆ ครั้ง A จึงเป็นการแบ่งงานที่ถูกต้อง",
+      "references": [
+        {
+          "title": "What is Amazon Redshift?",
+          "url": "https://docs.aws.amazon.com/redshift/latest/dg/welcome.html"
+        },
+        {
+          "title": "What is Amazon OpenSearch Service?",
+          "url": "https://docs.aws.amazon.com/opensearch-service/latest/developerguide/what-is.html"
+        },
+        {
+          "title": "What is Amazon Athena?",
+          "url": "https://docs.aws.amazon.com/athena/latest/ug/what-is.html"
+        }
+      ]
+    }
+  },
+  "sources": [
+    "https://docs.aws.amazon.com/redshift/latest/dg/welcome.html",
+    "https://docs.aws.amazon.com/opensearch-service/latest/developerguide/what-is.html",
+    "https://docs.aws.amazon.com/athena/latest/ug/what-is.html"
+  ]
+}

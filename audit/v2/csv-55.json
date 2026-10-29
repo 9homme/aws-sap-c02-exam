@@ -1,0 +1,14 @@
+{
+  "id": "csv-55",
+  "scope": "explanations",
+  "verdict": "PASS",
+  "verifiedCorrectIds": [
+    "C",
+    "D"
+  ],
+  "issues": [],
+  "changes": {},
+  "sources": [
+    "https://docs.aws.amazon.com/AmazonS3/latest/userguide/privatelink-interface-endpoints.html"
+  ]
+}

@@ -1,0 +1,57 @@
+{
+  "id": "emerging-05",
+  "scope": "full",
+  "verdict": "FIX",
+  "originalCorrectIds": [
+    "A"
+  ],
+  "verifiedCorrectIds": [
+    "A"
+  ],
+  "issues": [
+    "prompt: เดิมตัวลวง (public bucket, unrestricted role) ผิดชัดเจน; เพิ่ม single KB และ freshness เพื่อแยก metadata filtering จากการแยก KB"
+  ],
+  "changes": {
+    "prompt": "A company is building an internal assistant with Amazon Bedrock Knowledge Bases over 2 million documents stored in Amazon S3. Each document is restricted to one or more departments, and employees belong to departments through groups in the corporate identity provider. Employees must receive answers generated only from documents they are allowed to read, and permission changes must take effect within a day. The company wants to use a single knowledge base and avoid duplicating documents. Which solution meets these requirements?",
+    "correctIds": [
+      "A"
+    ],
+    "rationale": "Retrieval-time metadata filtering in Amazon Bedrock Knowledge Bases, built server-side from the user's validated group claims, ensures that only permitted documents reach the model from a single knowledge base.",
+    "options": {
+      "A": {
+        "text": "Add a metadata file for each document that lists its allowed departments, and sync the knowledge base when permissions change. In the application, read the employee's department groups from the validated identity token and pass a metadata filter in every Retrieve or RetrieveAndGenerate request so that only permitted documents are retrieved.",
+        "explanation": "ถูก: การกรองเกิดขึ้นตอน retrieval ก่อนข้อความถูกส่งเข้า model ข้อมูลที่ผู้ใช้ไม่มีสิทธิ์จึงไม่เคยถูกใช้สร้างคำตอบ metadata filtering ใช้ knowledge base เดียวไม่ต้องทำสำเนา และการ sync รายวันทำให้สิทธิ์ใหม่มีผลภายในหนึ่งวัน ต้องสร้าง filter ที่ฝั่ง server จาก token ที่ตรวจแล้ว ไม่ใช่ค่าที่ client ส่งมาเอง"
+      },
+      "B": {
+        "text": "Add instructions to the model prompt that tell it to answer only from documents that belong to the employee's departments, and include the department names in the prompt.",
+        "explanation": "ไม่ผ่าน: retrieval ยังดึงเอกสารทุกฝ่ายมาใส่ใน context ของ model การสั่งให้ model 'ไม่ใช้' ข้อมูลนั้นไม่ใช่การควบคุมสิทธิ์ ข้อมูลรั่วได้จาก model ที่ไม่ทำตามหรือจาก prompt injection จึงไม่ปลอดภัยพอสำหรับข้อมูลที่จำกัดสิทธิ์"
+      },
+      "C": {
+        "text": "Create a separate knowledge base and S3 prefix for every combination of departments and copy each document into every knowledge base that its departments can access.",
+        "explanation": "ไม่ผ่าน: การแยก knowledge base ทำให้แยกสิทธิ์ได้ แต่ต้องทำสำเนาเอกสาร 2 ล้านชิ้นตามจำนวนชุดสิทธิ์ ซึ่งขัดกับ requirement ใช้ knowledge base เดียวและไม่ duplicate เมื่อสิทธิ์เปลี่ยนก็ต้องย้ายและ sync หลายที่ ทำให้ต้นทุนและงานดูแลสูงมาก"
+      },
+      "D": {
+        "text": "Generate the answer from the full knowledge base, and then have the web application hide citations and passages from documents that the employee is not allowed to see.",
+        "explanation": "ไม่ผ่าน: การกรองหลังสร้างคำตอบสายเกินไป เพราะ model ใช้เนื้อหาของเอกสารที่ไม่มีสิทธิ์ไปสร้างคำตอบแล้ว การซ่อน citation ใน UI ไม่ได้ลบข้อมูลที่ถูกสรุปไว้ในคำตอบ และ client-side control ข้ามได้ง่าย"
+      }
+    },
+    "review": {
+      "decisiveClue": "ใช้ knowledge base เดียวไม่ทำสำเนา, ผู้ใช้ต้องได้คำตอบจากเอกสารที่มีสิทธิ์เท่านั้น, สิทธิ์เปลี่ยนแล้วมีผลภายในวัน",
+      "reasoning": "1) ต้องบังคับสิทธิ์ก่อนที่เนื้อหาจะเข้า model การสั่ง model (B) หรือการกรองหลังสร้างคำตอบ (D) จึงไม่ปลอดภัย 2) ต้องใช้ knowledge base เดียวและไม่ทำสำเนา จึงตัดการแยกตามชุดสิทธิ์ (C) 3) metadata ของเอกสาร + metadata filter ใน Retrieve/RetrieveAndGenerate กรองที่ retrieval time ตาม group ของผู้ใช้จาก token ที่ตรวจแล้ว 4) sync เมื่อสิทธิ์เปลี่ยนทำให้มีผลภายในหนึ่งวัน A จึงถูกต้อง",
+      "references": [
+        {
+          "title": "Query a knowledge base and filter with metadata",
+          "url": "https://docs.aws.amazon.com/bedrock/latest/userguide/kb-test-config.html"
+        },
+        {
+          "title": "Include metadata in a data source for filtering",
+          "url": "https://docs.aws.amazon.com/bedrock/latest/userguide/kb-metadata.html"
+        }
+      ]
+    }
+  },
+  "sources": [
+    "https://docs.aws.amazon.com/bedrock/latest/userguide/kb-test-config.html",
+    "https://docs.aws.amazon.com/bedrock/latest/userguide/kb-metadata.html"
+  ]
+}

@@ -1,0 +1,60 @@
+{
+  "id": "pro-15",
+  "scope": "full",
+  "verdict": "FIX",
+  "originalCorrectIds": [
+    "C"
+  ],
+  "verifiedCorrectIds": [
+    "C"
+  ],
+  "issues": [
+    "options: ตัวลวงเดิมผิดอย่างชัดเจน (อ้างความสามารถที่บริการไม่มี) ทำให้ตอบได้จากการจำชื่อบริการ ไม่ใช่ระดับ SAP-C02 Professional; เขียนใหม่ให้แต่ละตัวลวงทำงานได้จริงบางส่วนแต่ตกเงื่อนไขหนึ่งข้อ",
+    "prompt: ลบประโยค boilerplate (architecture review board / workable for the stated environment)",
+    "review.reasoning: เดิมคัดลอก requirement ภาษาอังกฤษมาต่อกัน ไม่ได้อธิบายการตัดตัวเลือก"
+  ],
+  "changes": {
+    "prompt": "A payment processor hosts application instances in private subnets across three Availability Zones. Workloads need outbound access to a limited set of external partner HTTPS endpoints for settlement, while no instance may accept unsolicited inbound internet connections. Security wants centralized domain-based egress policy and usable network-flow records, including failed connections. Current infrastructure runs one NAT gateway for all three Zones; the platform group has observed both cross-AZ data-processing charges and an outage when the NAT gateway's AZ was unavailable. The team can accept a centralized inspection VPC if return-path routing is consistent and failures are isolated. The solution must meet all of the following requirements: (1) Provide resilient outbound IPv4 internet access while private instances remain unreachable from unsolicited internet traffic; (2) Apply stateful egress filtering before traffic leaves AWS and retain connection metadata for investigations; (3) Avoid dependence on a single NAT-gateway AZ and uncontrolled cross-AZ flows. Which solution meets these requirements with the LEAST operational overhead?",
+    "options": {
+      "A": {
+        "text": "Deploy one NAT gateway in a public subnet in each Availability Zone with AZ-specific private route tables. Restrict outbound traffic with security group rules that allow TCP 443 only to the partners' published IP ranges, and enable VPC Flow Logs.",
+        "explanation": "ตกข้อ (2): NAT ต่อ AZ แก้ปัญหา single AZ และ cross-AZ ได้ และ Flow Logs ให้ metadata แต่ security group กรองตาม IP/port ไม่ใช่ domain และไม่ใช่ centralized egress policy เมื่อ partner เปลี่ยน IP ก็ต้องแก้ทุก security group จึงไม่ตอบ stateful domain-based filtering ที่ security ต้องการ"
+      },
+      "B": {
+        "text": "Route all private subnets through AWS Network Firewall endpoints in a centralized inspection VPC that uses domain allow-list rule groups, then through one NAT gateway in the inspection VPC, and enable VPC Flow Logs and firewall alert logs.",
+        "explanation": "ตกข้อ (3): Network Firewall ให้ domain-based stateful filtering และ logs ครบ แต่ NAT gateway ตัวเดียวยังผูก egress ทั้งหมดไว้กับ AZ เดียว ถ้า AZ นั้นล่ม outbound ทั้งระบบหยุด และ traffic จาก AZ อื่นยังข้าม AZ ซึ่งเป็นปัญหาเดิมที่โจทย์ต้องการแก้"
+      },
+      "C": {
+        "text": "Deploy highly available NAT gateways in the appropriate AZs, enforce egress inspection with AWS Network Firewall and symmetric routes, and enable VPC Flow Logs for network metadata.",
+        "explanation": "ถูก: NAT gateway ต่อ AZ ทำให้ egress ไม่ผูกกับ AZ เดียวและไม่ข้าม AZ โดยไม่จำเป็น Network Firewall ใช้ stateful domain allow-list ก่อนออก internet ต้องจัด route ให้ขาไปและขากลับผ่าน firewall endpoint ใน AZ เดียวกัน (หรือเปิด appliance mode เมื่อใช้ inspection VPC ผ่าน Transit Gateway) Flow Logs รวมการเชื่อมต่อที่ถูก reject ให้ใช้สอบสวน instance ใน private subnet ยังรับ inbound ที่ไม่ได้ร้องขอจาก internet ไม่ได้"
+      },
+      "D": {
+        "text": "Replace the NAT gateway with an egress-only internet gateway, route private subnets through AWS Network Firewall endpoints in each AZ with domain allow-list rules, and enable VPC Flow Logs.",
+        "explanation": "ตกข้อ (1): egress-only internet gateway ใช้ได้กับ IPv6 เท่านั้น ไม่ได้ให้ outbound IPv4 internet access ที่ workload ต้องใช้ แม้ Network Firewall ต่อ AZ และ Flow Logs จะตอบข้อ (2)(3) แต่ IPv4 traffic ก็ออก internet ไม่ได้"
+      }
+    },
+    "review": {
+      "decisiveClue": "outbound IPv4 ที่ทนต่อการเสีย AZ, กรอง egress แบบ stateful ตาม domain พร้อม metadata, เลี่ยง NAT gateway AZ เดียวและ cross-AZ",
+      "reasoning": "1) ข้อ (1) ต้องมี IPv4 egress ผ่าน NAT gateway ตัด egress-only IGW (D) ที่เป็น IPv6 เท่านั้น 2) ข้อ (3) NAT ตัวเดียวคือต้นเหตุของ outage และค่าข้าม AZ ตัด B 3) ข้อ (2) ต้องการ stateful domain-based filtering จากส่วนกลาง security group (A) กรองได้เพียง IP/port 4) C รวม NAT ต่อ AZ, Network Firewall ที่ route สมมาตร และ Flow Logs จึงครบทั้งสามข้อ",
+      "references": [
+        {
+          "title": "AWS Network Firewall deployment architectures",
+          "url": "https://docs.aws.amazon.com/network-firewall/latest/developerguide/architectures.html"
+        },
+        {
+          "title": "NAT gateways",
+          "url": "https://docs.aws.amazon.com/vpc/latest/userguide/vpc-nat-gateway.html"
+        },
+        {
+          "title": "Egress-only internet gateways",
+          "url": "https://docs.aws.amazon.com/vpc/latest/userguide/egress-only-internet-gateway.html"
+        }
+      ]
+    }
+  },
+  "sources": [
+    "https://docs.aws.amazon.com/network-firewall/latest/developerguide/architectures.html",
+    "https://docs.aws.amazon.com/vpc/latest/userguide/vpc-nat-gateway.html",
+    "https://docs.aws.amazon.com/vpc/latest/userguide/egress-only-internet-gateway.html"
+  ]
+}

@@ -1,0 +1,37 @@
+{
+  "id": "pro-06",
+  "scope": "full",
+  "verdict": "FIX",
+  "originalCorrectIds": [
+    "C"
+  ],
+  "verifiedCorrectIds": [
+    "C"
+  ],
+  "issues": [
+    "options.C.explanation: เพิ่มชื่อใหม่ AWS Transform MGN; review.references: URL workflow ของ MGN ไม่มีแล้ว เปลี่ยนเป็น what-is-mgn"
+  ],
+  "changes": {
+    "review": {
+      "references": [
+        {
+          "title": "Application Migration Service migration workflow",
+          "url": "https://docs.aws.amazon.com/mgn/latest/ug/what-is-mgn.html"
+        },
+        {
+          "title": "Fargate host access and kernel capability limitations",
+          "url": "https://docs.aws.amazon.com/AmazonECS/latest/developerguide/fargate-security-considerations.html"
+        }
+      ]
+    },
+    "options": {
+      "C": {
+        "explanation": "AWS Application Migration Service (ปัจจุบันชื่อ AWS Transform MGN) ตรงกับการรักษา server environment และการทดลองก่อน cutover ต้องตรวจ replication lag และจัดการ writes ของหลายเครื่องอย่างสอดคล้องกันใน maintenance window ตามแผนแอป การมี vendor failover procedure ให้ทดสอบช่วยหลีกเลี่ยงการสัญญา HA โดยไม่มีหลักฐาน"
+      }
+    }
+  },
+  "sources": [
+    "https://docs.aws.amazon.com/mgn/latest/ug/what-is-mgn.html",
+    "https://docs.aws.amazon.com/AmazonECS/latest/developerguide/fargate-security-considerations.html"
+  ]
+}

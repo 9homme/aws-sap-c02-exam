@@ -1,0 +1,34 @@
+{
+  "id": "w8-20",
+  "scope": "explanations",
+  "verdict": "AMBIGUOUS",
+  "verifiedCorrectIds": [
+    "A",
+    "D",
+    "F"
+  ],
+  "issues": [
+    "Option D (disable hyperthreading) does not directly increase network throughput or reduce inter-instance network latency; it is a compute tuning for HPC. A cluster placement group (the standard network-locality answer) is not offered, so recorded key A/D/F is the best available set but D is debatable.",
+    "options.D.explanation: should state honestly it is HPC compute tuning, not a network feature",
+    "options.E.explanation: should state current-generation instances use HVM; PV AMIs cannot use enhanced networking/EFA"
+  ],
+  "changes": {
+    "options": {
+      "D": {
+        "explanation": "การปิด hyperthreading เป็น tuning มาตรฐานของ AWS สำหรับ HPC แบบ tightly coupled เพราะให้ทุก thread ใช้ physical core เต็มที่และลดการแย่งทรัพยากรระหว่างโหนด ไม่ได้เพิ่ม network โดยตรงแต่เป็นข้อที่เฉลยเลือก ควร benchmark กับงานจริง"
+      },
+      "E": {
+        "explanation": "PV เป็น virtualization รุ่นเก่า instance รุ่นปัจจุบันใช้ HVM และ PV AMI ใช้ enhanced networking หรือ EFA ไม่ได้ จึงไม่ช่วยเพิ่ม throughput หรือลด latency ระหว่างโหนด กลับขัดกับตัวเลือกที่ควรใช้"
+      }
+    },
+    "review": {
+      "caveat": "ตัวเลือก D (ปิด hyperthreading) เป็นการ tune ประสิทธิภาพ CPU ของ HPC ไม่ได้เพิ่ม network throughput หรือลด latency ระหว่าง instance โดยตรง และไม่มี cluster placement group ในตัวเลือก ข้อสอบจึงใช้ A, D, F เป็นชุดคำตอบที่คาดหวัง ให้จำตามเฉลยนี้ แต่รู้ว่า D เป็นข้อที่ถกเถียงได้",
+      "reviewStatus": "ambiguous"
+    }
+  },
+  "sources": [
+    "https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/efa.html",
+    "https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/placement-groups.html",
+    "https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ComponentsAMIs.html"
+  ]
+}

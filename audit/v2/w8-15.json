@@ -1,0 +1,22 @@
+{
+  "id": "w8-15",
+  "scope": "explanations",
+  "verdict": "FIX",
+  "verifiedCorrectIds": [
+    "B"
+  ],
+  "issues": [
+    "options.B.explanation: สรุปว่าหยุดอัตโนมัติ ทั้งที่ option ไม่ระบุโหมดของ action ต้องบอกเงื่อนไขว่าตั้งให้รันอัตโนมัติและมี IAM role"
+  ],
+  "changes": {
+    "options": {
+      "B": {
+        "explanation": "ใช้ forecast 75% เป็น trigger จึงเตือนก่อนใช้จริง และ Budgets action สั่งหยุด EC2 ที่ระบุได้ ความเสี่ยงต่ำสุดเมื่อตั้ง action ให้รันอัตโนมัติ (ไม่รอ manual approval) และมี IAM role ให้ Budgets หยุด instance ได้ ไม่ต้องรอคนอ่านอีเมลแล้วกด stop เหมือน C"
+      }
+    }
+  },
+  "sources": [
+    "https://docs.aws.amazon.com/cost-management/latest/userguide/budgets-controls.html",
+    "https://docs.aws.amazon.com/cost-management/latest/userguide/budgets-action-configure.html"
+  ]
+}

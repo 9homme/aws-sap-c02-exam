@@ -1,0 +1,60 @@
+{
+  "id": "pro-62",
+  "scope": "full",
+  "verdict": "FIX",
+  "originalCorrectIds": [
+    "C"
+  ],
+  "verifiedCorrectIds": [
+    "C"
+  ],
+  "issues": [
+    "options: ตัวลวงเดิมผิดอย่างชัดเจน (อ้างความสามารถที่บริการไม่มี) ทำให้ตอบได้จากการจำชื่อบริการ ไม่ใช่ระดับ SAP-C02 Professional; เขียนใหม่ให้แต่ละตัวลวงทำงานได้จริงบางส่วนแต่ตกเงื่อนไขหนึ่งข้อ",
+    "prompt: ลบประโยค boilerplate (architecture review board / workable for the stated environment)",
+    "review.reasoning: เดิมคัดลอก requirement ภาษาอังกฤษมาต่อกัน ไม่ได้อธิบายการตัดตัวเลือก"
+  ],
+  "changes": {
+    "prompt": "A bank with subsidiaries in eight countries runs a growing set of AWS accounts, each independently provisioned by an acquisition team. The central finance function wants to examine monthly spend by linked account, cost allocation tag and service. A line-of-business sponsor also requires proactive alerts whenever project expenditure approaches a defined threshold. The central architecture office must offer approved account baselines to every new subsidiary, but business units can independently decide which steady-state EC2 workloads are eligible for discounted capacity commitments. A consultant has recommended using a three-year reservation purchase to substitute for both account governance and financial monitoring. The solution must meet all of the following requirements: (1) Standardize new account creation and governance while retaining subsidiary-level account isolation; (2) Give finance cross-account cost analysis plus configurable budget notifications; (3) Treat EC2 purchasing commitments as a separately assessed cost optimization choice rather than an access-control or budget-alert product. Which solution meets these requirements with the LEAST operational overhead?",
+    "options": {
+      "A": {
+        "text": "Follow the consultant's recommendation: purchase 3-year Reserved Instances centrally for all EC2 usage, and rely on AWS Organizations consolidated billing invoices for financial monitoring and on the reservations to standardize accounts.",
+        "explanation": "ตกข้อ (1)(2)(3): Reserved Instances เป็นส่วนลดราคาเท่านั้น ไม่ได้สร้างบัญชีหรือบังคับ governance และใบแจ้งหนี้รวมไม่ใช่ cost analysis แบบ tag/service หรือการแจ้งเตือนก่อนเกินงบ อีกทั้งการซื้อแทนทุกหน่วยธุรกิจขัดกับการให้แต่ละหน่วยประเมินเอง"
+      },
+      "B": {
+        "text": "Use AWS Organizations and AWS Control Tower for account onboarding, create Amazon CloudWatch billing alarms on EstimatedCharges in the management account for finance, and let business units assess Reserved Instances separately.",
+        "explanation": "ตกข้อ (2): governance และ RI ถูกต้อง แต่ billing alarm ดูได้เพียงยอดรวมโดยประมาณ ไม่ได้วิเคราะห์ตาม linked account, cost allocation tag หรือ service และไม่ได้แจ้งเตือนรายโครงการตามงบที่กำหนดได้เหมือน Cost Explorer กับ AWS Budgets"
+      },
+      "C": {
+        "text": "Use Organizations and Control Tower for governed landing-zone account onboarding, Cost Explorer for linked-account cost trends, and AWS Budgets for threshold alerts; assess RI suitability separately.",
+        "explanation": "ถูก: Control Tower Account Factory สร้างบัญชีตาม baseline ที่อนุมัติในแต่ละ OU โดยคงการแยกบัญชีของบริษัทลูก Cost Explorer วิเคราะห์ spend ตาม linked account, cost allocation tags และ service AWS Budgets แจ้งเตือนเมื่อค่าใช้จ่ายจริงหรือที่คาดการณ์ใกล้ threshold ส่วน RI เป็นการตัดสินใจด้าน cost optimization ที่แต่ละหน่วยประเมินจาก workload ที่คงที่"
+      },
+      "D": {
+        "text": "Use Organizations and Control Tower for account onboarding and Cost Explorer with AWS Budgets for finance, and purchase 3-year Reserved Instances in the management account for every running EC2 instance in all subsidiaries now.",
+        "explanation": "ตกข้อ (3): governance และ finance tools ถูกต้อง แต่การซื้อ RI ระยะ 3 ปีให้ทุก instance ทันทีข้ามการประเมินว่า workload ใดคงที่จริง และขัดกับข้อกำหนดให้หน่วยธุรกิจตัดสินใจเอง เสี่ยงจ่ายค่า reservation ที่ไม่ถูกใช้เมื่อ workload เปลี่ยน"
+      }
+    },
+    "review": {
+      "decisiveClue": "standardize การสร้างบัญชีโดยแยกบริษัทลูก, วิเคราะห์ cost ข้ามบัญชี + budget alerts, RI เป็นเรื่อง cost optimization ที่ประเมินแยก",
+      "reasoning": "1) แยกสามเรื่อง: governance (Organizations + Control Tower), visibility/alerts (Cost Explorer + Budgets), purchasing commitment (RI) 2) A ใช้ RI แทนทุกอย่างตามที่ consultant เสนอ ซึ่งผิดหน้าที่ 3) B ใช้ billing alarm แทน Cost Explorer/Budgets 4) D ซื้อ RI โดยไม่ประเมิน 5) C แยกหน้าที่ถูกต้องครบทั้งสามข้อ",
+      "references": [
+        {
+          "title": "What is AWS Control Tower?",
+          "url": "https://docs.aws.amazon.com/controltower/latest/userguide/what-is-control-tower.html"
+        },
+        {
+          "title": "Managing your costs with AWS Budgets",
+          "url": "https://docs.aws.amazon.com/cost-management/latest/userguide/budgets-managing-costs.html"
+        },
+        {
+          "title": "Reserved Instances for Amazon EC2",
+          "url": "https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-reserved-instances.html"
+        }
+      ]
+    }
+  },
+  "sources": [
+    "https://docs.aws.amazon.com/controltower/latest/userguide/what-is-control-tower.html",
+    "https://docs.aws.amazon.com/cost-management/latest/userguide/budgets-managing-costs.html",
+    "https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-reserved-instances.html"
+  ]
+}

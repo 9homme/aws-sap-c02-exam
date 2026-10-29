@@ -1,0 +1,21 @@
+{
+  "id": "course-40",
+  "scope": "explanations",
+  "verdict": "FIX",
+  "verifiedCorrectIds": [
+    "D"
+  ],
+  "issues": [
+    "options.A.explanation: 'guest OS บางกรณี' is vague/misleading; customers always own guest OS on EC2 under the Shared Responsibility Model"
+  ],
+  "changes": {
+    "options": {
+      "A": {
+        "explanation": "ภายใต้ Shared Responsibility Model AWS ดูแล security of the cloud แต่ลูกค้าดูแล security in the cloud เช่น IAM, การเข้ารหัสข้อมูล, application และ guest OS บน EC2 การเชื่อว่า AWS ป้องกันให้ทุกอย่างอัตโนมัติจึงผิด และขัดกับการป้องกันหลายชั้นที่ข้อนี้เน้น"
+      }
+    }
+  },
+  "sources": [
+    "https://docs.aws.amazon.com/wellarchitected/latest/framework/security.html"
+  ]
+}

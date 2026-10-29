@@ -1,0 +1,25 @@
+{
+  "id": "course-29",
+  "scope": "explanations",
+  "verdict": "FIX",
+  "verifiedCorrectIds": [
+    "A"
+  ],
+  "issues": [
+    "review.reasoning: mentions workload growth/machine count, which is not in any option; not tied to B/C/D",
+    "options.C.explanation: criterion suffix 'measure impact first' does not match option C (over-provisioning)"
+  ],
+  "changes": {
+    "options": {
+      "C": {
+        "explanation": "การเผื่อ hardware จนไม่มี request ต้องรอคิวทำให้มี capacity ว่างตลอดเวลา เปลืองพลังงานและทรัพยากรโดยไม่สร้างคุณค่า หลัก Sustainability ให้ provision ตาม demand จริง ใช้ right-sizing/auto scaling และเพิ่ม utilization ไม่ใช่ปล่อยเครื่องว่างเพื่อกัน queue ทุกกรณี"
+      }
+    },
+    "review": {
+      "reasoning": "หลัก Sustainability ข้อแรกคือ Understand your impact คือวัดทรัพยากรที่ใช้ต่อหน่วยผลลัพธ์ (เช่นต่อ transaction) และตั้ง baseline ก่อน แล้วเทียบหลังปรับปรุงว่าดีขึ้นจริงไหม จึงเลือก A ส่วน B ไม่วัดจนย้ายเสร็จจะไม่มี baseline, C เผื่อ hardware เกินจริงขัดกับ right-sizing และ D สรุปว่าค่าใช้จ่ายลดเท่ากับพลังงานลดเป็นการเดา เพราะสองสิ่งนี้ไม่เท่ากันเสมอ"
+    }
+  },
+  "sources": [
+    "https://docs.aws.amazon.com/wellarchitected/latest/framework/sustainability.html"
+  ]
+}

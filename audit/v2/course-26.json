@@ -1,0 +1,13 @@
+{
+  "id": "course-26",
+  "scope": "explanations",
+  "verdict": "PASS",
+  "verifiedCorrectIds": [
+    "B"
+  ],
+  "issues": [],
+  "changes": {},
+  "sources": [
+    "https://docs.aws.amazon.com/wellarchitected/latest/framework/cost-optimization.html"
+  ]
+}

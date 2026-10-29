@@ -1,0 +1,13 @@
+{
+  "id": "course-05",
+  "scope": "explanations",
+  "verdict": "PASS",
+  "verifiedCorrectIds": [
+    "A"
+  ],
+  "issues": [],
+  "changes": {},
+  "sources": [
+    "https://docs.aws.amazon.com/AmazonS3/latest/userguide/s3-batch-replication-batch.html"
+  ]
+}

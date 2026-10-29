@@ -1,0 +1,32 @@
+{
+  "id": "course-47",
+  "scope": "explanations",
+  "verdict": "FIX",
+  "verifiedCorrectIds": [
+    "C"
+  ],
+  "issues": [
+    "review.decisiveClue: cited 'ต้องส่ง query strings' which is not in the prompt (only in option C text); re-anchored to 'rapidly changing' + 'globally distributed' + 'load time'.",
+    "options.A/B/D.explanation: reused a clue suffix about query strings not present in the prompt and gave generic reasons; rewritten to state what each service really does and why it fails for fast-changing global content."
+  ],
+  "changes": {
+    "options": {
+      "A": {
+        "explanation": "CloudFront Functions เป็น JavaScript ขนาดเบาที่รันที่ edge กับ viewer request/response เช่น rewrite URL หรือแก้ header ไม่ใช่ origin และไม่มีที่เก็บ state ถาวร จึงแทน origin request หรือฐานข้อมูลไม่ได้ ข้อนี้ยังต้องมี origin ที่ตอบเนื้อหาสดอยู่ดี"
+      },
+      "B": {
+        "explanation": "NAT Gateway ให้ instance ใน private subnet ออกอินเทอร์เน็ตแบบ outbound ใน Region เดียว ไม่ได้ช่วยให้ผู้ใช้ทั่วโลกโหลดเว็บเร็วขึ้น และการปิด CloudFront ทำให้ผู้ใช้ไกลต้องวิ่งตรงไป origin ผ่านอินเทอร์เน็ตสาธารณะ latency สูงขึ้นเพราะเสีย edge location และ AWS backbone"
+      },
+      "D": {
+        "explanation": "การ cache หน้า personalized ที่เปลี่ยนบ่อยนาน 24 ชั่วโมงโดยไม่คิด cache key เสี่ยงให้ผู้ใช้เห็นเนื้อหาเก่า หรือเห็นหน้าของผู้ใช้คนอื่น ขัดกับโจทย์ที่เนื้อหาเปลี่ยนเร็ว ควรตั้ง TTL ต่ำหรือ 0 และส่งค่าที่ทำให้เนื้อหาต่างกัน (query string/cookie) ไป origin หรือใส่ใน cache key"
+      }
+    },
+    "review": {
+      "decisiveClue": "เนื้อหาเปลี่ยนเร็ว + ผู้ใช้ทั่วโลก ต้องลด load time โดยไม่เสิร์ฟ content เก่า"
+    }
+  },
+  "sources": [
+    "https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/Expiration.html",
+    "https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/using-managed-cache-policies.html"
+  ]
+}

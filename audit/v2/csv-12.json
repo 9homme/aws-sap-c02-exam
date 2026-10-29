@@ -1,0 +1,21 @@
+{
+  "id": "csv-12",
+  "scope": "explanations",
+  "verdict": "FIX",
+  "verifiedCorrectIds": [
+    "A"
+  ],
+  "issues": [
+    "options.A.explanation: generic; does not tie to 'automatically scale DDoS mitigation during an attack' wording."
+  ],
+  "changes": {
+    "options": {
+      "A": {
+        "explanation": "Shield Advanced ตรวจจับและ mitigate DDoS ของ resources ที่ลงทะเบียน (CloudFront, Route 53, ALB, Global Accelerator, EIP) อัตโนมัติด้วยความจุของ AWS edge/network โดยไม่ต้องเพิ่มเครื่องเอง และมี DRT กับ cost protection. ตรงกับโจทย์ที่ต้องการ mitigation ที่ scale ตอนถูกโจมตี"
+      }
+    }
+  },
+  "sources": [
+    "https://docs.aws.amazon.com/waf/latest/developerguide/ddos-advanced-summary.html"
+  ]
+}

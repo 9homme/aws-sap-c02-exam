@@ -1,0 +1,23 @@
+{
+  "id": "course-58",
+  "scope": "explanations",
+  "verdict": "AMBIGUOUS",
+  "verifiedCorrectIds": [
+    "B"
+  ],
+  "issues": [
+    "review.reasoning: ข้อความสลับไปมา (อธิบาย Assess แล้วบอกว่าจริงๆ เป็น Mobilize) ทำให้ผู้เรียนสับสนว่าทำไม Assess จึงเป็นเฉลย",
+    "review.caveat: ยังไม่มี reviewStatus ทั้งที่คำตอบถกเถียงได้ (Assess vs Mobilize)"
+  ],
+  "changes": {
+    "review": {
+      "reasoning": "โจทย์ถามว่าเฟสไหนช่วยทีมลูกค้า 'เตรียมตัว' ก่อน migration ในตัวเลือกที่ให้มี Assess, Cutover, Decommission และ Hypercare เท่านั้น ซึ่งมีแค่ Assess ที่เกิดก่อนการย้าย: ทำ business case สำรวจ estate/dependencies และจัด workshop หรือ immersion day ให้ทีมเข้าใจแนวทาง ส่วน Cutover, Hypercare และ Decommission เกิดระหว่างหรือหลังการย้ายจริง จึงตัดทิ้งได้ หมายเหตุ: ใน AWS large-migration framework งานเตรียมความพร้อมเชิงลึก (landing zone, ฝึกทีม) อยู่ในเฟส Mobilize ซึ่งไม่มีในตัวเลือกข้อนี้",
+      "caveat": "คำว่า 'prepare' กำกวม: ในบันทึกคอร์ส (mainframe modernization) หมายถึง Assess ที่มี workshop/immersion day แต่ใน AWS large-migration framework การเตรียมทีมและ landing zone เป็นเฟส Mobilize เนื่องจากตัวเลือกไม่มี Mobilize และ Assess เป็นเฟสเดียวที่เกิดก่อนการย้าย คำตอบที่บันทึกไว้คือ Assess ยังเป็นคำตอบที่คาดหวัง",
+      "reviewStatus": "ambiguous"
+    }
+  },
+  "sources": [
+    "https://docs.aws.amazon.com/prescriptive-guidance/latest/large-migration-guide/phases.html",
+    "https://docs.aws.amazon.com/m2/latest/userguide/modernization-m2.html"
+  ]
+}

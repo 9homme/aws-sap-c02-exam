@@ -1,0 +1,24 @@
+{
+  "id": "w8-9",
+  "scope": "explanations",
+  "verdict": "FIX",
+  "verifiedCorrectIds": [
+    "A",
+    "B",
+    "D"
+  ],
+  "issues": [
+    "options.C.explanation: 'ไม่ผ่านกฎนี้เลย' ตีความผิดได้ว่า direct request ถูกบล็อก จริง ๆ คือ request ที่ไม่ผ่าน CloudFront ไม่ถูกประเมินด้วย web ACL ของ distribution เลย"
+  ],
+  "changes": {
+    "options": {
+      "C": {
+        "explanation": "Web ACL ที่ผูกกับ CloudFront ประเมินเฉพาะ request ที่ผ่าน distribution เท่านั้น คนที่เรียก ALB ตรง ๆ จะไม่ถูกประเมินด้วยกฎนี้เลย จึงเลี่ยง CloudFront ได้ ต้องผูก web ACL แบบ Regional ที่ ALB เพื่อตรวจ secret header ฝั่ง origin"
+      }
+    }
+  },
+  "sources": [
+    "https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/restrict-access-to-load-balancer.html",
+    "https://docs.aws.amazon.com/waf/latest/developerguide/web-acl-associating-aws-resource.html"
+  ]
+}

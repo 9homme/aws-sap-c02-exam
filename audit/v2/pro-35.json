@@ -1,0 +1,61 @@
+{
+  "id": "pro-35",
+  "scope": "full",
+  "verdict": "FIX",
+  "originalCorrectIds": [
+    "B"
+  ],
+  "verifiedCorrectIds": [
+    "B"
+  ],
+  "issues": [
+    "options: ตัวลวงเดิมผิดอย่างชัดเจน (อ้างความสามารถที่บริการไม่มี) ทำให้ตอบได้จากการจำชื่อบริการ ไม่ใช่ระดับ SAP-C02 Professional; เขียนใหม่ให้แต่ละตัวลวงทำงานได้จริงบางส่วนแต่ตกเงื่อนไขหนึ่งข้อ",
+    "prompt: ลบประโยค boilerplate (architecture review board / workable for the stated environment)",
+    "review.reasoning: เดิมคัดลอก requirement ภาษาอังกฤษมาต่อกัน ไม่ได้อธิบายการตัดตัวเลือก",
+    "prompt: 'commercial message broker' ทำให้คำตอบ Amazon MQ ไม่แน่นอน (Amazon MQ รองรับเฉพาะ ActiveMQ และ RabbitMQ) จึงระบุว่าเป็น ActiveMQ Classic + OpenWire"
+  ],
+  "changes": {
+    "prompt": "A regional airline has an on-premises Java application built around an Apache ActiveMQ Classic message broker, with JMS APIs over the OpenWire protocol, durable queues, request/reply patterns, and transaction-related client behavior. A merger requires that the application run on AWS in six weeks, and the client libraries cannot be rewritten until a later modernization project. The service must tolerate an infrastructure failure without losing queued messages, and operations would prefer managed broker patching and monitoring. A separate modern service already uses SQS for asynchronous jobs, but converting all of the legacy message semantics to SQS is out of scope for the first release. The solution must meet all of the following requirements: (1) Preserve existing broker protocol/client compatibility with minimal application change; (2) Use a managed, highly available broker deployment and durable messaging; (3) Avoid forcing existing JMS transaction and routing semantics into a different messaging API during migration. Which solution meets these requirements with the LEAST operational overhead?",
+    "options": {
+      "A": {
+        "text": "Replace the broker with Amazon SQS queues and use the Amazon SQS Java Messaging Library so that the application can keep calling JMS interfaces.",
+        "explanation": "ตกข้อ (3): library นี้ให้ JMS interface บางส่วนบน SQS แต่ไม่รองรับความสามารถของ broker เดิมทั้งหมด เช่น JMS transactions, request/reply ด้วย temporary queues และ routing semantics บางรูปแบบ การย้ายไป SQS จึงเป็น replatform ที่โจทย์ระบุให้ทำภายหลัง"
+      },
+      "B": {
+        "text": "Deploy Amazon MQ with a supported broker engine and suitable high-availability configuration, preserve compatible client endpoints and protocols, and plan SQS replatforming separately.",
+        "explanation": "ถูก: Amazon MQ for ActiveMQ รองรับ JMS ผ่าน OpenWire และ protocol มาตรฐานอื่น client เดิมจึงเปลี่ยนเพียง endpoint และ credentials การใช้ active/standby broker ข้ามสอง AZ ทำให้ทนต่อการเสีย AZ โดยเก็บข้อความใน durable storage AWS ดูแล patching และมี CloudWatch metrics ส่วนการย้ายไป SQS ทำเป็นโครงการ modernization แยกภายหลัง"
+      },
+      "C": {
+        "text": "Deploy a single-instance Amazon MQ for ActiveMQ broker, point the existing clients at the new broker endpoint, and rely on daily broker configuration backups for recovery.",
+        "explanation": "ตกข้อ (2): protocol และ client ใช้ได้ทันที แต่ single-instance broker อยู่ใน AZ เดียว เมื่อ instance หรือ AZ ล้มบริการจะหยุดจนกว่าจะกู้คืน และ configuration backup ไม่ได้ปกป้องข้อความที่ค้างอยู่ใน queue ต้องใช้ active/standby deployment"
+      },
+      "D": {
+        "text": "Install Apache ActiveMQ Classic on EC2 instances in an Auto Scaling group across two Availability Zones with a shared Amazon EFS file system for the message store, and patch the brokers with Systems Manager.",
+        "explanation": "ตกข้อ (2): ทำงานได้และคงความเข้ากันได้ของ client แต่ทีมต้องดูแลการติดตั้ง, failover, patching และ monitoring ของ broker เอง ซึ่ง operations ต้องการให้เป็น managed Amazon MQ ทำสิ่งเดียวกันนี้ให้แบบ managed"
+      }
+    },
+    "review": {
+      "decisiveClue": "client JMS เดิมแก้ไม่ได้ใน 6 สัปดาห์, ต้องการ managed broker ที่ HA และไม่เสีย message, ห้ามบังคับ semantics เดิมเข้า SQS",
+      "reasoning": "1) ข้อ (1)(3) ต้องคง protocol และ semantics ของ JMS broker จึงตัดการย้ายไป SQS (A) แม้มี JMS library 2) ข้อ (2) ต้องเป็น managed และ HA ตัด single-instance (C) และ self-managed บน EC2 (D) 3) B ใช้ Amazon MQ แบบ active/standby ข้าม AZ ซึ่งเข้ากันได้กับ client เดิม แล้วจึงวางแผน modernization ไป SQS แยกภายหลัง",
+      "references": [
+        {
+          "title": "What is Amazon MQ?",
+          "url": "https://docs.aws.amazon.com/amazon-mq/latest/developer-guide/welcome.html"
+        },
+        {
+          "title": "Amazon MQ for ActiveMQ broker deployment options",
+          "url": "https://docs.aws.amazon.com/amazon-mq/latest/developer-guide/amazon-mq-broker-architecture.html"
+        },
+        {
+          "title": "Amazon SQS Java Messaging Library (JMS)",
+          "url": "https://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/sqs-java-message-service-jms-client.html"
+        }
+      ]
+    }
+  },
+  "sources": [
+    "https://docs.aws.amazon.com/amazon-mq/latest/developer-guide/welcome.html",
+    "https://docs.aws.amazon.com/amazon-mq/latest/developer-guide/amazon-mq-broker-architecture.html",
+    "https://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/sqs-java-message-service-jms-client.html"
+  ]
+}

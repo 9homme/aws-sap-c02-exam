@@ -1,0 +1,58 @@
+{
+  "id": "original-03",
+  "scope": "full",
+  "verdict": "FIX",
+  "originalCorrectIds": [
+    "A"
+  ],
+  "verifiedCorrectIds": [
+    "D"
+  ],
+  "issues": [
+    "prompt: เดิมตัวลวง (tags, security group, IGW) ผิดชัดเกินระดับ Professional; เพิ่ม shared services เพื่อต้องคิดเรื่อง route table 3 ชุดและ return route",
+    "correctIds: ย้ายจาก A เป็น D"
+  ],
+  "changes": {
+    "prompt": "A company shares one AWS Transit Gateway from its networking account with 30 workload accounts by using AWS Resource Access Manager. Each workload account has production or development VPCs. A shared-services VPC hosts Active Directory domain controllers and internal DNS resolvers. Production VPCs must be able to reach other production VPCs, development VPCs must be able to reach other development VPCs, and both environments must reach the shared-services VPC. Traffic between production and development must have no route at all, including for VPCs that are attached in the future. The network team wants to enforce this centrally without changing configurations inside each workload VPC. Which solution meets these requirements?",
+    "correctIds": [
+      "D"
+    ],
+    "rationale": "Transit gateway route-table association and propagation create isolated routing domains; a separate shared-services table provides return routes to both environments without a production-development path.",
+    "options": {
+      "A": {
+        "text": "Keep the default transit gateway route table with default association and propagation enabled. Add blackhole routes for the development CIDR ranges to the default route table.",
+        "explanation": "ไม่ผ่าน: ทุก attachment ใช้ route table เดียวกัน blackhole route ของ CIDR ฝั่ง Dev จึงตัดทั้ง Prod→Dev และ Dev→Dev ไปพร้อมกัน ทำให้ Dev คุยกันเองไม่ได้ และต้องเพิ่ม blackhole ทุกครั้งที่มี Dev CIDR ใหม่"
+      },
+      "B": {
+        "text": "Keep a single transit gateway route table. In each production VPC, add network ACL rules that deny the development CIDR ranges.",
+        "explanation": "ไม่ผ่าน: network ACL กรอง packet ได้ แต่ routing ระหว่าง Prod กับ Dev ยังอยู่ใน Transit Gateway ซึ่งขัดกับ requirement 'ไม่มี route เลย' อีกทั้งต้องแก้ NACL ในทุก VPC ทุกบัญชี ซึ่งขัดกับการบังคับจากส่วนกลาง"
+      },
+      "C": {
+        "text": "Create a separate transit gateway for production and one for development. Peer the two transit gateways and add static routes so that both environments can reach the shared-services VPC.",
+        "explanation": "ไม่ผ่าน: การแยก TGW ช่วยแยก environment ได้ แต่ peering ที่มี static route ไปยัง shared services ทำให้ต้องดูแล route ข้าม TGW อย่างระมัดระวัง และถ้า route กว้างเกินไปก็เปิดเส้นทาง Prod↔Dev อีกครั้ง ทั้งต้องจ่ายค่า TGW และ attachment เพิ่มโดยไม่จำเป็น"
+      },
+      "D": {
+        "text": "Disable default route table association and propagation. Create production, development, and shared-services transit gateway route tables. Associate each attachment with its environment's table, propagate production and shared-services attachments into the production table, development and shared-services attachments into the development table, and both production and development attachments into the shared-services table.",
+        "explanation": "ถูก: route table ที่ attachment ถูก associate เป็นตัวกำหนดว่าส่ง traffic ไปที่ไหนได้ ตาราง Prod มีเฉพาะ route ของ Prod และ shared services ตาราง Dev ก็เช่นกัน จึงไม่มี route Prod↔Dev เลย ส่วนตาราง shared services มี route กลับไปทั้งสองฝั่ง การปิด default association/propagation ทำให้ attachment ใหม่ไม่รั่วเข้าตารางผิดโดยอัตโนมัติ ทั้งหมดจัดการที่ networking account"
+      }
+    },
+    "review": {
+      "decisiveClue": "Prod↔Prod และ Dev↔Dev ได้, ทั้งคู่ถึง shared services, Prod↔Dev ต้องไม่มี route แม้ attachment ใหม่, บังคับจากส่วนกลาง",
+      "reasoning": "1) คำว่า 'ไม่มี route' หมายถึงต้องแยกที่ routing domain ของ Transit Gateway ไม่ใช่กรอง packet ใน VPC (B) 2) ตารางเดียวกับ blackhole (A) แยกการคุยภายใน Dev ไม่ได้ 3) โจทย์มี 3 กลุ่ม จึงใช้ route table 3 ชุด: ตาราง Prod/Dev propagate route ของ environment ตัวเองกับ shared services และตาราง shared services propagate ทั้งสองฝั่งเพื่อให้ traffic ขากลับได้ 4) ปิด default association/propagation เพื่อให้ attachment ใหม่ต้องถูกวางในตารางที่ถูกต้อง แบบ D ใช้ TGW เดียวและจัดการที่เดียว ส่วน C เพิ่มต้นทุนและความเสี่ยงเรื่อง route",
+      "references": [
+        {
+          "title": "Transit gateway route tables",
+          "url": "https://docs.aws.amazon.com/vpc/latest/tgw/tgw-route-tables.html"
+        },
+        {
+          "title": "Example: isolated VPCs with shared services",
+          "url": "https://docs.aws.amazon.com/vpc/latest/tgw/transit-gateway-isolated-shared.html"
+        }
+      ]
+    }
+  },
+  "sources": [
+    "https://docs.aws.amazon.com/vpc/latest/tgw/tgw-route-tables.html",
+    "https://docs.aws.amazon.com/vpc/latest/tgw/transit-gateway-isolated-shared.html"
+  ]
+}

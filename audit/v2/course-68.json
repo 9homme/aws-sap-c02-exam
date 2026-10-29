@@ -1,0 +1,13 @@
+{
+  "id": "course-68",
+  "scope": "explanations",
+  "verdict": "PASS",
+  "verifiedCorrectIds": [
+    "D"
+  ],
+  "issues": [],
+  "changes": {},
+  "sources": [
+    "https://docs.aws.amazon.com/migrationhub/latest/ug/whatishub.html"
+  ]
+}

@@ -1,0 +1,23 @@
+{
+  "id": "w8-48",
+  "scope": "explanations",
+  "verdict": "FIX",
+  "verifiedCorrectIds": [
+    "D"
+  ],
+  "issues": [
+    "options.C.explanation: ไม่ได้ผูกกับ requirement 'without informing application users' และ 'single-page app' ชัดเจน; ควรอธิบายว่า redirect ทำให้ URL/path ที่ผู้ใช้เห็นเปลี่ยนและเพิ่ม round trip ต่างจากการเลือก origin ฝั่ง CloudFront ใน D (C ทำ A/B ได้ในทางเทคนิค แต่เป็นตัวเลือกรองที่ไม่โปร่งใส)"
+  ],
+  "changes": {
+    "options": {
+      "C": {
+        "explanation": "Lambda@Edge ส่ง 302 redirect ไป path ของแต่ละ version ได้ แต่ผู้ใช้จะเห็น URL เปลี่ยนและเสีย round trip เพิ่ม ขัดกับโจทย์ที่ต้องทดลองโดยไม่ให้ผู้ใช้รู้ ส่วน D เลือก origin ภายใน CloudFront โดยคง URL เดิม"
+      }
+    }
+  },
+  "sources": [
+    "https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/lambda-examples.html",
+    "https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/lambda-generating-http-responses.html",
+    "https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/DownloadDistValuesCacheBehavior.html"
+  ]
+}

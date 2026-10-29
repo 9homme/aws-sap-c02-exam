@@ -1,0 +1,62 @@
+{
+  "id": "original-09",
+  "scope": "full",
+  "verdict": "FIX",
+  "originalCorrectIds": [
+    "A"
+  ],
+  "verifiedCorrectIds": [
+    "B"
+  ],
+  "issues": [
+    "prompt: เดิมตัวลวง (S3 origin, Elastic IP เดียว) ผิดชัดเกินไป; เพิ่มตัวลวง custom routing และ Route 53 ที่ต้องแยกให้ออก"
+  ],
+  "changes": {
+    "prompt": "A company operates a multiplayer game backend that uses a custom TCP protocol on port 7777. The backend runs in us-east-1 and eu-west-1 behind Network Load Balancers in an active-active configuration. Corporate customers that host tournaments must add the service to firewall allowlists and will accept only two static IP addresses that never change. Players must connect to the closest healthy Region with the lowest practical latency, and if one Region fails, new connections must move to the other Region within about a minute without depending on DNS TTLs or client DNS caching. Which solution meets these requirements?",
+    "correctIds": [
+      "B"
+    ],
+    "rationale": "A Global Accelerator standard accelerator provides two static anycast IPs, routes TCP traffic over the AWS global network to the closest healthy Regional NLB, and fails over without relying on DNS.",
+    "options": {
+      "A": {
+        "text": "Assign Elastic IP addresses to the Network Load Balancers in both Regions and create Amazon Route 53 latency-based records with health checks that point to the load balancers.",
+        "explanation": "ไม่ผ่าน: NLB มี static IP ต่อ AZ ที่เปิดใช้งาน จึงได้ IP หลายตัวรวมสอง Region ไม่ใช่ 2 IP ตามที่ลูกค้ายอมรับ และ failover ของ latency record ขึ้นกับ DNS TTL และการ cache ของ client ซึ่งโจทย์ห้ามพึ่งพา"
+      },
+      "B": {
+        "text": "Create an AWS Global Accelerator standard accelerator with a TCP listener on port 7777 and an endpoint group in each Region that contains the Regional Network Load Balancer. Configure endpoint group health checks and traffic dials.",
+        "explanation": "ถูก: Global Accelerator ให้ static anycast IPv4 2 ตัวที่ใช้ได้ทั้งสอง Region ผู้เล่นเข้าที่ edge ใกล้ที่สุดแล้ววิ่งบน AWS global network ไปยัง endpoint group ที่ใกล้และ healthy เมื่อ Region ล่ม traffic ย้ายไปอีก Region ภายในราวนาทีโดยไม่ขึ้นกับ DNS รองรับ TCP ที่ไม่ใช่ HTTP และ traffic dial ช่วยปรับสัดส่วนระหว่าง Region ได้"
+      },
+      "C": {
+        "text": "Create an Amazon CloudFront distribution with the two Network Load Balancers in an origin group configured for origin failover, and give customers the CloudFront IP ranges to allowlist.",
+        "explanation": "ไม่ผ่าน: CloudFront ให้บริการ HTTP/HTTPS (และ WebSocket) ไม่ได้ proxy TCP protocol เฉพาะบน port 7777 นอกจากนี้ IP ranges ของ CloudFront กว้างและเปลี่ยนแปลงได้ ไม่ใช่ 2 static IP ส่วน origin failover ก็ใช้กับ request ที่ cache ได้แบบ GET/HEAD"
+      },
+      "D": {
+        "text": "Create an AWS Global Accelerator custom routing accelerator that maps listener ports to specific EC2 instances and ports in both Regions.",
+        "explanation": "ไม่ผ่าน: custom routing accelerator ใช้เมื่อแอปต้องกำหนดเองว่าผู้ใช้คนไหนไปที่ instance/port ใด เช่น matchmaking ที่ส่งผู้เล่นไปห้องเฉพาะ มันไม่ใช้ NLB เป็น endpoint และไม่ได้กระจายตาม health ไปยัง Region ที่ใกล้ที่สุดให้เอง จึงไม่เหมาะกับ active-active หลัง NLB"
+      }
+    },
+    "review": {
+      "decisiveClue": "custom TCP, 2 static IP ที่ไม่เปลี่ยน, ผู้เล่นไป Region ใกล้และ healthy, failover ~1 นาทีโดยไม่พึ่ง DNS TTL",
+      "reasoning": "1) 2 static IP ใช้ร่วมกันทุก Region และไม่พึ่ง DNS คือคุณสมบัติของ anycast IP ใน Global Accelerator; Route 53 (A) พึ่ง DNS และได้ IP หลายตัว 2) protocol เป็น TCP เฉพาะ CloudFront (C) ใช้ไม่ได้ 3) ใน Global Accelerator มี standard กับ custom routing: standard เลือก endpoint ที่ใกล้และ healthy อัตโนมัติ เหมาะกับ NLB active-active ส่วน custom routing (D) ใช้กำหนด instance/port ตายตัว 4) จึงเลือก standard accelerator ที่มี endpoint group ต่อ Region",
+      "references": [
+        {
+          "title": "What is AWS Global Accelerator?",
+          "url": "https://docs.aws.amazon.com/global-accelerator/latest/dg/what-is-global-accelerator.html"
+        },
+        {
+          "title": "Custom routing accelerators",
+          "url": "https://docs.aws.amazon.com/global-accelerator/latest/dg/work-with-custom-routing-accelerators.html"
+        },
+        {
+          "title": "Traffic dials and endpoint groups",
+          "url": "https://docs.aws.amazon.com/global-accelerator/latest/dg/about-endpoint-groups-traffic-dial.html"
+        }
+      ]
+    }
+  },
+  "sources": [
+    "https://docs.aws.amazon.com/global-accelerator/latest/dg/what-is-global-accelerator.html",
+    "https://docs.aws.amazon.com/global-accelerator/latest/dg/work-with-custom-routing-accelerators.html",
+    "https://docs.aws.amazon.com/global-accelerator/latest/dg/about-endpoint-groups-traffic-dial.html"
+  ]
+}

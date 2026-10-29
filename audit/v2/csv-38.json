@@ -1,0 +1,21 @@
+{
+  "id": "csv-38",
+  "scope": "explanations",
+  "verdict": "FIX",
+  "verifiedCorrectIds": [
+    "B"
+  ],
+  "issues": [
+    "options.C.explanation: เดิมกว้างเกินไป ไม่บอกช่วงที่ถูกต้อง (7–30 วัน) ว่าทำไม 90 วันจึงใช้ไม่ได้"
+  ],
+  "changes": {
+    "options": {
+      "C": {
+        "explanation": "90 วันเกินช่วง waiting period ที่ ScheduleKeyDeletion รับได้ (7–30 วัน) จึงตั้งไม่ได้และไม่ใช่ค่าสูงสุดที่โจทย์ถาม. ตัวเลข 90 วันมักพบเป็น retention/อายุของข้อมูลในบริการอื่น ไม่เกี่ยวกับการรอลบ KMS key."
+      }
+    }
+  },
+  "sources": [
+    "https://docs.aws.amazon.com/kms/latest/developerguide/deleting-keys.html"
+  ]
+}

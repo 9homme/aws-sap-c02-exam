@@ -1,0 +1,64 @@
+{
+  "id": "original-11",
+  "scope": "full",
+  "verdict": "FIX",
+  "originalCorrectIds": [
+    "A"
+  ],
+  "verifiedCorrectIds": [
+    "D"
+  ],
+  "issues": [
+    "prompt: เดิมตัวลวง (Dedicated Hosts ทุกตัว, หยุด baseline ในเวลางาน) ไม่สมเหตุสมผล; เพิ่มแผนย้าย Graviton/Fargate ให้ต้องแยกประเภท Savings Plans",
+    "caveat: เดิมเรื่อง capacity guarantee ย้ายเป็นหมายเหตุในคำอธิบายของคำตอบ"
+  ],
+  "changes": {
+    "prompt": "A company runs a rendering platform on Amazon EC2 in one AWS Region. A baseline of 40 m6i.xlarge instances runs 24/7 for the API and job scheduler and must not be interrupted. Rendering jobs run on additional instances during short, unpredictable peaks of 1–3 hours. The jobs checkpoint every 2 minutes and can resume on any instance. Within the next 12 months, the company plans to move the baseline to Graviton-based instances and possibly to AWS Fargate, and it wants a 3-year commitment for the steady usage. The company wants to minimize total compute cost without risking the baseline. Which purchasing strategy is MOST cost-effective?",
+    "correctIds": [
+      "D"
+    ],
+    "rationale": "A Compute Savings Plan discounts the steady baseline even after a move to Graviton or Fargate, and Spot Instances minimize the cost of checkpointed, interruption-tolerant peak jobs.",
+    "options": {
+      "A": {
+        "text": "Purchase 3-year Standard Reserved Instances for 40 m6i.xlarge instances and run the rendering peaks on On-Demand Instances.",
+        "explanation": "ไม่ผ่านที่สุด: Standard RI ให้ส่วนลดสูงแต่ผูกกับ instance family m6i ใน Region นั้น เมื่อย้าย baseline ไป Graviton หรือ Fargate ส่วนลดจะไม่ตามไป ส่วนงาน render ที่ checkpoint ได้ยังจ่ายราคา On-Demand ทั้งที่ใช้ Spot ได้ถูกกว่ามาก"
+      },
+      "B": {
+        "text": "Run the baseline and the rendering peaks on Spot Instances in an Auto Scaling group that uses the capacity-optimized allocation strategy across many instance types.",
+        "explanation": "ไม่ผ่าน: Spot เหมาะกับงาน render ที่ checkpoint ได้ แต่ baseline ของ API และ scheduler ห้ามถูกขัดจังหวะ Spot อาจถูกเรียกคืนพร้อมแจ้งล่วงหน้า 2 นาที การวาง baseline บน Spot จึงเสี่ยงต่อ availability ที่โจทย์ห้ามไว้"
+      },
+      "C": {
+        "text": "Purchase a 3-year EC2 Instance Savings Plan for the m6i family to cover the baseline, and run the rendering peaks on Spot Instances.",
+        "explanation": "ใกล้เคียงแต่ไม่ผ่าน: การใช้ Spot กับงาน render ถูกต้อง แต่ EC2 Instance Savings Plan ผูกกับ instance family ใน Region ที่เลือก เมื่อเปลี่ยนไป Graviton family อื่นหรือ Fargate ส่วนลดจะไม่ครอบคลุม จึงไม่ยืดหยุ่นพอสำหรับแผนภายใน 12 เดือน"
+      },
+      "D": {
+        "text": "Purchase a 3-year Compute Savings Plan sized to the baseline hourly spend, and run the rendering peaks on Spot Instances in an Auto Scaling group that uses the price-capacity-optimized allocation strategy across multiple instance types.",
+        "explanation": "ถูก: Compute Savings Plan ให้ส่วนลดกับ EC2 ทุก family/Region รวมถึง Fargate และ Lambda จึงยังได้ส่วนลดหลังย้ายไป Graviton หรือ Fargate ส่วนงาน render ที่ checkpoint ได้ใช้ Spot หลายประเภทเพื่อลดโอกาสถูกเรียกคืน หมายเหตุ: Savings Plans เป็นส่วนลดราคา ไม่ใช่การจองความจุ หากต้องการรับประกันการ launch ต้องใช้ On-Demand Capacity Reservations เพิ่ม"
+      }
+    },
+    "review": {
+      "decisiveClue": "baseline ห้ามถูกขัดจังหวะ, peaks checkpoint ได้, จะย้ายไป Graviton/Fargate ใน 12 เดือน, commit 3 ปี",
+      "reasoning": "1) แยก workload เป็น 2 ส่วน: baseline ที่คงที่และห้ามสะดุด กับ peaks ที่ทน interruption ได้ 2) peaks ที่ checkpoint ได้ควรใช้ Spot จึงตัด A ที่ใช้ On-Demand 3) baseline ห้ามอยู่บน Spot จึงตัด B 4) commitment ที่ต้องยืดหยุ่นข้าม family และไป Fargate ได้คือ Compute Savings Plan ส่วน Standard RI และ EC2 Instance Savings Plan (C) ผูกกับ family เดิม D จึงคุ้มที่สุดโดยไม่เสี่ยง baseline",
+      "references": [
+        {
+          "title": "Savings Plans types",
+          "url": "https://docs.aws.amazon.com/savingsplans/latest/userguide/plan-types.html"
+        },
+        {
+          "title": "Spot Instances",
+          "url": "https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-spot-instances.html"
+        },
+        {
+          "title": "Allocation strategies for Spot Instances",
+          "url": "https://docs.aws.amazon.com/autoscaling/ec2/userguide/allocation-strategies.html"
+        }
+      ],
+      "reviewStatus": null
+    }
+  },
+  "sources": [
+    "https://docs.aws.amazon.com/savingsplans/latest/userguide/plan-types.html",
+    "https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-spot-instances.html",
+    "https://docs.aws.amazon.com/autoscaling/ec2/userguide/allocation-strategies.html"
+  ]
+}

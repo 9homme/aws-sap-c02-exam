@@ -1,0 +1,20 @@
+{
+  "id": "course-37",
+  "scope": "explanations",
+  "verdict": "FIX",
+  "verifiedCorrectIds": [
+    "A"
+  ],
+  "issues": [
+    "review.reasoning: mentions 'recruitment agency', which is not among the options; not tied to B/C/D"
+  ],
+  "changes": {
+    "review": {
+      "reasoning": "เมื่อ review พบ high-risk issues ต้องบันทึกความเสี่ยงและจัดลำดับกับเจ้าของธุรกิจ แต่ถ้าทีมไม่มีเวลาและความเชี่ยวชาญ ควรขอผู้ช่วยจาก AWS account team หรือ AWS Well-Architected Partner จึงเลือก A ส่วน B เพิ่ม EC2 ไม่แก้ risk ด้าน IAM/recovery, C ยอมรับโดยไม่มี owner หรือแผนไม่ใช่การจัดการ risk และ D ให้ทีมเดิมทำคนเดียวขัดกับโจทย์ที่ทีมขาดทั้งเวลาและทักษะ"
+    }
+  },
+  "sources": [
+    "https://docs.aws.amazon.com/wellarchitected/latest/framework/welcome.html",
+    "https://docs.aws.amazon.com/wellarchitected/latest/framework/the-review-process.html"
+  ]
+}

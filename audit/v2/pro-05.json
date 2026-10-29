@@ -1,0 +1,22 @@
+{
+  "id": "pro-05",
+  "scope": "full",
+  "verdict": "PASS",
+  "originalCorrectIds": [
+    "A",
+    "C",
+    "F"
+  ],
+  "verifiedCorrectIds": [
+    "A",
+    "C",
+    "F"
+  ],
+  "issues": [],
+  "changes": {},
+  "sources": [
+    "https://docs.aws.amazon.com/prescriptive-guidance/latest/patterns/integrate-amazon-api-gateway-with-amazon-sqs-to-handle-asynchronous-rest-apis.html",
+    "https://docs.aws.amazon.com/lambda/latest/dg/services-sqs-errorhandling.html",
+    "https://docs.aws.amazon.com/lambda/latest/dg/invocation-async-configuring.html"
+  ]
+}

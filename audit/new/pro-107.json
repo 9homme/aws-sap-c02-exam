@@ -1,0 +1,82 @@
+{
+  "id": "pro-107",
+  "sourceCategory": "professional",
+  "sourceLabel": "AI-authored · Professional multi-requirement",
+  "sourceDetail": "Original multi-constraint scenario — ลด latency ให้ผู้ใช้เอเชียของ API ที่อยู่ us-east-1",
+  "coreEligible": true,
+  "emerging": false,
+  "domain": "1",
+  "task": "Organizational complexity",
+  "topic": "ลด latency ให้ผู้ใช้เอเชียของ API ที่อยู่ us-east-1",
+  "type": "multiple-choice",
+  "selectCount": 1,
+  "prompt": "A fintech company runs a trading API in us-east-1. The API has two interfaces: a REST over HTTPS interface behind an Application Load Balancer for account management, and a proprietary binary protocol over TCP behind a Network Load Balancer for order submission. The company's fastest-growing customer base is in Southeast Asia, where users report round-trip times of about 300 ms and frequent connection resets during peak hours because traffic crosses congested internet paths. Institutional customers must allowlist a small set of static IP addresses for the TCP interface. The backend depends on a single Aurora PostgreSQL cluster in us-east-1, and the company will not build a multi-Region database or move the application to another Region this year. Most REST responses are personalized and cannot be cached for long, but TLS handshakes are a significant part of the latency. Order submissions are latency sensitive and use long-lived TCP connections. Security requires that TLS for the REST interface use the company's existing certificate for api.example.com. Which solution will provide the BEST performance for users in Southeast Asia?",
+  "options": [
+    {
+      "id": "A",
+      "text": "Create an AWS Global Accelerator standard accelerator with the Network Load Balancer as the endpoint for the TCP interface, and put an Amazon CloudFront distribution with the Application Load Balancer as the origin in front of the REST interface, using a cache policy that disables caching for personalized paths and keeps persistent connections to the origin.",
+      "explanation": "ถูก: Global Accelerator ให้ static anycast IP สำหรับ allowlist และรับ TCP ที่ edge ใกล้ผู้ใช้แล้วส่งผ่าน AWS global network ไปยัง us-east-1 จึงลด latency และการหลุดจาก internet ที่แออัด CloudFront terminate TLS ที่ edge ใกล้ผู้ใช้และใช้ connection ที่เปิดค้างไว้ไปยัง origin บน backbone ของ AWS แม้ไม่ cache response ก็ลดเวลา handshake ได้มาก ทั้งหมดไม่ต้องย้าย database"
+    },
+    {
+      "id": "B",
+      "text": "Deploy a copy of the application tier in ap-southeast-1 behind new load balancers, have it connect to the Aurora cluster in us-east-1 over inter-Region VPC peering, and use Route 53 latency-based routing to send Asian users to the new Region. Keep the existing load balancers for users in other regions. Document the new configuration in the operations runbook. Tag all new resources with the owning team and cost center.",
+      "explanation": "ไม่ผ่าน: ย้าย application มาใกล้ผู้ใช้ก็จริง แต่ทุก query ไป database ยังต้องข้าม Region ไปกลับหลายครั้งต่อ request ซึ่งมักทำให้ช้าลง และ IP ของ load balancer ใน Region ใหม่ไม่ใช่ชุด static IP ที่ลูกค้า allowlist ไว้ ทั้งขัดกับนโยบายที่ไม่ย้ายแอปไปอีก Region ปีนี้"
+    },
+    {
+      "id": "C",
+      "text": "Create Route 53 latency-based records for both interfaces that point to the existing load balancers, lower the record TTLs to 60 seconds, and enable cross-zone load balancing on both load balancers. Add more targets to the load balancers to handle the peak-hour connections.",
+      "explanation": "ไม่ผ่าน: latency-based routing มีประโยชน์เมื่อมีหลาย Region แต่ที่นี่มีปลายทางเดียว จึงไม่เปลี่ยนเส้นทาง internet ที่แออัด TTL และ cross-zone load balancing ไม่ได้ลด round-trip time จากเอเชีย และไม่ให้ static IP สำหรับ TCP"
+    },
+    {
+      "id": "D",
+      "text": "Put one Amazon CloudFront distribution in front of both the Application Load Balancer and the Network Load Balancer, and give institutional customers the CloudFront IP ranges to allowlist for the TCP interface. Use the company's certificate for api.example.com on the distribution.",
+      "explanation": "ไม่ผ่าน: CloudFront รองรับ HTTP/HTTPS และ WebSocket ไม่ได้ proxy proprietary binary protocol บน TCP และ IP ranges ของ CloudFront กว้างและเปลี่ยนแปลงได้ จึงไม่ใช่ชุด static IP เล็ก ๆ ที่ลูกค้าต้องการ"
+    }
+  ],
+  "correctIds": [
+    "A"
+  ],
+  "rationale": "1) ห้ามย้ายแอป/database ไป Region อื่น ตัด B ซึ่งยังเพิ่ม latency ไป database 2) Route 53 (C) ไม่ช่วยเมื่อมีปลายทางเดียว 3) CloudFront (D) ไม่รองรับ TCP binary และไม่ให้ static IP 4) Global Accelerator นำ TCP เข้าที่ edge พร้อม static anycast IP และ CloudFront terminate TLS ที่ edge แล้วใช้ connection ค้างไปยัง origin บน backbone A จึงให้ performance ดีที่สุด",
+  "wrongAnswerHelp": "Start with the explicit business constraint, then eliminate choices that solve a different layer of the architecture or add unnecessary operational work.",
+  "references": [
+    "https://docs.aws.amazon.com/global-accelerator/latest/dg/introduction-how-it-works.html",
+    "https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/Introduction.html",
+    "https://docs.aws.amazon.com/Route53/latest/DeveloperGuide/routing-policy-latency.html"
+  ],
+  "products": [
+    "Global Accelerator",
+    "CloudFront",
+    "NLB",
+    "Route 53"
+  ],
+  "requirements": [
+    "Cut latency for Asian users of a us-east-1 API with TCP and HTTP endpoints",
+    "Static IPs for the TCP clients",
+    "No multi-Region database rewrite"
+  ],
+  "review": {
+    "decisiveClue": "ผู้ใช้เอเชีย RTT 300 ms ผ่าน internet ที่แออัด, มีทั้ง HTTPS และ TCP binary, TCP ต้องใช้ static IP, ห้าม multi-Region database/ย้าย Region, TLS handshake เป็นส่วนสำคัญของ latency",
+    "reasoning": "1) ห้ามย้ายแอป/database ไป Region อื่น ตัด B ซึ่งยังเพิ่ม latency ไป database 2) Route 53 (C) ไม่ช่วยเมื่อมีปลายทางเดียว 3) CloudFront (D) ไม่รองรับ TCP binary และไม่ให้ static IP 4) Global Accelerator นำ TCP เข้าที่ edge พร้อม static anycast IP และ CloudFront terminate TLS ที่ edge แล้วใช้ connection ค้างไปยัง origin บน backbone A จึงให้ performance ดีที่สุด",
+    "options": {
+      "A": "ถูก: Global Accelerator ให้ static anycast IP สำหรับ allowlist และรับ TCP ที่ edge ใกล้ผู้ใช้แล้วส่งผ่าน AWS global network ไปยัง us-east-1 จึงลด latency และการหลุดจาก internet ที่แออัด CloudFront terminate TLS ที่ edge ใกล้ผู้ใช้และใช้ connection ที่เปิดค้างไว้ไปยัง origin บน backbone ของ AWS แม้ไม่ cache response ก็ลดเวลา handshake ได้มาก ทั้งหมดไม่ต้องย้าย database",
+      "B": "ไม่ผ่าน: ย้าย application มาใกล้ผู้ใช้ก็จริง แต่ทุก query ไป database ยังต้องข้าม Region ไปกลับหลายครั้งต่อ request ซึ่งมักทำให้ช้าลง และ IP ของ load balancer ใน Region ใหม่ไม่ใช่ชุด static IP ที่ลูกค้า allowlist ไว้ ทั้งขัดกับนโยบายที่ไม่ย้ายแอปไปอีก Region ปีนี้",
+      "C": "ไม่ผ่าน: latency-based routing มีประโยชน์เมื่อมีหลาย Region แต่ที่นี่มีปลายทางเดียว จึงไม่เปลี่ยนเส้นทาง internet ที่แออัด TTL และ cross-zone load balancing ไม่ได้ลด round-trip time จากเอเชีย และไม่ให้ static IP สำหรับ TCP",
+      "D": "ไม่ผ่าน: CloudFront รองรับ HTTP/HTTPS และ WebSocket ไม่ได้ proxy proprietary binary protocol บน TCP และ IP ranges ของ CloudFront กว้างและเปลี่ยนแปลงได้ จึงไม่ใช่ชุด static IP เล็ก ๆ ที่ลูกค้าต้องการ"
+    },
+    "references": [
+      {
+        "title": "How AWS Global Accelerator works",
+        "url": "https://docs.aws.amazon.com/global-accelerator/latest/dg/introduction-how-it-works.html"
+      },
+      {
+        "title": "Using CloudFront to accelerate dynamic content",
+        "url": "https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/Introduction.html"
+      },
+      {
+        "title": "Latency-based routing",
+        "url": "https://docs.aws.amazon.com/Route53/latest/DeveloperGuide/routing-policy-latency.html"
+      }
+    ],
+    "reviewedAt": "2026-10-29"
+  }
+}

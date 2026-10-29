@@ -1,0 +1,90 @@
+{
+  "id": "pro-96",
+  "sourceCategory": "professional",
+  "sourceLabel": "AI-authored · Professional multi-requirement",
+  "sourceDetail": "Original multi-constraint scenario — ลดค่า storage ทั้ง S3, EBS, EFS และ backup",
+  "coreEligible": true,
+  "emerging": false,
+  "domain": "3",
+  "task": "Continuous improvement",
+  "topic": "ลดค่า storage ทั้ง S3, EBS, EFS และ backup",
+  "type": "multiple-choice",
+  "selectCount": 1,
+  "prompt": "A media company's monthly storage bill has grown by 40% in a year. Cost Explorer shows four main drivers: 1.2 PB in Amazon S3 Standard, of which about 70% has not been read for more than 90 days but must stay retrievable within milliseconds when a producer needs it; 200 TB of gp2 Amazon EBS volumes attached to production EC2 instances, most of which need only baseline performance; a 50 TB Amazon EFS file system where most files are rarely read after 30 days; and AWS Backup recovery points for EBS volumes that must be retained for 7 years for compliance and are almost never restored. Applications cannot be changed, and current retention rules must be preserved. The company also wants alerts when storage spend deviates from the new target. The finance director wants the solution that delivers the largest sustained savings with the least risk to production. Storage is spread across three AWS Regions. AWS Compute Optimizer is already enabled for the organization. The S3 access pattern is unpredictable because producers revisit old footage without warning. Which solution will meet these requirements MOST cost-effectively?",
+  "options": [
+    {
+      "id": "A",
+      "text": "Purchase a 3-year Compute Savings Plan that covers the current storage spend, buy EC2 Reserved Instances for the instances that use the EBS volumes, and create an AWS Budgets cost budget for storage. Review the coverage reports in Cost Explorer every month.",
+      "explanation": "ไม่ผ่าน: Savings Plans และ Reserved Instances ให้ส่วนลดกับ compute เท่านั้น ไม่ได้ลดค่า S3, EBS storage, EFS หรือ backup storage การซื้อ commitment นี้จึงไม่แก้ต้นเหตุของบิลที่เพิ่มขึ้น แม้ budget จะช่วยแจ้งเตือนได้"
+    },
+    {
+      "id": "B",
+      "text": "Apply S3 Intelligent-Tiering to the bucket so that objects not accessed move to lower-cost tiers with millisecond access, migrate the gp2 volumes to gp3 with Elastic Volumes, enable EFS lifecycle management to move files to Infrequent Access after 30 days, add a lifecycle rule in AWS Backup to move EBS recovery points to cold storage after 90 days while keeping the 7-year retention, and create an AWS Budgets cost budget with alerts.",
+      "explanation": "ถูก: Intelligent-Tiering ย้าย object ที่ไม่ถูกเข้าถึงไป tier ที่ถูกกว่าโดยยังเรียกได้ระดับ millisecond และไม่มีค่า retrieval gp3 ถูกกว่า gp2 ประมาณ 20% และย้ายได้ขณะใช้งานโดยไม่ downtime EFS IA ลดค่าไฟล์ที่ไม่ค่อยอ่านโดยไม่แก้แอป AWS Backup cold storage ลดค่า recovery points ระยะยาวโดยคง retention เดิม และ Budgets แจ้งเมื่อค่าใช้จ่ายเบี่ยงจากเป้าหมาย"
+    },
+    {
+      "id": "C",
+      "text": "Move all S3 objects older than 90 days to S3 Glacier Deep Archive, copy the EFS files older than 30 days to S3 Glacier Deep Archive and delete them from EFS, and convert the gp2 volumes to sc1 Cold HDD volumes. Create an AWS Budgets alert for the new target.",
+      "explanation": "ไม่ผ่าน: Deep Archive ถูกที่สุดแต่ต้องใช้เวลาหลายชั่วโมงในการ restore ซึ่งขัดกับข้อกำหนดเรียกคืนระดับ millisecond การลบไฟล์จาก EFS ทำให้แอปที่อ้างถึงไฟล์เหล่านั้นทำงานผิด และ sc1 มี performance ต่ำเกินไปสำหรับ volumes ของ production"
+    },
+    {
+      "id": "D",
+      "text": "Reduce the AWS Backup retention for EBS recovery points from 7 years to 1 year, delete S3 objects that have not been read for 1 year, and keep the EBS and EFS configurations unchanged. Create an AWS Budgets alert for the new storage target and review it with Cost Explorer.",
+      "explanation": "ไม่ผ่าน: ลดค่าใช้จ่ายได้จริงแต่ละเมิด retention 7 ปีด้าน compliance และการลบ object ที่ producer อาจต้องใช้ขัดกับข้อกำหนด ทั้งยังไม่ได้แก้ค่า EBS gp2 และ EFS ที่เป็นต้นทุนหลักอีกสองส่วน"
+    }
+  ],
+  "correctIds": [
+    "B"
+  ],
+  "rationale": "1) Savings Plans/RIs (A) ไม่ลดค่า storage 2) ต้องเรียกได้ระดับ millisecond และห้ามแก้แอป ตัด Deep Archive และ sc1 (C) 3) ต้องคง retention ตัด D 4) แต่ละ storage มีวิธีลดของตัวเอง: S3 Intelligent-Tiering, gp2→gp3, EFS IA, AWS Backup cold storage พร้อม Compute Optimizer และ Budgets B จึงประหยัดที่สุดโดยเสี่ยงต่ำ",
+  "wrongAnswerHelp": "Start with the explicit business constraint, then eliminate choices that solve a different layer of the architecture or add unnecessary operational work.",
+  "references": [
+    "https://docs.aws.amazon.com/AmazonS3/latest/userguide/intelligent-tiering-overview.html",
+    "https://docs.aws.amazon.com/ebs/latest/userguide/ebs-volume-types.html",
+    "https://docs.aws.amazon.com/efs/latest/ug/lifecycle-management-efs.html",
+    "https://docs.aws.amazon.com/aws-backup/latest/devguide/plan-options-and-configuration.html"
+  ],
+  "products": [
+    "S3",
+    "EBS",
+    "EFS (Elastic File System)",
+    "AWS Backup",
+    "Compute Optimizer",
+    "AWS Budgets",
+    "Cost Explorer"
+  ],
+  "requirements": [
+    "Cut storage spend across S3, EBS, EFS, and backups",
+    "No application changes",
+    "Keep current retention requirements"
+  ],
+  "review": {
+    "decisiveClue": "S3 70% ไม่ถูกอ่านแต่ต้องเรียกได้ระดับ ms, EBS gp2 ใช้แค่ baseline, EFS อ่านน้อยหลัง 30 วัน, backup ต้องเก็บ 7 ปี, ห้ามแก้แอป, ต้องมี alert",
+    "reasoning": "1) Savings Plans/RIs (A) ไม่ลดค่า storage 2) ต้องเรียกได้ระดับ millisecond และห้ามแก้แอป ตัด Deep Archive และ sc1 (C) 3) ต้องคง retention ตัด D 4) แต่ละ storage มีวิธีลดของตัวเอง: S3 Intelligent-Tiering, gp2→gp3, EFS IA, AWS Backup cold storage พร้อม Compute Optimizer และ Budgets B จึงประหยัดที่สุดโดยเสี่ยงต่ำ",
+    "options": {
+      "A": "ไม่ผ่าน: Savings Plans และ Reserved Instances ให้ส่วนลดกับ compute เท่านั้น ไม่ได้ลดค่า S3, EBS storage, EFS หรือ backup storage การซื้อ commitment นี้จึงไม่แก้ต้นเหตุของบิลที่เพิ่มขึ้น แม้ budget จะช่วยแจ้งเตือนได้",
+      "B": "ถูก: Intelligent-Tiering ย้าย object ที่ไม่ถูกเข้าถึงไป tier ที่ถูกกว่าโดยยังเรียกได้ระดับ millisecond และไม่มีค่า retrieval gp3 ถูกกว่า gp2 ประมาณ 20% และย้ายได้ขณะใช้งานโดยไม่ downtime EFS IA ลดค่าไฟล์ที่ไม่ค่อยอ่านโดยไม่แก้แอป AWS Backup cold storage ลดค่า recovery points ระยะยาวโดยคง retention เดิม และ Budgets แจ้งเมื่อค่าใช้จ่ายเบี่ยงจากเป้าหมาย",
+      "C": "ไม่ผ่าน: Deep Archive ถูกที่สุดแต่ต้องใช้เวลาหลายชั่วโมงในการ restore ซึ่งขัดกับข้อกำหนดเรียกคืนระดับ millisecond การลบไฟล์จาก EFS ทำให้แอปที่อ้างถึงไฟล์เหล่านั้นทำงานผิด และ sc1 มี performance ต่ำเกินไปสำหรับ volumes ของ production",
+      "D": "ไม่ผ่าน: ลดค่าใช้จ่ายได้จริงแต่ละเมิด retention 7 ปีด้าน compliance และการลบ object ที่ producer อาจต้องใช้ขัดกับข้อกำหนด ทั้งยังไม่ได้แก้ค่า EBS gp2 และ EFS ที่เป็นต้นทุนหลักอีกสองส่วน"
+    },
+    "references": [
+      {
+        "title": "S3 Intelligent-Tiering",
+        "url": "https://docs.aws.amazon.com/AmazonS3/latest/userguide/intelligent-tiering-overview.html"
+      },
+      {
+        "title": "Amazon EBS volume types",
+        "url": "https://docs.aws.amazon.com/ebs/latest/userguide/ebs-volume-types.html"
+      },
+      {
+        "title": "Managing storage lifecycle (EFS)",
+        "url": "https://docs.aws.amazon.com/efs/latest/ug/lifecycle-management-efs.html"
+      },
+      {
+        "title": "Lifecycle and storage tiers in AWS Backup",
+        "url": "https://docs.aws.amazon.com/aws-backup/latest/devguide/plan-options-and-configuration.html"
+      }
+    ],
+    "reviewedAt": "2026-10-29"
+  }
+}

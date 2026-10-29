@@ -1,0 +1,60 @@
+{
+  "id": "pro-21",
+  "scope": "full",
+  "verdict": "FIX",
+  "originalCorrectIds": [
+    "D"
+  ],
+  "verifiedCorrectIds": [
+    "D"
+  ],
+  "issues": [
+    "options: ตัวลวงเดิมผิดอย่างชัดเจน (อ้างความสามารถที่บริการไม่มี) ทำให้ตอบได้จากการจำชื่อบริการ ไม่ใช่ระดับ SAP-C02 Professional; เขียนใหม่ให้แต่ละตัวลวงทำงานได้จริงบางส่วนแต่ตกเงื่อนไขหนึ่งข้อ",
+    "prompt: ลบประโยค boilerplate (architecture review board / workable for the stated environment)",
+    "review.reasoning: เดิมคัดลอก requirement ภาษาอังกฤษมาต่อกัน ไม่ได้อธิบายการตัดตัวเลือก"
+  ],
+  "changes": {
+    "prompt": "A startup operates a Java web application packaged as a conventional deployable archive. It has no container build pipeline and needs to migrate from an existing VM host before an upcoming launch. Developers want managed provisioning of the web-tier capacity, load balancing, patchable underlying instances, and rolling application deployments. A second team already has containerized event consumers that must run without managing EC2 worker nodes. Finance wants the simplest AWS service for each workload rather than building an internal orchestration platform. The application does not require a dedicated Kubernetes control plane or customer-controlled cluster scheduling extensions. The solution must meet all of the following requirements: (1) Move the noncontainerized Java web application with minimal packaging work while retaining managed environment deployment tooling; (2) Run containerized background consumers without a fleet of EC2 container hosts; (3) Keep service choices aligned with workload packaging and administration requirements. Which solution meets these requirements with the LEAST operational overhead?",
+    "options": {
+      "A": {
+        "text": "Build container images for the Java web application and the event consumers, and run both as Amazon ECS services on AWS Fargate behind an Application Load Balancer.",
+        "explanation": "ตกข้อ (1): Fargate เหมาะกับ consumers ที่เป็น container อยู่แล้ว แต่ web app ยังไม่มี container build pipeline การ containerize ก่อน launch เพิ่มงาน packaging และ pipeline ใหม่ที่โจทย์ต้องการเลี่ยง ขณะที่ Elastic Beanstalk deploy archive เดิมได้ทันที"
+      },
+      "B": {
+        "text": "Deploy the existing Java web package to AWS Elastic Beanstalk, and run the containerized consumers as Amazon ECS services on an EC2 Auto Scaling group capacity provider.",
+        "explanation": "ตกข้อ (2): ฝั่ง web ถูกต้อง แต่ ECS บน EC2 capacity provider ทำให้ทีมต้องดูแล container hosts (AMI, patch, scaling ของ instance) ซึ่งโจทย์กำหนดให้รัน consumers โดยไม่ต้องจัดการ EC2 worker nodes"
+      },
+      "C": {
+        "text": "Run the Java web application on an Amazon Lightsail instance behind a Lightsail load balancer and deploy new versions manually, and run the consumers as Amazon ECS services on AWS Fargate.",
+        "explanation": "ตกข้อ (1): Lightsail เหมาะกับงานขนาดเล็กที่ต้องการราคาคงที่และใช้ง่าย แต่ไม่มี managed environment deployment tooling เช่น rolling deployments และ managed platform updates แบบ Elastic Beanstalk ทีมต้อง deploy และ patch เองซึ่งไม่ตรงกับที่ developers ต้องการ"
+      },
+      "D": {
+        "text": "Deploy the existing Java web package to Elastic Beanstalk, and run the containerized background workers as ECS services using Fargate.",
+        "explanation": "ถูก: Elastic Beanstalk รับ WAR/JAR บน Java platform แล้วจัดการ EC2, load balancer, Auto Scaling, rolling deployments และ managed platform updates ให้ จึงย้ายได้โดยไม่ต้อง repackage ส่วน consumers ที่เป็น container อยู่แล้วรันบน ECS Fargate โดยไม่มี host ให้ดูแล บริการแต่ละตัวตรงกับรูปแบบ packaging ของ workload"
+      }
+    },
+    "review": {
+      "decisiveClue": "web เป็น Java archive ที่ไม่มี container pipeline ต้องการ managed deployment, consumers เป็น container ที่ห้ามดูแล EC2 hosts, เลือกบริการให้ตรงกับรูปแบบ packaging",
+      "reasoning": "1) ดูรูปแบบ packaging ก่อน: web เป็น archive ดั้งเดิม consumers เป็น container 2) web: Elastic Beanstalk ให้ managed environment และ rolling deploy โดยไม่ต้อง containerize ตัด A ที่ต้องสร้าง pipeline ใหม่ และ C ที่ Lightsail ไม่มี deployment tooling แบบนี้ 3) consumers: ห้ามดูแล EC2 hosts จึงต้องใช้ Fargate ไม่ใช่ EC2 capacity provider (B) 4) D จึงเลือกบริการที่ง่ายที่สุดสำหรับแต่ละ workload",
+      "references": [
+        {
+          "title": "Elastic Beanstalk concepts",
+          "url": "https://docs.aws.amazon.com/elasticbeanstalk/latest/dg/concepts.html"
+        },
+        {
+          "title": "Elastic Beanstalk managed platform updates",
+          "url": "https://docs.aws.amazon.com/elasticbeanstalk/latest/dg/environment-platform-update-managed.html"
+        },
+        {
+          "title": "AWS Fargate for Amazon ECS",
+          "url": "https://docs.aws.amazon.com/AmazonECS/latest/developerguide/AWS_Fargate.html"
+        }
+      ]
+    }
+  },
+  "sources": [
+    "https://docs.aws.amazon.com/elasticbeanstalk/latest/dg/concepts.html",
+    "https://docs.aws.amazon.com/elasticbeanstalk/latest/dg/environment-platform-update-managed.html",
+    "https://docs.aws.amazon.com/AmazonECS/latest/developerguide/AWS_Fargate.html"
+  ]
+}

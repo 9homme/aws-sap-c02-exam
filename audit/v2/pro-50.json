@@ -1,0 +1,60 @@
+{
+  "id": "pro-50",
+  "scope": "full",
+  "verdict": "FIX",
+  "originalCorrectIds": [
+    "B"
+  ],
+  "verifiedCorrectIds": [
+    "B"
+  ],
+  "issues": [
+    "options: ตัวลวงเดิมผิดอย่างชัดเจน (อ้างความสามารถที่บริการไม่มี) ทำให้ตอบได้จากการจำชื่อบริการ ไม่ใช่ระดับ SAP-C02 Professional; เขียนใหม่ให้แต่ละตัวลวงทำงานได้จริงบางส่วนแต่ตกเงื่อนไขหนึ่งข้อ",
+    "prompt: ลบประโยค boilerplate (architecture review board / workable for the stated environment)",
+    "review.reasoning: เดิมคัดลอก requirement ภาษาอังกฤษมาต่อกัน ไม่ได้อธิบายการตัดตัวเลือก"
+  ],
+  "changes": {
+    "prompt": "A media company has run a steady-state fleet of Amazon EC2 instances for the past 18 months. Some application servers show low CPU and memory demand while the reserved batch capacity is heavily used at night. The CFO is pressing for immediate savings, but the operations manager refuses to prepay for underutilized instance sizes or make multi-year commitments before verifying demand. Finance also needs to track whether the optimization work actually reduces account-level spend and warn the team if the quarterly compute allocation is exceeded. The workloads do not require a change of AWS account or application runtime. The solution must meet all of the following requirements: (1) Use measured utilization to select defensible EC2 right-sizing actions before purchasing capacity commitments; (2) Evaluate discounted commitment options for the stable baseline, understanding their term and instance-size constraints; (3) Analyze realized spend and send threshold-based notifications throughout the quarter. Which solution meets these requirements with the LEAST operational overhead?",
+    "options": {
+      "A": {
+        "text": "Purchase 3-year Standard Reserved Instances for every currently running instance size now to capture savings immediately, then review Compute Optimizer recommendations next year.",
+        "explanation": "ตกข้อ (1): RI ให้ส่วนลดจริงแต่เป็นการ commit กับขนาด instance ปัจจุบันที่บางตัวใหญ่เกินจริง เมื่อ rightsize ภายหลัง RI ที่ซื้อไว้อาจไม่ถูกใช้เต็ม operations manager จึงไม่ยอมรับ ต้องวิเคราะห์ utilization ก่อนซื้อ commitment"
+      },
+      "B": {
+        "text": "Use Compute Optimizer recommendations and CloudWatch utilization to right-size first, then assess eligible Reserved Instances for stable demand, verify cost in Cost Explorer and configure AWS Budgets alerts.",
+        "explanation": "ถูก: Compute Optimizer ใช้ utilization metrics แนะนำขนาดที่เหมาะสมพร้อมระดับความเสี่ยง เมื่อ rightsize แล้วจึงซื้อ RI ให้ตรงกับ baseline ที่เหลืออยู่ เช่น batch ช่วงกลางคืน โดยพิจารณา term 1 ปีหรือ Convertible RI หากยังไม่มั่นใจ Cost Explorer ติดตามว่าค่าใช้จ่ายลดลงจริงและดู RI utilization/coverage ส่วน Budgets แจ้งเตือนเมื่อใกล้เกินงบรายไตรมาส"
+      },
+      "C": {
+        "text": "Use Compute Optimizer to right-size the instances, and move the steady baseline fleet to Spot Instances instead of evaluating any commitment discounts. Track spend in Cost Explorer and configure AWS Budgets alerts.",
+        "explanation": "ตกข้อ (2): rightsizing และการติดตาม cost ถูกต้อง แต่ Spot ไม่ใช่ commitment discount และอาจถูกเรียกคืน จึงไม่เหมาะกับ baseline ที่ต้องรันต่อเนื่อง โจทย์ต้องการประเมินส่วนลดแบบ commit สำหรับ baseline ที่เสถียรพร้อมเข้าใจเงื่อนไขของ term"
+      },
+      "D": {
+        "text": "Use Compute Optimizer to right-size the instances and purchase Reserved Instances for the stable baseline afterward, and review the consolidated invoice at the end of each quarter to confirm the savings.",
+        "explanation": "ตกข้อ (3): ลำดับ rightsize → RI ถูกต้อง แต่การดูใบแจ้งหนี้ตอนสิ้นไตรมาสพบปัญหาหลังจากเกินงบไปแล้ว ไม่มีการวิเคราะห์ระหว่างไตรมาสและไม่มีการแจ้งเตือนตาม threshold ที่ finance ต้องการ"
+      }
+    },
+    "review": {
+      "decisiveClue": "rightsize จาก utilization ก่อนซื้อ commitment, ประเมิน RI สำหรับ baseline โดยเข้าใจ term, ติดตาม spend และเตือนตลอดไตรมาส",
+      "reasoning": "1) ลำดับสำคัญ: rightsize ก่อนแล้วจึง commit ตัด A ที่ซื้อ RI ทันที 2) baseline ที่เสถียรควรใช้ commitment discount ไม่ใช่ Spot (C) 3) ต้องติดตามและเตือนระหว่างไตรมาส ไม่ใช่รอใบแจ้งหนี้ (D) 4) B: Compute Optimizer → RI สำหรับ baseline หลัง rightsize → Cost Explorer วัดผล → Budgets แจ้งเตือน",
+      "references": [
+        {
+          "title": "What is AWS Compute Optimizer?",
+          "url": "https://docs.aws.amazon.com/compute-optimizer/latest/ug/what-is.html"
+        },
+        {
+          "title": "Reserved Instances for Amazon EC2",
+          "url": "https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-reserved-instances.html"
+        },
+        {
+          "title": "Managing your costs with AWS Budgets",
+          "url": "https://docs.aws.amazon.com/cost-management/latest/userguide/budgets-managing-costs.html"
+        }
+      ]
+    }
+  },
+  "sources": [
+    "https://docs.aws.amazon.com/compute-optimizer/latest/ug/what-is.html",
+    "https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-reserved-instances.html",
+    "https://docs.aws.amazon.com/cost-management/latest/userguide/budgets-managing-costs.html"
+  ]
+}

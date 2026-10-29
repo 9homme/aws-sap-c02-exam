@@ -1,0 +1,22 @@
+{
+  "id": "csv-03",
+  "scope": "explanations",
+  "verdict": "FIX",
+  "verifiedCorrectIds": [
+    "C"
+  ],
+  "issues": [
+    "options.C.explanation: only states a caveat (retry/duplicates) and never says why SQS is the loose-coupling answer; rewritten."
+  ],
+  "changes": {
+    "options": {
+      "C": {
+        "explanation": "SQS เป็นคิวกลางให้ producer ส่งข้อความแล้วไปทำงานต่อ โดย consumer ดึงไปประมวลผลภายหลังตามจังหวะของตัวเอง ทั้งสองฝั่งไม่ต้องรู้ที่อยู่หรือรอกัน และ scale แยกกันได้ จึงเป็นตัวอย่าง loose coupling ที่ชัดที่สุด. ข้อควรระวังคือ standard queue ส่งซ้ำได้ consumer ต้อง idempotent"
+      }
+    }
+  },
+  "sources": [
+    "https://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/welcome.html",
+    "https://docs.aws.amazon.com/wellarchitected/latest/reliability-pillar/rel_prevent_interaction_failure_loosely_coupled_system.html"
+  ]
+}

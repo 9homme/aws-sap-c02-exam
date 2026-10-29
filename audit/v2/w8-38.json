@@ -1,0 +1,30 @@
+{
+  "id": "w8-38",
+  "scope": "explanations",
+  "verdict": "FIX",
+  "verifiedCorrectIds": [
+    "C"
+  ],
+  "issues": [
+    "options.A.explanation: ประโยคท้ายคลุมเครือ (เครือข่ายที่ส่งทันอยู่แล้ว) และไม่บอกว่าไม่มี continuous replication",
+    "options.B.explanation: ไม่ชัดว่าเหตุที่ Snowball ช้ากว่า 5 วันคืออะไร",
+    "options.C.explanation: อ้าง เฉลยคาดหวัง โดยไม่ผูกกับ requirement เรื่อง minimal downtime และ FASTEST"
+  ],
+  "changes": {
+    "options": {
+      "A": {
+        "explanation": "VM Import/Export นำเข้า VM image ทีละตัวแบบ one-time ไม่มี continuous replication และต้องมี downtime ระหว่างส่งออก/นำเข้า ไม่เหมาะกับ 150 VMs ที่ต้องการ minimal downtime ส่วน Snowball ต้องรอจัดส่งและ ingest ข้อมูล ซึ่งในโจทย์ช้ากว่าการส่งออนไลน์ประมาณ 5 วัน"
+      },
+      "B": {
+        "explanation": "MGN เหมาะกับ 150 VMs ที่ต้อง downtime ต่ำ แต่ Snowball ต้องสั่งอุปกรณ์ ลงข้อมูล 300 TB ส่งกลับ และรอ ingest เข้า S3 ซึ่งรวมแล้วเกินประมาณ 5 วันของการส่งออนไลน์ตามเฉลย จึงไม่ใช่ FASTEST ในบริบทนี้"
+      },
+      "C": {
+        "explanation": "MGN ทำ continuous replication จน cutover จึง downtime น้อยสำหรับ 150 VMs และ S3 Transfer Acceleration ส่งข้อมูล 300 TB ผ่าน edge location จากหลาย data centers ได้ประมาณ 5 วัน ซึ่งเร็วกว่าเวลาจัดส่งและ ingest ของ Snowball ตามเฉลยที่บันทึกไว้"
+      }
+    }
+  },
+  "sources": [
+    "https://docs.aws.amazon.com/mgn/latest/ug/what-is-mgn.html",
+    "https://docs.aws.amazon.com/AmazonS3/latest/userguide/transfer-acceleration.html"
+  ]
+}

@@ -1,0 +1,60 @@
+{
+  "id": "pro-34",
+  "scope": "full",
+  "verdict": "FIX",
+  "originalCorrectIds": [
+    "A"
+  ],
+  "verifiedCorrectIds": [
+    "A"
+  ],
+  "issues": [
+    "options: ตัวลวงเดิมผิดอย่างชัดเจน (อ้างความสามารถที่บริการไม่มี) ทำให้ตอบได้จากการจำชื่อบริการ ไม่ใช่ระดับ SAP-C02 Professional; เขียนใหม่ให้แต่ละตัวลวงทำงานได้จริงบางส่วนแต่ตกเงื่อนไขหนึ่งข้อ",
+    "prompt: ลบประโยค boilerplate (architecture review board / workable for the stated environment)",
+    "review.reasoning: เดิมคัดลอก requirement ภาษาอังกฤษมาต่อกัน ไม่ได้อธิบายการตัดตัวเลือก"
+  ],
+  "changes": {
+    "prompt": "A gaming platform receives player telemetry continuously from mobile devices. A fraud-detection consumer needs to replay recent telemetry events and manage its own checkpoint as it runs near-real-time analysis. Independently, analytics wants the same incoming events buffered and delivered into S3 in compressed objects, with optional lightweight transforms and retry behavior. The analytics team does not want to maintain a custom always-on fleet solely to batch files into S3. Producers must remain decoupled from consumer processing latency, and operators need to understand the distinction between a replayable stream and a managed delivery pipeline. The solution must meet all of the following requirements: (1) Support multiple independently checkpointed consumers with replay for near-real-time processing; (2) Deliver buffered and optionally transformed records into S3 with minimal custom data-delivery infrastructure; (3) Decouple producer throughput from downstream consumer and storage processing. Which solution meets these requirements with the LEAST operational overhead?",
+    "options": {
+      "A": {
+        "text": "Publish to Kinesis Data Streams for replayable stream consumption, connect a managed Amazon Data Firehose delivery stream to S3, and use Lambda for eligible record transforms when needed.",
+        "explanation": "ถูก: Kinesis Data Streams เก็บข้อมูลตาม retention ที่ตั้ง ให้ consumer หลายตัวอ่านและเก็บ checkpoint ของตัวเองได้ (เช่นด้วย KCL หรือ enhanced fan-out) จึง replay ได้ Firehose ใช้ stream นี้เป็น source แล้ว buffer, บีบอัด, retry และส่งเข้า S3 แบบ managed โดยใช้ Lambda transform เมื่อจำเป็น producer เขียนเข้า stream โดยไม่ต้องรอ consumer"
+      },
+      "B": {
+        "text": "Send the telemetry directly to an Amazon Data Firehose delivery stream that writes compressed objects to S3, and have the fraud-detection consumer read new objects from S3 as they arrive.",
+        "explanation": "ตกข้อ (1): Firehose ส่งข้อมูลเข้า S3 ได้ดี แต่ไม่มี consumer API ให้หลายตัวอ่านและ replay พร้อม checkpoint ข้อมูลถูก buffer เป็นนาทีก่อนเขียนเป็น object การอ่านจาก S3 จึงช้ากว่า near-real-time และไม่ใช่ stream ที่ replay ตามตำแหน่งได้"
+      },
+      "C": {
+        "text": "Publish to Kinesis Data Streams for the fraud-detection consumer, and add a second consumer Lambda function that batches records in memory, compresses them, and writes objects to S3 with custom retry logic.",
+        "explanation": "ตกข้อ (2): Kinesis Data Streams ตอบข้อ (1)(3) ได้ แต่การเขียน Lambda ที่รวม batch, บีบอัด, ตั้งชื่อ object และ retry เอง คือ custom data-delivery infrastructure ที่ Firehose ทำให้แบบ managed อยู่แล้ว ทั้งยังต้องจัดการกรณี batch ใหญ่หรือ function timeout เอง"
+      },
+      "D": {
+        "text": "Send the telemetry to an Amazon SQS standard queue, have the fraud-detection service poll the queue, and use a second queue that is subscribed through Amazon SNS for analytics delivery to S3.",
+        "explanation": "ตกข้อ (1): SQS แยก producer ออกจาก consumer ได้ แต่ message ถูกลบเมื่อประมวลผลแล้ว จึง replay ย้อนหลังไม่ได้ และไม่มี checkpoint ตามตำแหน่งแบบ stream อีกทั้งยังต้องเขียนส่วนที่ batch ข้อมูลเข้า S3 เองอีกด้วย"
+      }
+    },
+    "review": {
+      "decisiveClue": "consumer หลายตัวที่ replay ได้พร้อม checkpoint ของตัวเอง, ส่งเข้า S3 แบบ buffer/compress โดยไม่เขียน delivery เอง, producer แยกจาก consumer",
+      "reasoning": "1) แยกบทบาท: replayable stream (Kinesis Data Streams) กับ managed delivery pipeline (Firehose) 2) ข้อ (1) ต้องการ replay และ checkpoint ตัด Firehose ตรง (B) และ SQS (D) ที่ลบ message หลังอ่าน 3) ข้อ (2) ห้ามเขียน delivery เอง ตัด Lambda ที่ batch เข้า S3 เอง (C) 4) A ใช้ KDS เป็นแกนกลางและให้ Firehose อ่านจาก stream เพื่อส่งเข้า S3 จึงครบทั้งสามข้อ",
+      "references": [
+        {
+          "title": "What is Amazon Data Firehose?",
+          "url": "https://docs.aws.amazon.com/firehose/latest/dev/what-is-this-service.html"
+        },
+        {
+          "title": "What is Amazon Kinesis Data Streams?",
+          "url": "https://docs.aws.amazon.com/streams/latest/dev/introduction.html"
+        },
+        {
+          "title": "Send data to Firehose from Kinesis Data Streams",
+          "url": "https://docs.aws.amazon.com/firehose/latest/dev/writing-with-kinesis-streams.html"
+        }
+      ]
+    }
+  },
+  "sources": [
+    "https://docs.aws.amazon.com/firehose/latest/dev/what-is-this-service.html",
+    "https://docs.aws.amazon.com/streams/latest/dev/introduction.html",
+    "https://docs.aws.amazon.com/firehose/latest/dev/writing-with-kinesis-streams.html"
+  ]
+}

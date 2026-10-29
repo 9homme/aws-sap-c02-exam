@@ -1,0 +1,31 @@
+{
+  "id": "w8-70",
+  "scope": "explanations",
+  "verdict": "FIX",
+  "verifiedCorrectIds": [
+    "D"
+  ],
+  "issues": [
+    "options.B.explanation: ประโยคเรื่อง MFA อ่านไม่รู้เรื่อง และไม่บอกว่า CSVDE ไม่ย้ายรหัสผ่าน",
+    "options.C.explanation: 'ไม่ใช่ LDAP directory สำหรับย้ายการใช้งานเดิมทั้งหมด' คลุมเครือ",
+    "options.D.explanation: ไม่ระบุขอบเขตของ RADIUS MFA และ requirement เรื่อง retire on-premises AD"
+  ],
+  "changes": {
+    "options": {
+      "B": {
+        "explanation": "Simple AD รองรับ LDAP/AD พื้นฐานและขนาดเหมาะกับผู้ใช้หลักร้อย แต่ไม่รองรับ MFA (RADIUS MFA ใช้ได้กับ AWS Managed Microsoft AD และ AD Connector) จึงตก requirement MFA นอกจากนี้ CSVDE ย้ายได้เฉพาะ object ผู้ใช้ ไม่ย้ายรหัสผ่าน ผู้ใช้ต้องตั้งรหัสใหม่"
+      },
+      "C": {
+        "explanation": "IAM Identity Center เป็น workforce identity store สำหรับ SSO เข้า AWS accounts และแอปที่รองรับ และใช้ MFA ได้ แต่ไม่มี LDAP endpoint ให้แอปหรือเครื่องที่เดิมพึ่ง AD/LDAP ใช้งาน จึงตอบ requirement 'basic LDAP functionality' ไม่ได้"
+      },
+      "D": {
+        "explanation": "AWS Managed Microsoft AD เป็น directory ที่ AWS ดูแล domain controllers ให้ จึงใช้ต่อได้หลัง retire on-premises AD รองรับ LDAP และเปิด MFA ผ่าน RADIUS ได้ และใช้ ADMT ย้ายผู้ใช้ได้ ข้อควรระวัง: RADIUS MFA ใช้กับการ sign-in AWS apps ที่รองรับ (เช่น Console, WorkSpaces) และต้องมี RADIUS server"
+      }
+    }
+  },
+  "sources": [
+    "https://docs.aws.amazon.com/directoryservice/latest/admin-guide/ms_ad_mfa.html",
+    "https://docs.aws.amazon.com/directoryservice/latest/admin-guide/ms_ad_migrate_users.html",
+    "https://docs.aws.amazon.com/directoryservice/latest/admin-guide/directory_simple_ad.html"
+  ]
+}

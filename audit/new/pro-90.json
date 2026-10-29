@@ -1,0 +1,83 @@
+{
+  "id": "pro-90",
+  "sourceCategory": "professional",
+  "sourceLabel": "AI-authored · Professional multi-requirement",
+  "sourceDetail": "Original multi-constraint scenario — ลดต้นทุน Redshift ที่ใช้งานน้อยและข้อมูลส่วนใหญ่เย็น",
+  "coreEligible": true,
+  "emerging": false,
+  "domain": "3",
+  "task": "Continuous improvement",
+  "topic": "ลดต้นทุน Redshift ที่ใช้งานน้อยและข้อมูลส่วนใหญ่เย็น",
+  "type": "multiple-choice",
+  "selectCount": 1,
+  "prompt": "A retail analytics team runs a provisioned Amazon Redshift RA3 cluster 24 hours a day. Analysts run queries for only about 6 hours each week, mostly on the most recent 3 months of data, but the cluster stores 400 TB because it also holds 7 years of history that is queried a few times per quarter for audits. Existing BI dashboards, stored procedures, and SQL scripts connect to Redshift and must keep working with minimal changes for both recent and historical data. The finance team has flagged the cluster as the largest line item in the data budget, and it wants the lowest monthly cost that meets these requirements. Query performance for audit queries on old data can be slower than for current data. The data engineering team already uses the AWS Glue Data Catalog for other datasets and is comfortable writing UNLOAD statements. There is no requirement to keep the cluster running when nobody is querying it. The cluster uses 8 ra3.4xlarge nodes, and the company has no existing reserved node commitments. The team must complete the change within one quarter. Which solution will meet these requirements MOST cost-effectively?",
+  "options": [
+    {
+      "id": "A",
+      "text": "Unload the history older than 3 months to Amazon S3 as partitioned Parquet files, register the tables in the AWS Glue Data Catalog, and query them through a Redshift Spectrum external schema. Migrate the recent data and the existing objects to Amazon Redshift Serverless with a modest base capacity so that compute is billed only while queries run.",
+      "explanation": "ถูก: ข้อมูลเย็นใน S3 แบบ Parquet ถูกกว่า managed storage และ query ผ่าน Spectrum ได้ด้วย SQL เดิมผ่าน external schema Redshift Serverless คิดค่า compute เฉพาะช่วงที่มี query จึงไม่ต้องจ่าย cluster ตลอด 24 ชั่วโมงสำหรับการใช้งานเพียง 6 ชั่วโมงต่อสัปดาห์ dashboards, stored procedures และ scripts ยังเชื่อมกับ Redshift ได้โดยเปลี่ยนเพียง endpoint"
+    },
+    {
+      "id": "B",
+      "text": "Keep the provisioned RA3 cluster running continuously, resize it to more nodes so that audit queries finish faster, and purchase 3-year reserved nodes to lower the hourly rate. Use workload management queues to give the analysts priority over the audit queries.",
+      "explanation": "ไม่ผ่านด้านต้นทุน: reserved nodes ลดราคาต่อชั่วโมงได้ แต่ยังจ่าย cluster ตลอด 24 ชั่วโมงทั้งที่ใช้แค่ 6 ชั่วโมงต่อสัปดาห์ และการเพิ่ม node ยิ่งเพิ่มค่าใช้จ่าย ทั้ง 400 TB ยังอยู่ใน managed storage แม้ส่วนใหญ่จะแทบไม่ถูก query"
+    },
+    {
+      "id": "C",
+      "text": "Unload all data to Amazon S3, create a long-running Amazon EMR cluster with Presto, point the BI dashboards to Presto, and rewrite the stored procedures as Spark jobs. Register the data in the AWS Glue Data Catalog so that both Presto and Spark can use the same table definitions. Document the new configuration in the operations runbook. Tag all new resources with the owning team and cost center.",
+      "explanation": "ไม่ผ่าน: EMR cluster ที่รันตลอดยังเป็นค่า compute ต่อเนื่อง และการชี้ dashboards ไป Presto และเขียน stored procedures ใหม่เป็น Spark ขัดกับข้อกำหนดที่ให้ของเดิมทำงานต่อโดยเปลี่ยนน้อยที่สุด"
+    },
+    {
+      "id": "D",
+      "text": "Unload all data to Amazon S3 as Parquet, delete the Redshift cluster, and have all users query the data with Amazon Athena through the AWS Glue Data Catalog. Partition the recent data by day and the history by month to reduce the amount of data that each query scans.",
+      "explanation": "ราคาต่ำแต่ไม่ผ่าน requirement: Athena query ข้อมูลใน S3 ด้วย SQL ได้และคิดตามข้อมูลที่สแกน แต่ stored procedures และ scripts ที่เขียนสำหรับ Redshift ต้องเขียนใหม่ และ dashboards ต้องเปลี่ยน connector จึงขัดกับการให้ของเดิมทำงานต่อโดยเปลี่ยนน้อยที่สุด"
+    }
+  ],
+  "correctIds": [
+    "A"
+  ],
+  "rationale": "1) ต้องคงการใช้งานกับ Redshift เดิม ตัด Athena อย่างเดียว (D) และ EMR (C) ที่ต้องเขียนใหม่ 2) ต้นทุนหลักมาจาก compute ที่รันตลอดและข้อมูลเย็นใน managed storage: reserved nodes (B) ลดราคาต่อชั่วโมงแต่ยังจ่ายตลอดเวลา 3) Redshift Serverless คิด compute ตามการใช้งานจริง และย้ายข้อมูลเย็นไป S3 Parquet ที่ query ผ่าน Spectrum ด้วย SQL เดิม A จึงคุ้มค่าที่สุด",
+  "wrongAnswerHelp": "Start with the explicit business constraint, then eliminate choices that solve a different layer of the architecture or add unnecessary operational work.",
+  "references": [
+    "https://docs.aws.amazon.com/redshift/latest/mgmt/working-with-serverless.html",
+    "https://docs.aws.amazon.com/redshift/latest/dg/c-using-spectrum.html",
+    "https://docs.aws.amazon.com/redshift/latest/dg/r_UNLOAD.html"
+  ],
+  "products": [
+    "Redshift",
+    "S3",
+    "AWS Glue",
+    "Athena",
+    "Amazon EMR (แพลตฟอร์ม managed Spark/Hadoop)"
+  ],
+  "requirements": [
+    "Analysts query a few hours per week",
+    "90% of 400 TB is cold history",
+    "Keep SQL access to both hot and cold data"
+  ],
+  "review": {
+    "decisiveClue": "ใช้งาน 6 ชั่วโมง/สัปดาห์, 90% ของ 400 TB เป็นข้อมูลเย็น, dashboards/stored procedures เดิมต้องทำงานต่อ, ต้นทุนต่ำสุด",
+    "reasoning": "1) ต้องคงการใช้งานกับ Redshift เดิม ตัด Athena อย่างเดียว (D) และ EMR (C) ที่ต้องเขียนใหม่ 2) ต้นทุนหลักมาจาก compute ที่รันตลอดและข้อมูลเย็นใน managed storage: reserved nodes (B) ลดราคาต่อชั่วโมงแต่ยังจ่ายตลอดเวลา 3) Redshift Serverless คิด compute ตามการใช้งานจริง และย้ายข้อมูลเย็นไป S3 Parquet ที่ query ผ่าน Spectrum ด้วย SQL เดิม A จึงคุ้มค่าที่สุด",
+    "options": {
+      "A": "ถูก: ข้อมูลเย็นใน S3 แบบ Parquet ถูกกว่า managed storage และ query ผ่าน Spectrum ได้ด้วย SQL เดิมผ่าน external schema Redshift Serverless คิดค่า compute เฉพาะช่วงที่มี query จึงไม่ต้องจ่าย cluster ตลอด 24 ชั่วโมงสำหรับการใช้งานเพียง 6 ชั่วโมงต่อสัปดาห์ dashboards, stored procedures และ scripts ยังเชื่อมกับ Redshift ได้โดยเปลี่ยนเพียง endpoint",
+      "B": "ไม่ผ่านด้านต้นทุน: reserved nodes ลดราคาต่อชั่วโมงได้ แต่ยังจ่าย cluster ตลอด 24 ชั่วโมงทั้งที่ใช้แค่ 6 ชั่วโมงต่อสัปดาห์ และการเพิ่ม node ยิ่งเพิ่มค่าใช้จ่าย ทั้ง 400 TB ยังอยู่ใน managed storage แม้ส่วนใหญ่จะแทบไม่ถูก query",
+      "C": "ไม่ผ่าน: EMR cluster ที่รันตลอดยังเป็นค่า compute ต่อเนื่อง และการชี้ dashboards ไป Presto และเขียน stored procedures ใหม่เป็น Spark ขัดกับข้อกำหนดที่ให้ของเดิมทำงานต่อโดยเปลี่ยนน้อยที่สุด",
+      "D": "ราคาต่ำแต่ไม่ผ่าน requirement: Athena query ข้อมูลใน S3 ด้วย SQL ได้และคิดตามข้อมูลที่สแกน แต่ stored procedures และ scripts ที่เขียนสำหรับ Redshift ต้องเขียนใหม่ และ dashboards ต้องเปลี่ยน connector จึงขัดกับการให้ของเดิมทำงานต่อโดยเปลี่ยนน้อยที่สุด"
+    },
+    "references": [
+      {
+        "title": "Amazon Redshift Serverless",
+        "url": "https://docs.aws.amazon.com/redshift/latest/mgmt/working-with-serverless.html"
+      },
+      {
+        "title": "Querying external data using Amazon Redshift Spectrum",
+        "url": "https://docs.aws.amazon.com/redshift/latest/dg/c-using-spectrum.html"
+      },
+      {
+        "title": "UNLOAD",
+        "url": "https://docs.aws.amazon.com/redshift/latest/dg/r_UNLOAD.html"
+      }
+    ],
+    "reviewedAt": "2026-10-29"
+  }
+}

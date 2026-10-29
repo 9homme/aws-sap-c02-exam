@@ -1,0 +1,19 @@
+{
+  "id": "course-35",
+  "scope": "explanations",
+  "verdict": "FIX",
+  "verifiedCorrectIds": [
+    "C"
+  ],
+  "issues": [
+    "review.reasoning: ends with a generic 'not just installing monitoring' that is not an option; does not tie to A/B/D"
+  ],
+  "changes": {
+    "review": {
+      "reasoning": "Operational Excellence คือการสนับสนุนงาน development และ operations ให้ได้ผลดี มี operational insight (เช่น observability) เรียนรู้จาก incident และปรับปรุง process/procedure ต่อเนื่องเพื่อ business value จึงเลือก C ส่วน A ตัดเรื่อง incident handling ทิ้ง, B ทำแค่ penetration testing ซึ่งเป็นเรื่อง Security และ D automate deploy ครั้งเดียวแล้วเลิกประเมิน ขัดกับ continuous improvement"
+    }
+  },
+  "sources": [
+    "https://docs.aws.amazon.com/wellarchitected/latest/framework/operational-excellence.html"
+  ]
+}

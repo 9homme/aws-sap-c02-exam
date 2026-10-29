@@ -1,0 +1,22 @@
+{
+  "id": "w8-47",
+  "scope": "explanations",
+  "verdict": "FIX",
+  "verifiedCorrectIds": [
+    "D"
+  ],
+  "issues": [
+    "options.C.explanation: ประโยคท้ายสับสน (อย่าสรุปผิด...) และไม่อธิบายตรง ๆ ว่า RDS cross-Region read replica เป็น asynchronous ไม่มี managed RPO ที่บังคับ 30 วินาทีได้ ซึ่งเป็นจุดที่ตัวเลือกกล่าวอ้างผิด"
+  ],
+  "changes": {
+    "options": {
+      "C": {
+        "explanation": "RDS for PostgreSQL ทำ cross-Region read replica ได้จริง แต่เป็น asynchronous replication ที่ไม่มี managed RPO setting ให้ตั้ง 30 วินาที (rds.global_db_rpo เป็นของ Aurora Global Database) จึงรับประกัน RPO ตามโจทย์ไม่ได้"
+      }
+    }
+  },
+  "sources": [
+    "https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/aurora-global-database-disaster-recovery.html",
+    "https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/USER_PostgreSQL.Replication.ReadReplicas.Configuration.html"
+  ]
+}

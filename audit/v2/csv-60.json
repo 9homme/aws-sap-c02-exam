@@ -1,0 +1,13 @@
+{
+  "id": "csv-60",
+  "scope": "explanations",
+  "verdict": "PASS",
+  "verifiedCorrectIds": [
+    "C"
+  ],
+  "issues": [],
+  "changes": {},
+  "sources": [
+    "https://docs.aws.amazon.com/vpn/latest/clientvpn-admin/what-is.html"
+  ]
+}

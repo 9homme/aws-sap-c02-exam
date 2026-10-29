@@ -1,0 +1,35 @@
+{
+  "id": "csv-20",
+  "scope": "explanations",
+  "verdict": "AMBIGUOUS",
+  "verifiedCorrectIds": [
+    "D"
+  ],
+  "issues": [
+    "options.B.explanation: ถ้อยคำสับสน; ควรบอกชัดว่า IAM ของผู้เรียกมีผลจริงแต่ตัวเลือกพูดถึง VPC",
+    "options.C.explanation: อ้างข้อจำกัด IPv6-only subnet ที่ไม่จำเป็นต่อการตอบ ควรเน้นว่า IPv6 ไม่ใช่ข้อบังคับ",
+    "options.D.explanation: ไม่ระบุกลไกแชร์ข้าม account (AWS RAM)",
+    "key: B ('ไม่มี IAM permissions') เป็นสาเหตุที่เป็นไปได้จริงเมื่ออ่านกว้าง จึงกำกวม"
+  ],
+  "changes": {
+    "options": {
+      "B": {
+        "explanation": "การสร้าง attachment ถูกบล็อกได้ด้วย IAM ของผู้เรียก เช่นขาด ec2:CreateTransitGatewayVpcAttachment แต่ตัวเลือกนี้ระบุว่า VPC ไม่มีสิทธิ์ ซึ่งไม่ตรงเพราะ VPC ไม่ใช่ IAM principal และ D ให้เงื่อนไขที่เจาะจงกว่า (ไม่เลือก subnet หรือ TGW ไม่ถูกแชร์)"
+      },
+      "C": {
+        "explanation": "Transit Gateway ไม่ได้บังคับให้ VPC ต้องใช้ IPv6 VPC ที่เป็น IPv4-only ก็ attach ได้ตามปกติ ส่วน IPv6 เป็นทางเลือกที่เปิดเพิ่มที่ attachment ได้ ดังนั้นการไม่ใช้ IPv6 จึงไม่ใช่สาเหตุที่ทำให้ attach ไม่ได้"
+      },
+      "D": {
+        "explanation": "ขั้นตอนสร้าง VPC attachment ต้องเลือกอย่างน้อย 1 subnet (หนึ่ง subnet ต่อ AZ ที่ต้องการ) ถ้าไม่เลือกจะสร้างไม่ได้ และกรณีข้ามบัญชีต้องให้เจ้าของแชร์ TGW ผ่าน AWS RAM ก่อน ซึ่งตรงกับคำว่า un-shared"
+      }
+    },
+    "review": {
+      "caveat": "เฉลยที่บันทึกไว้คือ D แต่ถ้อยคำข้อนี้กำกวม เพราะ B (ไม่มี IAM permissions) ก็เป็นสาเหตุที่ทำให้ attach ไม่ได้จริงเมื่อมองที่ผู้เรียก API ส่วน D ตรงกับเงื่อนไขที่เอกสารระบุชัด คือต้องเลือก subnet และต้องแชร์ TGW ข้ามบัญชีผ่าน AWS RAM จึงถือ D เป็นคำตอบที่คาดหวัง",
+      "reviewStatus": "ambiguous"
+    }
+  },
+  "sources": [
+    "https://docs.aws.amazon.com/vpc/latest/tgw/tgw-vpc-attachments.html",
+    "https://docs.aws.amazon.com/vpc/latest/tgw/tgw-transit-gateways.html"
+  ]
+}

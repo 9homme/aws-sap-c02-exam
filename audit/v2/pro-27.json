@@ -1,0 +1,60 @@
+{
+  "id": "pro-27",
+  "scope": "full",
+  "verdict": "FIX",
+  "originalCorrectIds": [
+    "B"
+  ],
+  "verifiedCorrectIds": [
+    "B"
+  ],
+  "issues": [
+    "options: ตัวลวงเดิมผิดอย่างชัดเจน (อ้างความสามารถที่บริการไม่มี) ทำให้ตอบได้จากการจำชื่อบริการ ไม่ใช่ระดับ SAP-C02 Professional; เขียนใหม่ให้แต่ละตัวลวงทำงานได้จริงบางส่วนแต่ตกเงื่อนไขหนึ่งข้อ",
+    "prompt: ลบประโยค boilerplate (architecture review board / workable for the stated environment)",
+    "review.reasoning: เดิมคัดลอก requirement ภาษาอังกฤษมาต่อกัน ไม่ได้อธิบายการตัดตัวเลือก"
+  ],
+  "changes": {
+    "prompt": "An online travel company runs a transactional PostgreSQL application in one AWS Region with a maximum tolerated outage of minutes after an Availability Zone failure. For a rare Region-wide event, the business accepts a controlled failover to a secondary Region with a higher recovery time but wants replicated data and a documented application endpoint cutover. The database must remain compatible with PostgreSQL clients; the operations team is small and does not want to orchestrate PostgreSQL streaming replication on EC2. Finance distinguishes automated backups for point-in-time recovery from a continuously ready cross-Region recovery path. The solution must meet all of the following requirements: (1) Achieve managed multi-AZ transactional availability for local infrastructure failures; (2) Provide a secondary Region recovery design with data replication and application endpoint cutover; (3) Maintain point-in-time backups independently from disaster-recovery replica promotion. Which solution meets these requirements with the LEAST operational overhead?",
+    "options": {
+      "A": {
+        "text": "Use Amazon RDS for PostgreSQL with a Multi-AZ deployment, keep automated backups for point-in-time recovery, and use AWS Backup to copy snapshots to the secondary Region every 12 hours for Regional recovery.",
+        "explanation": "ตกข้อ (2): Multi-AZ และ automated backups ตอบข้อ (1)(3) ได้ แต่ snapshot copy ทุก 12 ชั่วโมงไม่ใช่ data replication ที่พร้อมใช้ต่อเนื่อง RPO อาจเสียข้อมูลได้ถึงครึ่งวัน และต้อง restore ฐานข้อมูลก่อนจึงยังไม่มี secondary ที่พร้อมรับ cutover"
+      },
+      "B": {
+        "text": "Use Aurora PostgreSQL with Multi-AZ storage and Aurora Global Database for cross-Region read replication and planned promotion, with Route 53 application cutover and backup retention.",
+        "explanation": "ถูก: Aurora เก็บข้อมูลหลายชุดข้าม 3 AZ และเมื่อมี Aurora Replica ใน AZ อื่นจะ failover ได้ในระดับนาทีหรือเร็วกว่า Global Database replicate ไป secondary Region อย่างต่อเนื่องและรองรับ switchover/failover ที่ควบคุมได้ Route 53 หรือ global writer endpoint ใช้ทำ application cutover ส่วน automated backups ให้ point-in-time restore แยกจาก DR ซึ่งจำเป็นเพราะ replica จะ replicate การลบข้อมูลผิดพลาดไปด้วย"
+      },
+      "C": {
+        "text": "Use Aurora PostgreSQL with an Aurora Replica in a second Availability Zone and an Aurora global database secondary in another Region. Set the backup retention period to the minimum and recover from accidental data changes by promoting the secondary cluster.",
+        "explanation": "ตกข้อ (3): HA และ DR ข้าม Region ถูกต้อง แต่ secondary cluster ได้รับทุกการเปลี่ยนแปลงรวมถึงการลบหรือแก้ข้อมูลผิดพลาดภายในเวลาไม่ถึงวินาที การ promote จึงไม่ได้ย้อนข้อมูลกลับ point-in-time backups ต้องแยกจาก DR replica ตามที่ finance ระบุ"
+      },
+      "D": {
+        "text": "Run PostgreSQL on Amazon EC2 instances in three Availability Zones with Patroni for automatic failover, configure streaming replication to standby instances in the secondary Region, and take scheduled pg_basebackup backups to Amazon S3.",
+        "explanation": "ตกข้อ (1): ออกแบบได้ครบทั้ง HA, DR และ backup ในทางเทคนิค แต่ทีม operations ขนาดเล็กต้องดูแล streaming replication, failover tooling, patch และ backup เองบน EC2 ซึ่งโจทย์ระบุว่าไม่ต้องการ และไม่ใช่ managed multi-AZ availability"
+      }
+    },
+    "review": {
+      "decisiveClue": "HA ภายใน Region แบบ managed ระดับนาที, DR ข้าม Region ที่ replicate ข้อมูลและมี endpoint cutover, point-in-time backup แยกจาก DR, ทีมเล็กไม่ดูแล replication เอง",
+      "reasoning": "1) ข้อ (1) ต้องเป็น managed HA จึงตัด PostgreSQL บน EC2 (D) 2) ข้อ (2) ต้องมี replication ต่อเนื่องไป Region ที่สอง snapshot copy (A) ไม่พอ 3) ข้อ (3) DR replica ไม่ใช่ backup เพราะ replicate ความผิดพลาดไปด้วย ตัด C 4) B ใช้ Aurora (storage 3 AZ + replica) สำหรับ HA, Global Database สำหรับ DR, Route 53/global endpoint สำหรับ cutover และเก็บ automated backups แยก จึงครบทั้งสามข้อ",
+      "references": [
+        {
+          "title": "Using Amazon Aurora Global Database",
+          "url": "https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/aurora-global-database.html"
+        },
+        {
+          "title": "High availability for Amazon Aurora",
+          "url": "https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/Concepts.AuroraHighAvailability.html"
+        },
+        {
+          "title": "Backing up and restoring an Aurora DB cluster",
+          "url": "https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/BackupRestoreAurora.html"
+        }
+      ]
+    }
+  },
+  "sources": [
+    "https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/aurora-global-database.html",
+    "https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/Concepts.AuroraHighAvailability.html",
+    "https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/BackupRestoreAurora.html"
+  ]
+}

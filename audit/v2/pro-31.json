@@ -1,0 +1,60 @@
+{
+  "id": "pro-31",
+  "scope": "full",
+  "verdict": "FIX",
+  "originalCorrectIds": [
+    "B"
+  ],
+  "verifiedCorrectIds": [
+    "B"
+  ],
+  "issues": [
+    "options: ตัวลวงเดิมผิดอย่างชัดเจน (อ้างความสามารถที่บริการไม่มี) ทำให้ตอบได้จากการจำชื่อบริการ ไม่ใช่ระดับ SAP-C02 Professional; เขียนใหม่ให้แต่ละตัวลวงทำงานได้จริงบางส่วนแต่ตกเงื่อนไขหนึ่งข้อ",
+    "prompt: ลบประโยค boilerplate (architecture review board / workable for the stated environment)",
+    "review.reasoning: เดิมคัดลอก requirement ภาษาอังกฤษมาต่อกัน ไม่ได้อธิบายการตัดตัวเลือก"
+  ],
+  "changes": {
+    "prompt": "A logistics business receives thousands of immutable Parquet files into S3 each hour. Before reporting, its data science team must run customized Spark transformations containing third-party Java libraries and iterative graph algorithms. Another department needs interactive SQL warehouse queries against curated relational fact and dimension tables. The cloud team wants to avoid permanently running EC2 clusters between Spark campaigns, but it can use managed Spark capacity when jobs arrive. It also wants to preserve centralized catalog metadata so data engineering and analytics can discover the same curated datasets without repeating schema definitions. The solution must meet all of the following requirements: (1) Support custom Spark execution with third-party dependencies and elastic job capacity; (2) Retain an interactive data warehouse for repeated SQL joins and BI workloads; (3) Use cataloged S3 datasets for shared data discovery and staging. Which solution meets these requirements with the LEAST operational overhead?",
+    "options": {
+      "A": {
+        "text": "Run the custom Spark jobs on a long-running Amazon EMR cluster on EC2 that stays up between campaigns, use the AWS Glue Data Catalog as the metastore, and query curated tables in Amazon Redshift.",
+        "explanation": "ตกข้อ (1) ด้าน elastic capacity: EMR รองรับ Spark และ third-party libraries ได้ Glue Catalog และ Redshift ถูกต้อง แต่ cluster ที่เปิดค้างไว้ระหว่าง campaign คือสิ่งที่ทีมต้องการเลี่ยง ต้องจ่ายค่า EC2 ช่วงว่างและดูแล cluster เอง EMR Serverless หรือ cluster ชั่วคราวให้ capacity ตามงานได้ดีกว่า"
+      },
+      "B": {
+        "text": "Use Amazon EMR on an appropriate managed execution mode for custom Spark jobs, stage data in S3 and Glue Data Catalog, and query curated warehouse tables using Redshift.",
+        "explanation": "ถูก: EMR (เช่น EMR Serverless หรือ cluster ชั่วคราว) รัน Spark ที่มี Java libraries ภายนอกและ graph algorithms ได้ โดยจ่ายเฉพาะช่วงที่มีงาน Glue Data Catalog เก็บ schema ของ datasets ใน S3 ให้ EMR, Athena และ Redshift Spectrum ใช้ร่วมกัน ส่วน Redshift ให้ warehouse สำหรับ join ซ้ำ ๆ และ BI ที่ต้องการประสิทธิภาพคงที่"
+      },
+      "C": {
+        "text": "Run the Spark jobs on Amazon EMR Serverless with the AWS Glue Data Catalog as the metastore, and have the reporting department run all BI and join queries with Amazon Athena on the curated S3 data instead of using a data warehouse.",
+        "explanation": "ตกข้อ (2): EMR Serverless และ Glue Catalog ถูกต้อง แต่โจทย์ต้องการคง interactive data warehouse สำหรับ fact/dimension joins และ BI ซ้ำ ๆ Athena เหมาะกับ ad hoc query บน S3 แต่ประสิทธิภาพของ dashboard ที่ join หนักและใช้พร้อมกันจำนวนมากคาดเดาได้ยากกว่า Redshift"
+      },
+      "D": {
+        "text": "Run the Spark jobs on Amazon EMR Serverless with a separate Hive metastore defined in each job, and load the curated data into Amazon Redshift tables with COPY commands that define their own table schemas.",
+        "explanation": "ตกข้อ (3): compute และ warehouse เลือกได้ดี แต่การให้แต่ละงานนิยาม schema เองโดยไม่มี catalog กลาง ทำให้ data engineering และ analytics ค้นหา dataset เดียวกันไม่ได้และต้องนิยาม schema ซ้ำ ขัดกับข้อกำหนดให้ใช้ cataloged S3 datasets ร่วมกัน"
+      }
+    },
+    "review": {
+      "decisiveClue": "Spark แบบ custom ที่มี third-party libraries และ capacity ตามงาน, ต้องคง data warehouse สำหรับ BI, ใช้ catalog กลางสำหรับ datasets ใน S3",
+      "reasoning": "1) ข้อ (1) งาน Spark custom ต้องการ EMR ที่ไม่เปิดค้างระหว่าง campaign จึงตัด long-running cluster (A) 2) ข้อ (2) โจทย์ต้องการคง warehouse ตัด Athena-only (C) 3) ข้อ (3) ต้องมี Glue Data Catalog กลางให้ทุกเครื่องมือใช้ schema เดียวกัน ตัด D ที่นิยาม schema แยก 4) B แบ่งหน้าที่ EMR สำหรับ transform, S3 + Glue Catalog สำหรับ staging/discovery และ Redshift สำหรับ BI",
+      "references": [
+        {
+          "title": "What is Amazon EMR?",
+          "url": "https://docs.aws.amazon.com/emr/latest/ManagementGuide/emr-what-is-emr.html"
+        },
+        {
+          "title": "What is Amazon EMR Serverless?",
+          "url": "https://docs.aws.amazon.com/emr/latest/EMR-Serverless-UserGuide/emr-serverless.html"
+        },
+        {
+          "title": "Using the AWS Glue Data Catalog as the metastore for Spark",
+          "url": "https://docs.aws.amazon.com/emr/latest/ReleaseGuide/emr-spark-glue.html"
+        }
+      ]
+    }
+  },
+  "sources": [
+    "https://docs.aws.amazon.com/emr/latest/ManagementGuide/emr-what-is-emr.html",
+    "https://docs.aws.amazon.com/emr/latest/EMR-Serverless-UserGuide/emr-serverless.html",
+    "https://docs.aws.amazon.com/emr/latest/ReleaseGuide/emr-spark-glue.html"
+  ]
+}

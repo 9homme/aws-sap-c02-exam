@@ -1,0 +1,60 @@
+{
+  "id": "pro-11",
+  "scope": "full",
+  "verdict": "FIX",
+  "originalCorrectIds": [
+    "B"
+  ],
+  "verifiedCorrectIds": [
+    "B"
+  ],
+  "issues": [
+    "options: ตัวลวงเดิมผิดอย่างชัดเจน (อ้างความสามารถที่บริการไม่มี) ทำให้ตอบได้จากการจำชื่อบริการ ไม่ใช่ระดับ SAP-C02 Professional; เขียนใหม่ให้แต่ละตัวลวงทำงานได้จริงบางส่วนแต่ตกเงื่อนไขหนึ่งข้อ",
+    "prompt: ลบประโยค boilerplate (architecture review board / workable for the stated environment)",
+    "review.reasoning: เดิมคัดลอก requirement ภาษาอังกฤษมาต่อกัน ไม่ได้อธิบายการตัดตัวเลือก"
+  ],
+  "changes": {
+    "prompt": "A multinational retailer acquires companies several times each quarter and must create 300 new AWS accounts over the next year. Some accounts will host regulated payment workloads, while others host development workloads. Each acquisition currently creates accounts manually, and policies vary by region. Audit staff need organization-wide visibility of activity and resource configuration without asking individual product teams to create trail and configuration rules. Employees already authenticate to a central workforce identity provider and must have access assignments scoped by account and job function. The cloud center of excellence has only four engineers and must avoid running a custom account-vending web application or manually onboarding future accounts. The solution must meet all of the following requirements: (1) New and existing accounts should inherit centrally governed preventive and detective controls with an auditable enrollment process; (2) New accounts need approved organizational units and account baselines automatically; (3) Human sign-in should federate from the existing workforce identity provider with account-specific assignments. Which solution meets these requirements with the LEAST operational overhead?",
+    "options": {
+      "A": {
+        "text": "Use a scheduled script that calls the AWS Organizations CreateAccount API and moves each new account into the right OU. Deploy an organization CloudTrail trail and AWS Config rules to all accounts with service-managed CloudFormation StackSets, attach SCPs to the OUs, and federate IAM Identity Center with the workforce identity provider.",
+        "explanation": "ตกข้อ (2) และข้อจำกัดของทีม: StackSets, SCP และ Identity Center ทำงานได้จริง แต่การสร้างบัญชีและจัดเข้า OU ด้วย script เองคือ custom account vending ที่ทีม 4 คนต้องดูแล และไม่มี enrollment process ที่ตรวจสอบได้ว่าบัญชีได้ baseline ครบตามข้อ (1)"
+      },
+      "B": {
+        "text": "Deploy AWS Control Tower with an Organizations landing zone and Account Factory, enroll eligible existing accounts, configure its guardrails and organization logging, and integrate IAM Identity Center with the workforce identity source.",
+        "explanation": "ถูก: Control Tower ให้ landing zone, Account Factory สร้างบัญชีเข้า OU ที่อนุมัติพร้อม baseline และ enroll บัญชีเดิมได้ controls แบบ preventive/detective บังคับใช้ตาม OU และมี organization trail กับ Config ให้ audit ส่วน Identity Center เชื่อม IdP เดิมเพื่อมอบสิทธิ์ตามบัญชีและ job function ต้องตรวจว่าบัญชีเดิมพร้อม enroll เช่น ไม่มี Config recorder ที่ขัดกัน"
+      },
+      "C": {
+        "text": "Deploy AWS Control Tower with Account Factory and enroll existing accounts. Use Account Factory Customization to create IAM users with console passwords for each employee in every account that the employee needs.",
+        "explanation": "ตกข้อ (3): ข้อ (1) และ (2) ผ่านเพราะใช้ Control Tower แต่การสร้าง IAM user ต่อพนักงานในทุกบัญชีเป็นการสร้าง identity ซ้ำแทนการ federate จาก workforce IdP ทำให้มี credentials ถาวรจำนวนมาก และยากต่อการถอนสิทธิ์เมื่อพนักงานย้ายงานหรือลาออก"
+      },
+      "D": {
+        "text": "Deploy AWS Control Tower with Account Factory for all new accounts and integrate IAM Identity Center with the workforce identity provider. Leave the accounts from earlier acquisitions outside Control Tower and govern them with separately maintained SCPs and per-account trails.",
+        "explanation": "ตกข้อ (1): บัญชีใหม่ได้ governance ครบ แต่โจทย์กำหนดให้ทั้งบัญชีใหม่และบัญชีเดิมรับ controls ส่วนกลางผ่าน enrollment ที่ตรวจสอบได้ การปล่อยบัญชีจากการควบรวมเดิมไว้ข้างนอกทำให้ต้องดูแลสองมาตรฐานและ trail รายบัญชีที่ทีมโปรดักต์อาจปิดได้"
+      }
+    },
+    "review": {
+      "decisiveClue": "บัญชีใหม่ 300 บัญชีและบัญชีเดิม ต้องได้ controls + OU + baseline อัตโนมัติ, ห้ามทำ account-vending เอง, ผู้ใช้ federate จาก IdP เดิม",
+      "reasoning": "1) แยก 3 requirement: governance ทั้งบัญชีใหม่และเดิม, การสร้างบัญชีพร้อม baseline อัตโนมัติ และ workforce federation 2) ทีมมีแค่ 4 คนและห้ามทำ account vending เอง จึงตัด script + StackSets (A) แม้ชิ้นส่วนจะใช้ได้ 3) Control Tower ตอบข้อ (1)(2) ได้ แต่ต้อง enroll บัญชีเดิมด้วย ตัด D ที่ทิ้งบัญชีเดิมไว้ข้างนอก 4) human access ต้องมาจาก IdP เดิมผ่าน IAM Identity Center ไม่ใช่ IAM users (C) จึงเหลือ B ที่ครบทั้งสามข้อ",
+      "references": [
+        {
+          "title": "What is AWS Control Tower?",
+          "url": "https://docs.aws.amazon.com/controltower/latest/userguide/what-is-control-tower.html"
+        },
+        {
+          "title": "Enroll an existing AWS account in Control Tower",
+          "url": "https://docs.aws.amazon.com/controltower/latest/userguide/enroll-account.html"
+        },
+        {
+          "title": "IAM Identity Center external identity providers",
+          "url": "https://docs.aws.amazon.com/singlesignon/latest/userguide/manage-your-identity-source-idp.html"
+        }
+      ]
+    }
+  },
+  "sources": [
+    "https://docs.aws.amazon.com/controltower/latest/userguide/what-is-control-tower.html",
+    "https://docs.aws.amazon.com/controltower/latest/userguide/enroll-account.html",
+    "https://docs.aws.amazon.com/singlesignon/latest/userguide/manage-your-identity-source-idp.html"
+  ]
+}

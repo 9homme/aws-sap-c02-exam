@@ -1,0 +1,25 @@
+{
+  "id": "csv-22",
+  "scope": "explanations",
+  "verdict": "FIX",
+  "verifiedCorrectIds": [
+    "C"
+  ],
+  "issues": [
+    "options.A.explanation: ประโยคสุดท้ายอ่านไม่รู้เรื่อง ไม่บอกชัดว่า container เป็นส่วนย่อยใน task",
+    "options.C.explanation: ไม่บอกว่า ECS รัน/วางที่ระดับ task อย่างไร"
+  ],
+  "changes": {
+    "options": {
+      "A": {
+        "explanation": "Container ถูกนิยามอยู่ใน task definition และรันเป็นส่วนย่อยภายใน task ECS ไม่ได้สั่งรันหรือวาง container เดี่ยว ๆ แต่สั่งรันทั้ง task (RunTask/Service) ดังนั้น container จึงเล็กกว่าหน่วยที่ ECS จัดการ"
+      },
+      "C": {
+        "explanation": "Task คือ instance ที่รันจาก task definition บรรจุหนึ่งหรือหลาย containers ที่ทำงานร่วมกัน ECS scheduler วาง เริ่ม และหยุดงานที่ระดับ task จึงเป็นหน่วยพื้นฐานของการจัดการ อย่าสับสนกับ container instance ซึ่งคือเครื่อง EC2 ที่เป็น host"
+      }
+    }
+  },
+  "sources": [
+    "https://docs.aws.amazon.com/AmazonECS/latest/developerguide/welcome-features.html"
+  ]
+}

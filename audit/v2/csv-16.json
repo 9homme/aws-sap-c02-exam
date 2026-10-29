@@ -1,0 +1,21 @@
+{
+  "id": "csv-16",
+  "scope": "explanations",
+  "verdict": "FIX",
+  "verifiedCorrectIds": [
+    "B"
+  ],
+  "issues": [
+    "options.B.explanation: only lists limitations; never says why EKS on Fargate meets both 'Kubernetes compatibility' and 'no server management'."
+  ],
+  "changes": {
+    "options": {
+      "B": {
+        "explanation": "EKS on Fargate ให้ Kubernetes API เต็มรูปแบบ (EKS) โดย pod รันบน Fargate ที่ AWS จัดการ ไม่ต้องมี EC2 worker node ให้ patch/scale จึงตรงทั้งสองเงื่อนไข. ข้อจำกัด: ไม่รองรับ privileged containers และ DaemonSets"
+      }
+    }
+  },
+  "sources": [
+    "https://docs.aws.amazon.com/eks/latest/userguide/fargate.html"
+  ]
+}

@@ -1,0 +1,60 @@
+{
+  "id": "pro-43",
+  "scope": "full",
+  "verdict": "FIX",
+  "originalCorrectIds": [
+    "B"
+  ],
+  "verifiedCorrectIds": [
+    "B"
+  ],
+  "issues": [
+    "options: ตัวลวงเดิมผิดอย่างชัดเจน (อ้างความสามารถที่บริการไม่มี) ทำให้ตอบได้จากการจำชื่อบริการ ไม่ใช่ระดับ SAP-C02 Professional; เขียนใหม่ให้แต่ละตัวลวงทำงานได้จริงบางส่วนแต่ตกเงื่อนไขหนึ่งข้อ",
+    "prompt: ลบประโยค boilerplate (architecture review board / workable for the stated environment)",
+    "review.reasoning: เดิมคัดลอก requirement ภาษาอังกฤษมาต่อกัน ไม่ได้อธิบายการตัดตัวเลือก"
+  ],
+  "changes": {
+    "prompt": "A transaction platform has a predictable baseline compute load continuously running in AWS, but its demand increases sixfold during irregular promotional events. The baseline is spread across multiple EC2 instance families and an expanding use of Fargate, and engineers expect to change the mix next year. The promotion workers are stateless, retryable, and safe to interrupt, while the core transaction database must remain continuously available. Finance wants to lower costs without committing to capacity for the unpredictable peak and without tying every discount to a single immutable EC2 instance family. The architecture review must consider price commitments and availability as separate constraints. The solution must meet all of the following requirements: (1) Apply flexible compute spend discounts to stable baseline usage that may shift families/services; (2) Use interruptible capacity only for resilient surge jobs and keep critical components on suitable stable capacity; (3) Scale according to fluctuating demand instead of over-provisioning all peak capacity all year. Which solution meets these requirements with the LEAST operational overhead?",
+    "options": {
+      "A": {
+        "text": "Purchase 3-year EC2 Instance Savings Plans for the instance families that the baseline uses today, run the promotion workers on Spot Instances in an Auto Scaling group with mixed instance types, and keep the database on On-Demand capacity.",
+        "explanation": "ตกข้อ (1): Spot สำหรับ workers และการเก็บ database บน capacity ที่เสถียรถูกต้อง แต่ EC2 Instance Savings Plans ผูกกับ instance family ใน Region และไม่ครอบคลุม Fargate เมื่อเปลี่ยน mix ปีหน้าส่วนลดจะไม่ตามไป Compute Savings Plans ยืดหยุ่นกว่า"
+      },
+      "B": {
+        "text": "Buy appropriate Compute Savings Plans for the predictable commitment, run fault-tolerant burst workers on EC2 Spot with Auto Scaling capacity mix, and keep critical stateful workloads on reliable capacity.",
+        "explanation": "ถูก: Compute Savings Plans ให้ส่วนลดกับ EC2 ทุก family/Region รวมถึง Fargate และ Lambda จึงรองรับการเปลี่ยน mix Spot ลดต้นทุน workers ที่ stateless และ retry ได้ โดย Auto Scaling ปรับจำนวนตาม demand และกระจายหลาย instance types ส่วน database ที่ต้องพร้อมใช้ตลอดอยู่บน capacity ที่ไม่ถูกเรียกคืน commitment ควรเท่ากับ baseline ไม่ใช่ peak"
+      },
+      "C": {
+        "text": "Buy Compute Savings Plans for the baseline and move both the promotion workers and the transaction database to Spot Instances in Auto Scaling groups with capacity rebalancing to minimize cost.",
+        "explanation": "ตกข้อ (2): Compute Savings Plans ถูกต้อง แต่ database ที่ต้องพร้อมใช้ต่อเนื่องไม่ควรอยู่บน Spot ซึ่งอาจถูกเรียกคืนพร้อมแจ้งล่วงหน้าเพียง 2 นาที capacity rebalancing ช่วยลดผลกระทบแต่ไม่ได้รับประกันว่า instance จะไม่ถูกเรียกคืน"
+      },
+      "D": {
+        "text": "Buy Compute Savings Plans sized to the peak promotional usage and keep a fixed fleet of On-Demand Instances provisioned for peak demand throughout the year so that capacity is always available.",
+        "explanation": "ตกข้อ (3): การ commit และ provision ตาม peak ที่เกิดไม่สม่ำเสมอทำให้จ่ายค่า capacity ที่ว่างเกือบตลอดปี และ Savings Plans ส่วนที่เกิน baseline จะไม่ถูกใช้ ขัดกับการ scale ตาม demand และข้อห้าม commit กับ peak ที่คาดเดาไม่ได้"
+      }
+    },
+    "review": {
+      "decisiveClue": "baseline คงที่แต่จะเปลี่ยน family/Fargate, surge workers ทน interruption ได้, database ต้องพร้อมใช้ตลอด, ห้าม commit กับ peak",
+      "reasoning": "1) แยก price commitment ออกจาก availability: commitment ใช้กับ baseline เท่านั้น 2) ข้อ (1) baseline จะเปลี่ยน family และใช้ Fargate มากขึ้น ต้องใช้ Compute Savings Plans ไม่ใช่ EC2 Instance Savings Plans (A) 3) ข้อ (2) Spot ใช้ได้กับ workers ที่ทน interruption แต่ไม่ใช่ database (C) 4) ข้อ (3) ต้อง scale ตาม demand ไม่ใช่ provision ตาม peak ทั้งปี (D) B จึงครบทุกข้อ",
+      "references": [
+        {
+          "title": "What are Savings Plans?",
+          "url": "https://docs.aws.amazon.com/savingsplans/latest/userguide/what-is-savings-plans.html"
+        },
+        {
+          "title": "Savings Plans types",
+          "url": "https://docs.aws.amazon.com/savingsplans/latest/userguide/plan-types.html"
+        },
+        {
+          "title": "Auto Scaling groups with multiple instance types and purchase options",
+          "url": "https://docs.aws.amazon.com/autoscaling/ec2/userguide/ec2-auto-scaling-mixed-instances-groups.html"
+        }
+      ]
+    }
+  },
+  "sources": [
+    "https://docs.aws.amazon.com/savingsplans/latest/userguide/what-is-savings-plans.html",
+    "https://docs.aws.amazon.com/savingsplans/latest/userguide/plan-types.html",
+    "https://docs.aws.amazon.com/autoscaling/ec2/userguide/ec2-auto-scaling-mixed-instances-groups.html"
+  ]
+}

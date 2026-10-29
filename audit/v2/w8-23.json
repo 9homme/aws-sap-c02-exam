@@ -1,0 +1,26 @@
+{
+  "id": "w8-23",
+  "scope": "explanations",
+  "verdict": "FIX",
+  "verifiedCorrectIds": [
+    "B"
+  ],
+  "issues": [
+    "options.A.explanation: awkward and imprecise; a Principal cannot use a partial wildcard like user/*, and it would trust all users (violates 'no other user')",
+    "options.D.explanation: does not note that the ARN 'arn.aws.ec2::AccountA/*' is malformed"
+  ],
+  "changes": {
+    "options": {
+      "A": {
+        "explanation": "เปิด trust ให้ user ทุกคนในบัญชีเป็นการให้สิทธิ์กว้างเกิน ขัดกับ 'no other user in AccountB can assume' และ Principal ของ trust policy ใช้ wildcard บางส่วนอย่าง user/* ไม่ได้ ต้องระบุ ARN ของ user หรือ role แบบเจาะจง"
+      },
+      "D": {
+        "explanation": "สร้าง role ฝั่ง AccountB ไม่ทำให้ EC2Audit ใน AccountA trust Auditor เพราะ trust policy อยู่ที่ role ปลายทาง อีกทั้ง ARN 'arn.aws.ec2::AccountA/*' ไม่ใช่รูปแบบ ARN ที่ถูกต้อง จึงไม่แก้เหตุที่ assume role ไม่ได้"
+      }
+    }
+  },
+  "sources": [
+    "https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles_update-role-trust-policy.html",
+    "https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_policies_elements_principal.html"
+  ]
+}

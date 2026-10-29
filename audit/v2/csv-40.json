@@ -1,0 +1,24 @@
+{
+  "id": "csv-40",
+  "scope": "explanations",
+  "verdict": "FIX",
+  "verifiedCorrectIds": [
+    "A",
+    "C",
+    "D"
+  ],
+  "issues": [
+    "options.B.explanation: เดิมกำกวมว่าข้อความนี้ถูกหรือผิด ควรบอกชัดว่าเป็นข้อความที่ผิดเพราะ Advanced รวมค่า WAF/Firewall Manager ตามเงื่อนไข"
+  ],
+  "changes": {
+    "options": {
+      "B": {
+        "explanation": "ข้อความนี้ผิด: Shield Advanced รวมค่า AWS WAF (web ACL, rule, request) และค่า Firewall Manager policy ของ Shield Advanced สำหรับ resources ที่ป้องกันอยู่ จึงไม่ต้องจ่ายเพิ่มในส่วนนั้น. บางฟีเจอร์ เช่น Bot Control หรือค่า AWS Config อาจคิดเงินแยก แต่ไม่ทำให้ข้อความกว้างนี้ถูก."
+      }
+    }
+  },
+  "sources": [
+    "https://docs.aws.amazon.com/waf/latest/developerguide/ddos-advanced-summary.html",
+    "https://aws.amazon.com/shield/pricing/"
+  ]
+}

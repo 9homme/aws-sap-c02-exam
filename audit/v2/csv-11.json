@@ -1,0 +1,13 @@
+{
+  "id": "csv-11",
+  "scope": "explanations",
+  "verdict": "PASS",
+  "verifiedCorrectIds": [
+    "D"
+  ],
+  "issues": [],
+  "changes": {},
+  "sources": [
+    "https://docs.aws.amazon.com/controltower/latest/userguide/account-factory.html"
+  ]
+}

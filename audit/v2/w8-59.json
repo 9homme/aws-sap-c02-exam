@@ -1,0 +1,27 @@
+{
+  "id": "w8-59",
+  "scope": "explanations",
+  "verdict": "FIX",
+  "verifiedCorrectIds": [
+    "B"
+  ],
+  "issues": [
+    "options.B.explanation: สื่อว่า dynamic policy เป็นตัวรักษา/ทดแทน instance ที่ถูกหยุด ซึ่งจริง ๆ เป็นหน้าที่ของ ASG health check และ min/desired capacity ไม่ใช่ scaling policy",
+    "review.reasoning: ประโยคเรียบเรียงสับสน ('แทน CPU ... และ scheduled/predictive plans สำหรับยอดที่คาดไม่ได้') และ 'min capacity มากกว่าศูนย์' ไม่รับประกัน baseline 2 instances ใน 2 AZ"
+  ],
+  "changes": {
+    "options": {
+      "B": {
+        "explanation": "Target tracking บน ALBRequestCountPerTarget ขยาย/ลดจำนวน instances ตามคำขอจริงต่อ target จึงรับ peak ที่คาดเดาไม่ได้ในขณะที่ CPU ไม่สัมพันธ์ ส่วนการแทน instance ที่ถูกหยุดต้องอาศัย ASG health check กับ min/desired capacity ที่ผูก ALB target group"
+      }
+    },
+    "review": {
+      "reasoning": "ปัญหามี 2 ส่วน คือ peak คาดเดาไม่ได้ และ CPU ไม่สัมพันธ์กับความช้า จึงตัด scheduled (ต้องรู้เวลา) predictive (ต้องมี pattern ซ้ำ) และ target tracking บน CPU ออก เลือก B คือ target tracking บน ALBRequestCountPerTarget ซึ่งสะท้อนโหลดจริง ส่วนปัญหา instance ถูกหยุดแก้ด้วย ASG ที่ตั้ง Min=2 ใน 2 AZ และผูก ALB target group เพื่อให้ ASG แทนเครื่องที่ไม่ healthy"
+    }
+  },
+  "sources": [
+    "https://docs.aws.amazon.com/autoscaling/ec2/userguide/as-scaling-target-tracking.html",
+    "https://docs.aws.amazon.com/autoscaling/ec2/userguide/health-checks-overview.html",
+    "https://docs.aws.amazon.com/elasticloadbalancing/latest/application/load-balancer-cloudwatch-metrics.html"
+  ]
+}

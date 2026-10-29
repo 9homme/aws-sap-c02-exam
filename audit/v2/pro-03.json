@@ -1,0 +1,21 @@
+{
+  "id": "pro-03",
+  "scope": "full",
+  "verdict": "PASS",
+  "originalCorrectIds": [
+    "A",
+    "C",
+    "E"
+  ],
+  "verifiedCorrectIds": [
+    "A",
+    "C",
+    "E"
+  ],
+  "issues": [],
+  "changes": {},
+  "sources": [
+    "https://docs.aws.amazon.com/Route53/latest/DeveloperGuide/resolver.html",
+    "https://docs.aws.amazon.com/Route53/latest/DeveloperGuide/resolver-choose-vpc.html"
+  ]
+}

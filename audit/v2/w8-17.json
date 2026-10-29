@@ -1,0 +1,26 @@
+{
+  "id": "w8-17",
+  "scope": "explanations",
+  "verdict": "FIX",
+  "verifiedCorrectIds": [
+    "A"
+  ],
+  "issues": [
+    "options.A.explanation: recommends legacy 'launch configuration'; AWS recommends launch templates (launch configurations unavailable to new accounts)",
+    "options.D.explanation: vague; does not state why Beanstalk does not fit a customized-OS legacy C++ estate"
+  ],
+  "changes": {
+    "options": {
+      "A": {
+        "explanation": "MGN ทำ lift-and-shift ย้าย server พร้อม OS และค่า fine-tune เดิมขึ้นเป็น EC2 โดยไม่ต้องแก้โค้ดหรือ repackage จึงใช้ effort น้อยสุด จากนั้นสร้าง launch template + Auto Scaling group หลาย AZ เพื่อ HA/scale โดยต้องตรวจ OS ที่ MGN รองรับ และ dependency/state ของแอปด้วย"
+      },
+      "D": {
+        "explanation": "Elastic Beanstalk เป็น PaaS ที่จัดการ platform/OS ให้เอง ไม่มี platform C++ โดยตรง ต้องห่อโค้ดเป็น bundle หรือ Docker แล้ว refactor deployment และควบคุม OS ที่ fine-tune ไว้ไม่ได้เหมือนเดิม จึงเสีย effort มากกว่า rehost ด้วย MGN"
+      }
+    }
+  },
+  "sources": [
+    "https://docs.aws.amazon.com/mgn/latest/ug/what-is-mgn.html",
+    "https://docs.aws.amazon.com/autoscaling/ec2/userguide/create-launch-template.html"
+  ]
+}

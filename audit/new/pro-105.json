@@ -1,0 +1,83 @@
+{
+  "id": "pro-105",
+  "sourceCategory": "professional",
+  "sourceLabel": "AI-authored · Professional multi-requirement",
+  "sourceDetail": "Original multi-constraint scenario — ส่วนลดสำหรับ database ที่คงที่ 3 ปี",
+  "coreEligible": true,
+  "emerging": false,
+  "domain": "3",
+  "task": "Continuous improvement",
+  "topic": "ส่วนลดสำหรับ database ที่คงที่ 3 ปี",
+  "type": "multiple-choice",
+  "selectCount": 1,
+  "prompt": "A payroll software company runs its production platform on Amazon RDS for PostgreSQL and Amazon ElastiCache. The production database uses two db.r6g.4xlarge Multi-AZ DB instances, and the cache uses six cache.r6g.xlarge nodes, all in one AWS Region. The workloads run 24 hours a day, and the capacity has not changed in 2 years. The engineering roadmap for the next 3 years does not include any change to the database engine, instance family, instance size, or Region, and the company plans to stay on these services. Cost Explorer shows that the databases and caches are billed entirely at On-Demand rates. The CFO has approved paying upfront for long-term commitments if they deliver the deepest discount, and the finance team will review purchase recommendations in Cost Explorer before buying. The company's EC2 and Fargate workloads are already covered by a separate Compute Savings Plan. Both services run in a single AWS account that owns the production resources. The company also has a small staging environment that changes instance types frequently and will remain On-Demand. Which solution will meet these requirements MOST cost-effectively?",
+  "options": [
+    {
+      "id": "A",
+      "text": "Purchase a 3-year Database Savings Plan with an hourly commitment that covers the steady RDS and ElastiCache usage, so that the discount continues to apply if the company later changes the engine, instance family, or Region. Review the Savings Plans utilization report in Cost Explorer every month.",
+      "explanation": "ใช้ได้แต่ส่วนลดไม่สูงสุด: Database Savings Plans ให้ความยืดหยุ่นข้าม engine, family และ Region แต่ส่วนลดสูงสุดต่ำกว่า Reserved Instances ระยะ 3 ปีแบบจ่ายล่วงหน้า บริษัทยืนยันว่าจะไม่เปลี่ยนสิ่งเหล่านี้ จึงไม่ได้ใช้ความยืดหยุ่นที่ต้องแลกด้วยส่วนลดที่น้อยกว่า"
+    },
+    {
+      "id": "B",
+      "text": "Purchase 3-year All Upfront Reserved DB Instances for the two db.r6g.4xlarge Multi-AZ PostgreSQL instances and 3-year All Upfront reserved nodes for the six cache.r6g.xlarge ElastiCache nodes, using the Cost Explorer reservation recommendations to confirm the quantities.",
+      "explanation": "ถูก: Reserved DB Instances และ ElastiCache reserved nodes ระยะ 3 ปีแบบ All Upfront ให้ส่วนลดลึกที่สุดสำหรับ engine, family, size และ Region ที่คงที่ ซึ่งตรงกับ roadmap ที่ไม่เปลี่ยนแปลง การซื้อแบบ Multi-AZ ให้ตรงกับ deployment จริงและใช้ recommendations ใน Cost Explorer ยืนยันจำนวน ทำให้ utilization ของ reservation สูง"
+    },
+    {
+      "id": "C",
+      "text": "Increase the existing Compute Savings Plan commitment by the amount of the current RDS and ElastiCache On-Demand spend so that the additional commitment covers the database and cache usage. Review the Savings Plans coverage report in Cost Explorer to confirm the commitment level.",
+      "explanation": "ไม่ผ่าน: Compute Savings Plans ครอบคลุม EC2, Fargate และ Lambda เท่านั้น ไม่ได้ลดราคา RDS หรือ ElastiCache การเพิ่ม commitment จึงทำให้จ่ายเพิ่มโดยไม่มีส่วนลดให้ database และ cache เลย"
+    },
+    {
+      "id": "D",
+      "text": "Keep the RDS and ElastiCache resources On-Demand, stop the RDS instances every night and on weekends with an AWS Lambda function, and reduce the ElastiCache cluster to two nodes outside business hours. Use Cost Explorer to track the savings from the schedule each month.",
+      "explanation": "ไม่ผ่าน: workload รันตลอด 24 ชั่วโมงจึงหยุด production database ไม่ได้ และการลด cache nodes นอกเวลางานเสี่ยงต่อ performance และ availability อีกทั้งยังจ่ายราคา On-Demand ที่สูงกว่า reservation มาก"
+    }
+  ],
+  "correctIds": [
+    "B"
+  ],
+  "rationale": "1) Compute Savings Plans (C) ไม่ครอบคลุม RDS/ElastiCache 2) workload 24/7 หยุดไม่ได้ ตัด D 3) ระหว่าง Database Savings Plans (A) กับ Reserved Instances (B): Savings Plans ยืดหยุ่นกว่าแต่ส่วนลดน้อยกว่า เมื่อ footprint คงที่ทุกมิติ RIs ระยะ 3 ปี All Upfront ให้ส่วนลดลึกที่สุด 4) B จึงคุ้มค่าที่สุด",
+  "wrongAnswerHelp": "Start with the explicit business constraint, then eliminate choices that solve a different layer of the architecture or add unnecessary operational work.",
+  "references": [
+    "https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/USER_WorkingWithReservedDBInstances.html",
+    "https://docs.aws.amazon.com/AmazonElastiCache/latest/dg/CacheNodes.Reserved.html",
+    "https://docs.aws.amazon.com/savingsplans/latest/userguide/plan-types.html"
+  ],
+  "products": [
+    "Reserved Instances",
+    "Savings Plans",
+    "RDS",
+    "ElastiCache",
+    "Cost Explorer"
+  ],
+  "requirements": [
+    "Fixed RDS and ElastiCache footprint for 3 years",
+    "No engine or size change planned",
+    "Maximum discount"
+  ],
+  "review": {
+    "decisiveClue": "RDS และ ElastiCache คงที่ 3 ปีโดยไม่เปลี่ยน engine/family/size/Region, รัน 24/7, ยอมจ่ายล่วงหน้าเพื่อส่วนลดสูงสุด",
+    "reasoning": "1) Compute Savings Plans (C) ไม่ครอบคลุม RDS/ElastiCache 2) workload 24/7 หยุดไม่ได้ ตัด D 3) ระหว่าง Database Savings Plans (A) กับ Reserved Instances (B): Savings Plans ยืดหยุ่นกว่าแต่ส่วนลดน้อยกว่า เมื่อ footprint คงที่ทุกมิติ RIs ระยะ 3 ปี All Upfront ให้ส่วนลดลึกที่สุด 4) B จึงคุ้มค่าที่สุด",
+    "options": {
+      "A": "ใช้ได้แต่ส่วนลดไม่สูงสุด: Database Savings Plans ให้ความยืดหยุ่นข้าม engine, family และ Region แต่ส่วนลดสูงสุดต่ำกว่า Reserved Instances ระยะ 3 ปีแบบจ่ายล่วงหน้า บริษัทยืนยันว่าจะไม่เปลี่ยนสิ่งเหล่านี้ จึงไม่ได้ใช้ความยืดหยุ่นที่ต้องแลกด้วยส่วนลดที่น้อยกว่า",
+      "B": "ถูก: Reserved DB Instances และ ElastiCache reserved nodes ระยะ 3 ปีแบบ All Upfront ให้ส่วนลดลึกที่สุดสำหรับ engine, family, size และ Region ที่คงที่ ซึ่งตรงกับ roadmap ที่ไม่เปลี่ยนแปลง การซื้อแบบ Multi-AZ ให้ตรงกับ deployment จริงและใช้ recommendations ใน Cost Explorer ยืนยันจำนวน ทำให้ utilization ของ reservation สูง",
+      "C": "ไม่ผ่าน: Compute Savings Plans ครอบคลุม EC2, Fargate และ Lambda เท่านั้น ไม่ได้ลดราคา RDS หรือ ElastiCache การเพิ่ม commitment จึงทำให้จ่ายเพิ่มโดยไม่มีส่วนลดให้ database และ cache เลย",
+      "D": "ไม่ผ่าน: workload รันตลอด 24 ชั่วโมงจึงหยุด production database ไม่ได้ และการลด cache nodes นอกเวลางานเสี่ยงต่อ performance และ availability อีกทั้งยังจ่ายราคา On-Demand ที่สูงกว่า reservation มาก"
+    },
+    "references": [
+      {
+        "title": "Reserved DB instances for Amazon RDS",
+        "url": "https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/USER_WorkingWithReservedDBInstances.html"
+      },
+      {
+        "title": "ElastiCache reserved nodes",
+        "url": "https://docs.aws.amazon.com/AmazonElastiCache/latest/dg/CacheNodes.Reserved.html"
+      },
+      {
+        "title": "Savings Plans types",
+        "url": "https://docs.aws.amazon.com/savingsplans/latest/userguide/plan-types.html"
+      }
+    ],
+    "reviewedAt": "2026-10-29"
+  }
+}

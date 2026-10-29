@@ -1,0 +1,26 @@
+{
+  "id": "w8-61",
+  "scope": "explanations",
+  "verdict": "FIX",
+  "verifiedCorrectIds": [
+    "A"
+  ],
+  "issues": [
+    "options.A.explanation: ไม่ชัดว่า S3+CloudFront แก้ปัญหา load/latency อย่างไร และ Lambda@Edge ทำอะไรกับ User-Agent",
+    "options.B.explanation: อธิบายเรื่อง forward header ซึ่งไม่ตรงกับตัวเลือก (ตัวเลือกไม่มี code ที่เลือกไฟล์ตามอุปกรณ์)"
+  ],
+  "changes": {
+    "options": {
+      "A": {
+        "explanation": "ย้าย static content ไป S3 แล้วให้ CloudFront cache ที่ edge ทั่วโลก จึงลดโหลดบน EC2/ALB และลด latency ของผู้ใช้ต่างประเทศ ส่วน Lambda@Edge (เช่น viewer/origin request) อ่าน User-Agent แล้ว rewrite path ไปยังไฟล์ที่เหมาะกับอุปกรณ์แต่ละชนิดได้ ตอบทั้งเรื่องประสิทธิภาพและ resource ที่ต่างกันตามอุปกรณ์"
+      },
+      "B": {
+        "explanation": "ย้ายไป S3 + CloudFront ถูกทิศทางและช่วยลดโหลด EC2 แต่ S3 กับ CloudFront เองไม่มี logic เลือกไฟล์ตาม User-Agent ตัวเลือกนี้ไม่มี code (เช่น Lambda@Edge) มาเปลี่ยน path จึงยังส่งไฟล์ชุดเดียวกันให้ทุกอุปกรณ์ ไม่ตอบ requirement เรื่องโหลด resource ต่างกันตามชนิดอุปกรณ์"
+      }
+    }
+  },
+  "sources": [
+    "https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/lambda-edge-ways-to-use.html",
+    "https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/lambda-examples.html"
+  ]
+}

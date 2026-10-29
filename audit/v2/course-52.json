@@ -1,0 +1,13 @@
+{
+  "id": "course-52",
+  "scope": "explanations",
+  "verdict": "PASS",
+  "verifiedCorrectIds": [
+    "D"
+  ],
+  "issues": [],
+  "changes": {},
+  "sources": [
+    "https://docs.aws.amazon.com/m2/latest/userguide/modernization-m2.html"
+  ]
+}

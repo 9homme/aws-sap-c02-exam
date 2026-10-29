@@ -1,0 +1,81 @@
+{
+  "id": "pro-74",
+  "sourceCategory": "professional",
+  "sourceLabel": "AI-authored · Professional multi-requirement",
+  "sourceDetail": "Original multi-constraint scenario — DNS ทิศทางเดียวจาก on premises เข้า AWS",
+  "coreEligible": true,
+  "emerging": false,
+  "domain": "1",
+  "task": "Organizational complexity",
+  "topic": "DNS ทิศทางเดียวจาก on premises เข้า AWS",
+  "type": "multiple-choice",
+  "selectCount": 1,
+  "prompt": "A manufacturing company has migrated its inventory APIs into a shared-services VPC in its networking account. The APIs are published with names in a Route 53 private hosted zone named api.aws.example.internal. Factory systems in two on-premises data centers must resolve these names by using the company's existing on-premises DNS servers. The AWS workloads do not need to resolve any on-premises names because all their dependencies already run in AWS, and the architecture team confirms that this will not change for at least 2 years. The data centers connect to the shared-services VPC through redundant AWS Direct Connect connections and a transit gateway. Security policy requires that the API records never be published in public DNS. The DNS design must remain available if one Availability Zone fails. The network team has a strict monthly budget for hybrid DNS and has asked for the design that has the lowest ongoing cost while meeting these requirements. The on-premises DNS servers support conditional forwarding to multiple target IP addresses. Which solution will meet these requirements MOST cost-effectively?",
+  "options": [
+    {
+      "id": "A",
+      "text": "Create Route 53 Resolver inbound and outbound endpoints in the shared-services VPC with IP addresses in two Availability Zones each, add a forwarding rule for the on-premises domain for future use, and configure conditional forwarders on premises that point to the inbound endpoint IP addresses.",
+      "explanation": "ทำงานได้แต่มีค่าใช้จ่ายเกิน: inbound endpoint ตอบโจทย์แล้ว ส่วน outbound endpoint และ forwarding rule เป็นทิศทาง AWS → on premises ที่โจทย์ยืนยันว่าไม่ต้องใช้อย่างน้อย 2 ปี endpoint คิดค่าบริการต่อ ENI ต่อชั่วโมง จึงจ่ายเพิ่มโดยไม่ได้ประโยชน์"
+    },
+    {
+      "id": "B",
+      "text": "Create a Route 53 Resolver inbound endpoint in every VPC that hosts an API, associate each private hosted zone with its own VPC only, and configure the on-premises DNS servers with a separate conditional forwarder for each VPC's inbound endpoint. Place the endpoint IP addresses in two Availability Zones in every VPC.",
+      "explanation": "ทำงานได้แต่แพงที่สุด: แต่ละ endpoint ต้องมีอย่างน้อย 2 ENI ที่คิดเงินรายชั่วโมง การวาง endpoint ทุก VPC คูณค่าใช้จ่ายตามจำนวน VPC และเพิ่ม forwarder ที่ต้องดูแล ทั้งที่ APIs อยู่ใน shared-services VPC ที่ endpoint ชุดเดียวก็ resolve ได้"
+    },
+    {
+      "id": "C",
+      "text": "Create one Route 53 Resolver inbound endpoint in the shared-services VPC with IP addresses in two Availability Zones, confirm that the private hosted zone is associated with that VPC, and configure the on-premises DNS servers to conditionally forward api.aws.example.internal to both inbound endpoint IP addresses over Direct Connect.",
+      "explanation": "ถูก: ทิศทางเดียวคือ on premises → AWS จึงต้องการเพียง inbound endpoint ชุดเดียว Resolver ตอบได้เพราะ private hosted zone ผูกกับ VPC ของ endpoint การมี IP สอง AZ ทำให้ทนต่อการเสีย AZ และ forwarder ฝั่ง on premises ใช้ทั้งสอง IP ผ่าน Direct Connect เดิม record ไม่ถูกเผยแพร่สู่ public DNS และไม่มี outbound endpoint ที่ไม่จำเป็น"
+    },
+    {
+      "id": "D",
+      "text": "Create a Route 53 public hosted zone named api.aws.example.internal that contains the private IP addresses of the APIs, and configure the on-premises DNS servers to resolve the names through their normal internet recursion. Keep the private hosted zone for the VPC workloads and update both zones together whenever an API record changes.",
+      "explanation": "ราคาต่ำมากแต่ไม่ผ่าน policy: public hosted zone เผยแพร่ชื่อและ private IP ของระบบภายในให้ใครก็ query ได้ ซึ่ง security ห้ามโดยตรง แม้ IP จะเข้าถึงไม่ได้จาก internet ก็ตาม"
+    }
+  ],
+  "correctIds": [
+    "C"
+  ],
+  "rationale": "1) ระบุทิศทาง query ก่อน: มีแค่ on premises → AWS จึงต้องการ inbound endpoint เท่านั้น 2) ห้ามใช้ public DNS ตัด D 3) จำนวน endpoint กำหนดต้นทุน: endpoint คิดเงินต่อ ENI ต่อชั่วโมง การเพิ่ม outbound ที่ไม่ใช้ (A) หรือวางทุก VPC (B) จึงแพงเกินจำเป็น 4) inbound endpoint ชุดเดียวที่ hub พร้อม IP สอง AZ คุ้มค่าที่สุด C",
+  "wrongAnswerHelp": "Start with the explicit business constraint, then eliminate choices that solve a different layer of the architecture or add unnecessary operational work.",
+  "references": [
+    "https://docs.aws.amazon.com/Route53/latest/DeveloperGuide/resolver-forwarding-inbound-queries.html",
+    "https://docs.aws.amazon.com/Route53/latest/DeveloperGuide/resolver.html",
+    "https://aws.amazon.com/route53/pricing/"
+  ],
+  "products": [
+    "Route 53 Resolver",
+    "Route 53",
+    "Direct Connect"
+  ],
+  "requirements": [
+    "On-prem servers resolve AWS private hosted zones",
+    "No AWS workload needs on-prem names",
+    "Records must stay private"
+  ],
+  "review": {
+    "decisiveClue": "เฉพาะ on premises → AWS, AWS ไม่ต้อง resolve ชื่อ on premises อย่างน้อย 2 ปี, ห้าม public DNS, ทนต่อการเสีย AZ, ต้นทุนต่ำสุด",
+    "reasoning": "1) ระบุทิศทาง query ก่อน: มีแค่ on premises → AWS จึงต้องการ inbound endpoint เท่านั้น 2) ห้ามใช้ public DNS ตัด D 3) จำนวน endpoint กำหนดต้นทุน: endpoint คิดเงินต่อ ENI ต่อชั่วโมง การเพิ่ม outbound ที่ไม่ใช้ (A) หรือวางทุก VPC (B) จึงแพงเกินจำเป็น 4) inbound endpoint ชุดเดียวที่ hub พร้อม IP สอง AZ คุ้มค่าที่สุด C",
+    "options": {
+      "A": "ทำงานได้แต่มีค่าใช้จ่ายเกิน: inbound endpoint ตอบโจทย์แล้ว ส่วน outbound endpoint และ forwarding rule เป็นทิศทาง AWS → on premises ที่โจทย์ยืนยันว่าไม่ต้องใช้อย่างน้อย 2 ปี endpoint คิดค่าบริการต่อ ENI ต่อชั่วโมง จึงจ่ายเพิ่มโดยไม่ได้ประโยชน์",
+      "B": "ทำงานได้แต่แพงที่สุด: แต่ละ endpoint ต้องมีอย่างน้อย 2 ENI ที่คิดเงินรายชั่วโมง การวาง endpoint ทุก VPC คูณค่าใช้จ่ายตามจำนวน VPC และเพิ่ม forwarder ที่ต้องดูแล ทั้งที่ APIs อยู่ใน shared-services VPC ที่ endpoint ชุดเดียวก็ resolve ได้",
+      "C": "ถูก: ทิศทางเดียวคือ on premises → AWS จึงต้องการเพียง inbound endpoint ชุดเดียว Resolver ตอบได้เพราะ private hosted zone ผูกกับ VPC ของ endpoint การมี IP สอง AZ ทำให้ทนต่อการเสีย AZ และ forwarder ฝั่ง on premises ใช้ทั้งสอง IP ผ่าน Direct Connect เดิม record ไม่ถูกเผยแพร่สู่ public DNS และไม่มี outbound endpoint ที่ไม่จำเป็น",
+      "D": "ราคาต่ำมากแต่ไม่ผ่าน policy: public hosted zone เผยแพร่ชื่อและ private IP ของระบบภายในให้ใครก็ query ได้ ซึ่ง security ห้ามโดยตรง แม้ IP จะเข้าถึงไม่ได้จาก internet ก็ตาม"
+    },
+    "references": [
+      {
+        "title": "Forwarding inbound DNS queries to your VPCs",
+        "url": "https://docs.aws.amazon.com/Route53/latest/DeveloperGuide/resolver-forwarding-inbound-queries.html"
+      },
+      {
+        "title": "What is Route 53 VPC Resolver?",
+        "url": "https://docs.aws.amazon.com/Route53/latest/DeveloperGuide/resolver.html"
+      },
+      {
+        "title": "Route 53 pricing",
+        "url": "https://aws.amazon.com/route53/pricing/"
+      }
+    ],
+    "reviewedAt": "2026-10-29"
+  }
+}

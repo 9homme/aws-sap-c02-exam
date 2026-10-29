@@ -1,0 +1,81 @@
+{
+  "id": "pro-68",
+  "sourceCategory": "professional",
+  "sourceLabel": "AI-authored · Professional multi-requirement",
+  "sourceDetail": "Original multi-constraint scenario — failover ของ hybrid network ให้เร็วระดับวินาที",
+  "coreEligible": true,
+  "emerging": false,
+  "domain": "3",
+  "task": "Continuous improvement",
+  "topic": "failover ของ hybrid network ให้เร็วระดับวินาที",
+  "type": "multiple-choice",
+  "selectCount": 1,
+  "prompt": "A trading company connects its data center to AWS with two 10 Gbps AWS Direct Connect connections that terminate on two devices at the same Direct Connect location. Each connection has a private virtual interface to a Direct Connect gateway that is associated with the virtual private gateways of the production VPCs. Last month, a power event at the Direct Connect location took both connections down, and traffic took about 4 minutes to fail over to a Site-to-Site VPN connection over the internet because BGP waited for the default hold timer to expire. Trading applications cannot tolerate more than a few seconds of interruption. The security team requires that any backup path that uses the internet be encrypted. The network team also wants alarms when a Direct Connect connection changes state so that they can open a case with the provider immediately. The company is willing to pay for additional circuits and cross-connects, wants to reuse the existing Direct Connect gateway and VPC associations, and can make changes only during weekend maintenance windows. Which solution will MINIMIZE downtime during future connectivity failures?",
+  "options": [
+    {
+      "id": "A",
+      "text": "Order a new Direct Connect connection at a second Direct Connect location, create private virtual interfaces on it to the same Direct Connect gateway, enable Bidirectional Forwarding Detection (BFD) on the on-premises routers for all BGP sessions, keep the Site-to-Site VPN connection as an encrypted last-resort path, and create Amazon CloudWatch alarms on the ConnectionState metric.",
+      "explanation": "ถูก: location ที่สองป้องกันเหตุแบบเดียวกับที่เกิดขึ้น BFD ตรวจพบ link ล้มในระดับต่ำกว่าวินาทีแทนการรอ BGP hold timer (ค่าเริ่มต้น 90 วินาที) จึงสลับไปอีกเส้นได้เร็ว VPN ยังเป็นทางสำรองสุดท้ายที่เข้ารหัส และ alarm บน ConnectionState แจ้งทีมทันทีที่วงจรเปลี่ยนสถานะ"
+    },
+    {
+      "id": "B",
+      "text": "Add two more 10 Gbps ports at the same Direct Connect location, bundle all four ports into a link aggregation group (LAG) with a minimum-links setting, and keep the Site-to-Site VPN connection as the backup path. Create Amazon CloudWatch alarms on the ConnectionState metric of each port so that the team is notified of failures.",
+      "explanation": "ไม่ผ่าน: LAG ต้องอยู่บน device เดียวกันใน location เดียวกัน จึงยังล้มทั้งหมดเมื่อ location มีปัญหาแบบเดิม และการสลับไป VPN ยังติด BGP hold timer เหมือนเดิม การเพิ่มพอร์ตแก้ bandwidth ไม่ใช่ความทนทานระดับ location"
+    },
+    {
+      "id": "C",
+      "text": "Order a new Direct Connect connection at a second Direct Connect location, create private virtual interfaces on it, and configure static routes on the Site-to-Site VPN connection so that the virtual private gateways always prefer the VPN path if Direct Connect is unavailable.",
+      "explanation": "ไม่ผ่านด้าน downtime: location ที่สองช่วยได้ แต่ยังใช้ BGP timers ค่าเริ่มต้นจึงตรวจพบการล้มช้า และ virtual private gateway เลือก Direct Connect ก่อน VPN สำหรับ prefix เดียวกันอยู่แล้ว static route บน VPN ไม่ได้เร่ง failover อีกทั้งไม่มี alarm ให้ทีม"
+    },
+    {
+      "id": "D",
+      "text": "Create Amazon Route 53 health checks that monitor an endpoint in the data center, and configure failover records so that applications switch to a disaster recovery copy of the trading system in AWS when the health check fails. Lower the record TTL to 60 seconds and create CloudWatch alarms on the health check status so that the operations team is notified. Validate the change in a staging environment before production.",
+      "explanation": "ไม่ผ่าน: เป็นการ failover ระดับ application ผ่าน DNS ซึ่งขึ้นกับ health check interval และ TTL ใช้เวลาระดับนาที และต้องมีระบบ trading ชุดที่สอง ไม่ได้แก้ปัญหาเส้นทาง network ที่ล้ม"
+    }
+  ],
+  "correctIds": [
+    "A"
+  ],
+  "rationale": "1) หาสาเหตุสองข้อ: ทั้งสองเส้นอยู่ location เดียว และการตรวจพบช้าเพราะใช้ BGP hold timer 2) LAG (B) ไม่แก้ location และ DNS failover (D) เป็นคนละชั้นและช้าระดับนาที 3) C แก้ location แต่ยังตรวจพบช้า 4) A แก้ทั้งสองสาเหตุด้วย location ที่สองและ BFD คง VPN ที่เข้ารหัสเป็นทางสุดท้าย และเพิ่ม CloudWatch alarm",
+  "wrongAnswerHelp": "Start with the explicit business constraint, then eliminate choices that solve a different layer of the architecture or add unnecessary operational work.",
+  "references": [
+    "https://docs.aws.amazon.com/directconnect/latest/UserGuide/resiliency_toolkit.html",
+    "https://docs.aws.amazon.com/directconnect/latest/UserGuide/routing-and-bgp.html",
+    "https://docs.aws.amazon.com/directconnect/latest/UserGuide/monitoring-cloudwatch.html"
+  ],
+  "products": [
+    "Direct Connect",
+    "Site-to-Site VPN",
+    "CloudWatch"
+  ],
+  "requirements": [
+    "Fail over to a backup path within seconds, not minutes",
+    "Tolerate loss of a Direct Connect location",
+    "Backup path must still be encrypted"
+  ],
+  "review": {
+    "decisiveClue": "เหตุขัดข้องระดับ location ทำให้ทั้งสองเส้นล้ม, failover ใช้ 4 นาทีเพราะรอ BGP hold timer, ต้องเหลือไม่กี่วินาที, backup ผ่าน internet ต้องเข้ารหัส",
+    "reasoning": "1) หาสาเหตุสองข้อ: ทั้งสองเส้นอยู่ location เดียว และการตรวจพบช้าเพราะใช้ BGP hold timer 2) LAG (B) ไม่แก้ location และ DNS failover (D) เป็นคนละชั้นและช้าระดับนาที 3) C แก้ location แต่ยังตรวจพบช้า 4) A แก้ทั้งสองสาเหตุด้วย location ที่สองและ BFD คง VPN ที่เข้ารหัสเป็นทางสุดท้าย และเพิ่ม CloudWatch alarm",
+    "options": {
+      "A": "ถูก: location ที่สองป้องกันเหตุแบบเดียวกับที่เกิดขึ้น BFD ตรวจพบ link ล้มในระดับต่ำกว่าวินาทีแทนการรอ BGP hold timer (ค่าเริ่มต้น 90 วินาที) จึงสลับไปอีกเส้นได้เร็ว VPN ยังเป็นทางสำรองสุดท้ายที่เข้ารหัส และ alarm บน ConnectionState แจ้งทีมทันทีที่วงจรเปลี่ยนสถานะ",
+      "B": "ไม่ผ่าน: LAG ต้องอยู่บน device เดียวกันใน location เดียวกัน จึงยังล้มทั้งหมดเมื่อ location มีปัญหาแบบเดิม และการสลับไป VPN ยังติด BGP hold timer เหมือนเดิม การเพิ่มพอร์ตแก้ bandwidth ไม่ใช่ความทนทานระดับ location",
+      "C": "ไม่ผ่านด้าน downtime: location ที่สองช่วยได้ แต่ยังใช้ BGP timers ค่าเริ่มต้นจึงตรวจพบการล้มช้า และ virtual private gateway เลือก Direct Connect ก่อน VPN สำหรับ prefix เดียวกันอยู่แล้ว static route บน VPN ไม่ได้เร่ง failover อีกทั้งไม่มี alarm ให้ทีม",
+      "D": "ไม่ผ่าน: เป็นการ failover ระดับ application ผ่าน DNS ซึ่งขึ้นกับ health check interval และ TTL ใช้เวลาระดับนาที และต้องมีระบบ trading ชุดที่สอง ไม่ได้แก้ปัญหาเส้นทาง network ที่ล้ม"
+    },
+    "references": [
+      {
+        "title": "Direct Connect resiliency recommendations",
+        "url": "https://docs.aws.amazon.com/directconnect/latest/UserGuide/resiliency_toolkit.html"
+      },
+      {
+        "title": "Bidirectional Forwarding Detection for Direct Connect",
+        "url": "https://docs.aws.amazon.com/directconnect/latest/UserGuide/routing-and-bgp.html"
+      },
+      {
+        "title": "Monitoring Direct Connect with CloudWatch",
+        "url": "https://docs.aws.amazon.com/directconnect/latest/UserGuide/monitoring-cloudwatch.html"
+      }
+    ],
+    "reviewedAt": "2026-10-29"
+  }
+}

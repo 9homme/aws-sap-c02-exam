@@ -1,0 +1,28 @@
+{
+  "id": "course-48",
+  "scope": "explanations",
+  "verdict": "FIX",
+  "verifiedCorrectIds": [
+    "D"
+  ],
+  "issues": [
+    "options.A/B.explanation: did not connect to the Informix / Objective-C details in the prompt; added that SCT/DMS target supported database engines (Informix is not a typical source) and cannot move an OS or a compiled binary.",
+    "review.reasoning: added that MGN supports physical servers via the agent and that the app stack is untouched."
+  ],
+  "changes": {
+    "options": {
+      "A": {
+        "explanation": "AWS SCT แปลง schema และ code ของ database engine ที่รองรับ ไม่ได้แปลง Windows OS หรือ binary Objective-C เป็น Lambda และ Informix ไม่อยู่ในรายการ source ทั่วไปของ SCT ทางนี้คือ rewrite ใหญ่ ขัดกับโจทย์ที่ต้องการย้ายเร็วด้วยแรงน้อย"
+      },
+      "B": {
+        "explanation": "AWS DMS ย้ายข้อมูลในฐานข้อมูลที่รองรับ ไม่ได้ replicate ทั้งเครื่อง (Windows OS, runtime, file system, executable Objective-C) และ Informix ไม่อยู่ในรายการ source ทั่วไปของ DMS ต้องใช้เครื่องมือระดับ server เช่น MGN แทน"
+      }
+    },
+    "review": {
+      "reasoning": "MGN ติดตั้ง Replication Agent บน physical Windows server เพื่อ replicate ดิสก์ระดับ block ไป EC2 แล้ว launch เป็น instance ที่มี OS และแอปเดิม จึงไม่ต้องแตะ Objective-C หรือ Informix เลย ตรงกับ 'quickly with minimal effort' ต้องตรวจ supported OS, licensing และทดสอบ cutover เพราะบริการไม่รับประกันว่าแอปทุกชนิดทำงานได้โดยไม่ตรวจ"
+    }
+  },
+  "sources": [
+    "https://docs.aws.amazon.com/mgn/latest/ug/what-is-mgn.html"
+  ]
+}

@@ -1,0 +1,47 @@
+{
+  "id": "w8-75",
+  "scope": "explanations",
+  "verdict": "FIX",
+  "verifiedCorrectIds": [
+    "B"
+  ],
+  "issues": [
+    "options.A.explanation: ไม่ชัดว่า DataSync ไม่ใช่ shared storage และเป็น sync ตามรอบ",
+    "options.C.explanation: 'mount targets ไม่ทำงานเหมือน same Region' คลุมเครือ",
+    "options.D.explanation: ไม่ระบุเงื่อนไข Multi-Attach (AZ เดียว, io1/io2) และ cluster-aware filesystem",
+    "options.B.explanation: ไม่ระบุว่าต้องใช้ Regional EFS ที่เก็บหลาย AZ ไม่ใช่ One Zone",
+    "review.references: URL EFS storage-classes ไม่มีแล้ว เปลี่ยนเป็น lifecycle-management-efs"
+  ],
+  "changes": {
+    "options": {
+      "A": {
+        "explanation": "EBS volume ผูกกับ AZ เดียวและแนบกับ instance เดียว ไม่ใช่ shared filesystem การมีสอง volume แล้ว sync ด้วย DataSync เป็นการคัดลอกตามรอบ ไม่ใช่ real-time ขั้นตอนถัดไปจึงอาจไม่เห็นไฟล์ล่าสุด และสองสำเนาอาจขัดแย้งกันเมื่อมีการแก้ไข จึงไม่ใช่ HA storage ที่สอง instance แก้ไฟล์ร่วมกันได้"
+      },
+      "B": {
+        "explanation": "EFS แบบ Regional (EFS Standard) เป็น managed NFS ที่เก็บข้อมูลหลาย AZ และ mount พร้อมกันจาก EC2 หลาย AZ ได้ สอง instance จึงอ่านและแก้ไฟล์ output เดียวกัน และไฟล์ยังอยู่เมื่อ AZ ใดล้ม ส่วน EC2 ตัวที่สองใน AZ อื่นให้ HA ฝั่งแอป ต้องสร้าง mount target ในแต่ละ AZ และ coordinate การเขียนไฟล์เดียวกัน"
+      },
+      "C": {
+        "explanation": "EFS เป็น Regional resource โดย mount target อยู่ใน subnet ของ Region ที่สร้าง EC2 ใน Region อื่นจะ mount ได้ก็ต่อเมื่อมี inter-Region peering/Transit Gateway ซึ่งเพิ่ม latency และ dependency ข้าม Region และ file system ยังอยู่ Region เดียว โจทย์ต้องการ HA ที่ multi-AZ ใน Region เดียวก็เพียงพอและง่ายกว่า"
+      },
+      "D": {
+        "explanation": "EBS Multi-Attach ใช้กับ io1/io2 บน Nitro instances และ attach ได้เฉพาะ instance ใน AZ เดียวกับ volume จึงใช้กับ EC2 ต่าง AZ ไม่ได้ อีกทั้งต้องใช้ cluster-aware file system เพราะ ext4/xfs ปกติไม่รองรับการเขียนพร้อมกันจากหลาย instance"
+      }
+    },
+    "review": {
+      "references": [
+        {
+          "title": "Amazon EFS — Regional and One Zone storage classes",
+          "url": "https://docs.aws.amazon.com/efs/latest/ug/lifecycle-management-efs.html"
+        },
+        {
+          "title": "Amazon EBS — Multi-Attach considerations",
+          "url": "https://docs.aws.amazon.com/ebs/latest/userguide/ebs-volumes-multi.html"
+        }
+      ]
+    }
+  },
+  "sources": [
+    "https://docs.aws.amazon.com/efs/latest/ug/storage-classes.html",
+    "https://docs.aws.amazon.com/ebs/latest/userguide/ebs-volumes-multi.html"
+  ]
+}

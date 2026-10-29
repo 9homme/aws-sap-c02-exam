@@ -1,0 +1,19 @@
+{
+  "id": "course-12",
+  "scope": "explanations",
+  "verdict": "FIX",
+  "verifiedCorrectIds": [
+    "D"
+  ],
+  "issues": [
+    "review.reasoning: restates 'Region บอกว่างานอยู่ที่ใด' vaguely; does not say Region is a field in Define workload (with name/description/review owner/environment) or that it accepts AWS and non-AWS regions"
+  ],
+  "changes": {
+    "review": {
+      "reasoning": "ตอน define workload ใน Well-Architected Tool ต้องกรอกข้อมูลพื้นฐาน เช่น name, description, review owner, environment และ Region ข้อนี้ถามฟิลด์ Region ซึ่งระบุได้ทั้ง AWS Region (เลือกทีละอัน) และ non-AWS region (พิมพ์ชื่อได้สูงสุด 5) เพื่อบอกว่า workload รันที่ไหน ส่วน root password, SSH private key และเลขใบแจ้งหนี้ไม่ใช่ข้อมูลที่ Tool ต้องการ และการรวบรวม credential ลักษณะนี้เป็นความเสี่ยงด้านความปลอดภัย"
+    }
+  },
+  "sources": [
+    "https://docs.aws.amazon.com/wellarchitected/latest/userguide/define-workload.html"
+  ]
+}

@@ -1,0 +1,33 @@
+{
+  "id": "w8-31",
+  "scope": "explanations",
+  "verdict": "AMBIGUOUS",
+  "verifiedCorrectIds": [
+    "B",
+    "C"
+  ],
+  "issues": [
+    "options.B.explanation: ใช้คำว่าทางเลือกปัจจุบันที่แอปรับ แต่ไม่บอกข้อจำกัดเรื่อง default retention กับ objects เดิมชัดเจน",
+    "options.C.explanation: ไม่บอกว่า objects ที่ย้ายเข้า bucket ใหม่รับ default retention อัตโนมัติ และไม่อธิบายว่าทำไมเป็นเฉลยที่บันทึกไว้",
+    "Recorded key C is outdated since S3 supports enabling Object Lock on existing buckets (Nov 2023); B is also valid. Key and accepted set left unchanged."
+  ],
+  "changes": {
+    "options": {
+      "B": {
+        "explanation": "ปัจจุบัน S3 เปิด Versioning + Object Lock บน bucket เดิมได้ และ compliance mode 5 ปีกัน version ที่ถูก retain ไม่ให้ลบ/แก้ แม้เป็น root จึงใช้ได้จริงและง่ายกว่า C แต่ default retention มีผลกับ version ที่เขียนหลังตั้งค่า objects เดิมต้อง apply retention แยก แอปจึงรับเป็นคำตอบทางเลือก"
+      },
+      "C": {
+        "explanation": "สร้าง bucket ใหม่ที่เปิด Versioning + Object Lock พร้อม default retention แบบ compliance 5 ปี แล้วย้าย objects เข้าไป การย้ายคือเขียน object ใหม่ จึงรับ default retention อัตโนมัติ และ compliance mode ห้ามทุก user รวม root ลบก่อนครบ 5 ปี นี่คือเฉลยที่บันทึกไว้ เพราะสมัยก่อนเปิด Object Lock บน bucket เดิมไม่ได้"
+      }
+    },
+    "review": {
+      "caveat": "แอปรับ B หรือ C เป็นคำตอบเดี่ยว เฉลยที่บันทึกคือ C แต่ปัจจุบัน S3 เปิด Object Lock บน bucket ที่มีอยู่แล้วได้ B จึงใช้ได้เช่นกัน Object Lock ป้องกัน version ที่ถูก retain ไม่ได้ห้ามสร้าง version ใหม่ด้วย key เดิม ต้องอ่าน write over ในความหมายรักษา version เดิม",
+      "reviewStatus": "historical"
+    }
+  },
+  "sources": [
+    "https://docs.aws.amazon.com/AmazonS3/latest/userguide/object-lock-configure.html",
+    "https://docs.aws.amazon.com/AmazonS3/latest/userguide/object-lock.html",
+    "https://aws.amazon.com/about-aws/whats-new/2023/11/amazon-s3-enabling-object-lock-buckets/"
+  ]
+}

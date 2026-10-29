@@ -1,0 +1,61 @@
+{
+  "id": "pro-58",
+  "scope": "full",
+  "verdict": "FIX",
+  "originalCorrectIds": [
+    "C"
+  ],
+  "verifiedCorrectIds": [
+    "C"
+  ],
+  "issues": [
+    "options: ตัวลวงเดิมผิดอย่างชัดเจน (อ้างความสามารถที่บริการไม่มี) ทำให้ตอบได้จากการจำชื่อบริการ ไม่ใช่ระดับ SAP-C02 Professional; เขียนใหม่ให้แต่ละตัวลวงทำงานได้จริงบางส่วนแต่ตกเงื่อนไขหนึ่งข้อ",
+    "prompt: ลบประโยค boilerplate (architecture review board / workable for the stated environment)",
+    "review.reasoning: เดิมคัดลอก requirement ภาษาอังกฤษมาต่อกัน ไม่ได้อธิบายการตัดตัวเลือก",
+    "prompt: 'commercial JMS broker' ทำให้คำตอบ Amazon MQ ไม่แน่นอน (Amazon MQ รองรับเฉพาะ ActiveMQ และ RabbitMQ) จึงระบุว่าเป็น ActiveMQ Classic"
+  ],
+  "changes": {
+    "prompt": "A legacy order-processing application uses an Apache ActiveMQ Classic JMS broker with request/reply queues, selectors and established messaging libraries that the team cannot rewrite before a regulatory cutover. It will be moved to AWS with minimal code changes and must preserve messaging compatibility to avoid changing dozens of dependent services at once. Its database passwords are rotated on an approved schedule, while hundreds of nonsecret environment switches such as downstream timeouts and feature flags are managed by the release team. The organization requires encrypted at-rest configuration and strict access policies, but it does not want a single custom configuration service that conflates sensitive credentials with plain operational configuration. A separate team has proposed replacing JMS with SQS on day one. The solution must meet all of the following requirements: (1) Preserve the existing JMS messaging protocol and application semantics at migration time; (2) Store and rotate database credentials through a purpose-built secret lifecycle; (3) Maintain ordinary nonsecret configuration separately, with versioning and controlled application access. Which solution meets these requirements with the LEAST operational overhead?",
+    "options": {
+      "A": {
+        "text": "Replace the broker with Amazon SQS queues on day one by using the Amazon SQS Java Messaging Library, store the database credentials in Secrets Manager with rotation, and keep the flags in Systems Manager Parameter Store.",
+        "explanation": "ตกข้อ (1): การจัดการ secret และ configuration ถูกต้อง แต่ JMS library ของ SQS ไม่รองรับ semantics ของ broker เดิมทั้งหมด เช่น request/reply ด้วย temporary queues และ message selectors การย้ายไป SQS ทันทีจึงต้องแก้ services ที่เกี่ยวข้องหลายสิบตัว"
+      },
+      "B": {
+        "text": "Use Amazon MQ for ActiveMQ for the messaging, and store the database passwords and the flags as Systems Manager Parameter Store parameters, with SecureString for the passwords that the operations team updates on the approved schedule.",
+        "explanation": "ตกข้อ (2): Amazon MQ ถูกต้อง แต่ Parameter Store ไม่มี managed rotation สำหรับรหัสผ่าน database การให้ทีมเปลี่ยนเองตามรอบไม่ใช่ purpose-built secret lifecycle และเสี่ยงต่อการลืมหรือเปลี่ยนไม่พร้อมกันระหว่าง database กับแอป"
+      },
+      "C": {
+        "text": "Use Amazon MQ with a compatible broker engine, Secrets Manager for database credential rotation, and Systems Manager Parameter Store for nonsecret flags and settings.",
+        "explanation": "ถูก: Amazon MQ for ActiveMQ รองรับ JMS, request/reply และ selectors client จึงเปลี่ยนเพียง endpoint Secrets Manager หมุนรหัสผ่าน database ตามตารางด้วย rotation function หรือ managed rotation และเข้ารหัสด้วย KMS ส่วน Parameter Store เก็บ flags ที่ไม่เป็นความลับพร้อม versioning และ IAM ตาม path แยกจาก secrets"
+      },
+      "D": {
+        "text": "Use Amazon MQ for ActiveMQ for the messaging, and store both the database credentials and all of the nonsecret feature flags and timeouts as secrets in AWS Secrets Manager with rotation enabled.",
+        "explanation": "ตกข้อ (3): Amazon MQ และการหมุน credentials ถูกต้อง แต่การเก็บ configuration ที่ไม่เป็นความลับหลายร้อยรายการเป็น secrets รวมสองประเภทเข้าด้วยกันตามที่องค์กรไม่ต้องการ เพิ่มค่าใช้จ่ายต่อ secret และ rotation ไม่มีความหมายสำหรับ feature flags"
+      }
+    },
+    "review": {
+      "decisiveClue": "ต้องคง JMS semantics ตอน migration, หมุนรหัส database ด้วยบริการเฉพาะ, เก็บ config ธรรมดาแยกจาก secrets",
+      "reasoning": "1) ข้อ (1) ต้องคง JMS broker จึงใช้ Amazon MQ ไม่ใช่ SQS ทันที (A) 2) ข้อ (2) credential rotation = Secrets Manager ไม่ใช่ Parameter Store ที่เปลี่ยนเอง (B) 3) ข้อ (3) config ที่ไม่เป็นความลับควรอยู่ใน Parameter Store ไม่ใช่รวมใน Secrets Manager (D) 4) C แยกบริการตามประเภทข้อมูลครบ",
+      "references": [
+        {
+          "title": "What is Amazon MQ?",
+          "url": "https://docs.aws.amazon.com/amazon-mq/latest/developer-guide/welcome.html"
+        },
+        {
+          "title": "Rotate AWS Secrets Manager secrets",
+          "url": "https://docs.aws.amazon.com/secretsmanager/latest/userguide/rotating-secrets.html"
+        },
+        {
+          "title": "AWS Systems Manager Parameter Store",
+          "url": "https://docs.aws.amazon.com/systems-manager/latest/userguide/systems-manager-parameter-store.html"
+        }
+      ]
+    }
+  },
+  "sources": [
+    "https://docs.aws.amazon.com/amazon-mq/latest/developer-guide/welcome.html",
+    "https://docs.aws.amazon.com/secretsmanager/latest/userguide/rotating-secrets.html",
+    "https://docs.aws.amazon.com/systems-manager/latest/userguide/systems-manager-parameter-store.html"
+  ]
+}

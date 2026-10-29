@@ -1,0 +1,81 @@
+{
+  "id": "pro-64",
+  "sourceCategory": "professional",
+  "sourceLabel": "AI-authored · Professional multi-requirement",
+  "sourceDetail": "Original multi-constraint scenario — เข้ารหัส Direct Connect เดิมให้เร็วที่สุด",
+  "coreEligible": true,
+  "emerging": false,
+  "domain": "1",
+  "task": "Organizational complexity",
+  "topic": "เข้ารหัส Direct Connect เดิมให้เร็วที่สุด",
+  "type": "multiple-choice",
+  "selectCount": 1,
+  "prompt": "A logistics company connects its two data centers to AWS through two 10 Gbps AWS Direct Connect dedicated connections at two different Direct Connect locations. Each connection has a transit virtual interface to a Direct Connect gateway that is associated with a transit gateway. Thirty application VPCs in several accounts are attached to the transit gateway. A new regulation, effective in 2 weeks, requires that all traffic between the data centers and the VPCs be encrypted in transit. The security team prohibits any path or tunnel endpoint that uses the public internet or public IP addresses. The existing Direct Connect ports are not MACsec capable, and the provider has quoted 6–8 weeks to deliver replacement MACsec-capable ports. The on-premises routers support IPsec and BGP, and the current aggregate traffic is about 3 Gbps. All 30 VPCs must remain reachable through the existing transit gateway route tables, and the network team cannot redesign the VPC attachments before the deadline. The company also wants to keep the existing Direct Connect gateway, BGP communities, and route filters unchanged, and the change advisory board approves network changes only twice a week. Which solution will meet these requirements in the LEAST amount of time?",
+  "options": [
+    {
+      "id": "A",
+      "text": "Create private IP AWS Site-to-Site VPN connections over the existing transit virtual interfaces by allowing the VPN outside-address CIDR on the Direct Connect gateway association. Terminate the tunnels on the transit gateway from the on-premises routers at both locations, use BGP, and associate the VPN attachments with the existing transit gateway route tables.",
+      "explanation": "ถูก: private IP VPN ใช้ transit VIF และ Direct Connect gateway ที่มีอยู่ เพิ่มเพียง CIDR ของ tunnel และสร้าง VPN attachment บน Transit Gateway จึงทำได้ในไม่กี่วัน tunnel ใช้ private IP ทั้งสองฝั่งและวิ่งบน Direct Connect ไม่ผ่าน internet ส่วน 30 VPC ยังเชื่อมผ่าน route tables เดิม traffic 3 Gbps ต้องใช้หลาย tunnel พร้อม ECMP เพราะแต่ละ tunnel รับได้ประมาณ 1.25 Gbps"
+    },
+    {
+      "id": "B",
+      "text": "Order new 10 Gbps MACsec-capable dedicated connections at both Direct Connect locations, associate MACsec secret keys with the connections, move the transit virtual interfaces to the new connections, and then decommission the existing ports after the encrypted links are verified.",
+      "explanation": "ทำได้และเข้ารหัสระดับ link โดยไม่ผ่าน internet แต่ต้องรอพอร์ตใหม่ 6–8 สัปดาห์ตามที่ provider แจ้ง จึงไม่ทันกำหนด 2 สัปดาห์ MACsec เหมาะเป็นแผนระยะยาวเมื่อต้องการ throughput สูงแบบ line rate"
+    },
+    {
+      "id": "C",
+      "text": "Create public virtual interfaces on the existing Direct Connect connections, configure standard Site-to-Site VPN connections to the transit gateway that use AWS public tunnel endpoints, and advertise the AWS public prefixes over the public virtual interfaces so that the tunnels use Direct Connect.",
+      "explanation": "ไม่ผ่าน: VPN ผ่าน public VIF วิ่งบน Direct Connect ได้จริงและตั้งค่าได้เร็ว แต่ปลาย tunnel ฝั่ง AWS เป็น public IP ซึ่ง security ห้ามไว้โดยตรง และต้องดูแลการรับ public prefixes ของ AWS เพิ่ม"
+    },
+    {
+      "id": "D",
+      "text": "Deploy a pair of third-party IPsec virtual appliances on Amazon EC2 in a new inspection VPC in two Availability Zones, attach the VPC to the transit gateway, build tunnels from the on-premises routers to the appliances over the transit virtual interfaces, and route all VPC traffic through the appliances.",
+      "explanation": "ทำได้แบบ private แต่ไม่ใช่ทางที่เร็วที่สุด: ต้องสร้าง VPC ใหม่ ติดตั้งและทดสอบ HA ของ appliance แก้ route tables ทุกตาราง และดูแล license/patch เอง ซึ่งเสี่ยงไม่ทันกำหนดและเปลี่ยน attachment design ที่ทีมไม่ต้องการแก้"
+    }
+  ],
+  "correctIds": [
+    "A"
+  ],
+  "rationale": "1) ตัดทางที่ผิดเงื่อนไข: VPN ผ่าน public VIF (C) ใช้ public tunnel endpoint 2) ทางที่ผ่านเงื่อนไขมีสามแบบ: MACsec (B), private IP VPN (A) และ IPsec appliance บน EC2 (D) 3) qualifier คือ 'เร็วที่สุด': MACsec ต้องรอพอร์ตใหม่ 6–8 สัปดาห์ appliance ต้องสร้างและทดสอบ HA ส่วน private IP VPN เป็นการตั้งค่าบน Direct Connect gateway และ Transit Gateway ที่มีอยู่ 4) A จึงเร็วที่สุด โดยต้องใช้หลาย tunnel พร้อม ECMP ให้รับ 3 Gbps ได้",
+  "wrongAnswerHelp": "Start with the explicit business constraint, then eliminate choices that solve a different layer of the architecture or add unnecessary operational work.",
+  "references": [
+    "https://docs.aws.amazon.com/vpn/latest/s2svpn/private-ip-dx.html",
+    "https://docs.aws.amazon.com/directconnect/latest/UserGuide/MACsec.html",
+    "https://docs.aws.amazon.com/vpn/latest/s2svpn/vpn-limits.html"
+  ],
+  "products": [
+    "Direct Connect",
+    "Site-to-Site VPN",
+    "Transit Gateway"
+  ],
+  "requirements": [
+    "Encrypt all on-prem↔VPC traffic in transit within 2 weeks",
+    "No traffic or tunnel endpoint may use the public internet",
+    "Keep the existing transit VIF and 30 attached VPCs reachable"
+  ],
+  "review": {
+    "decisiveClue": "เข้ารหัสภายใน 2 สัปดาห์, ห้าม internet/public IP, พอร์ต MACsec ใหม่ต้องรอ 6–8 สัปดาห์, คง Transit Gateway และ 30 VPC เดิม",
+    "reasoning": "1) ตัดทางที่ผิดเงื่อนไข: VPN ผ่าน public VIF (C) ใช้ public tunnel endpoint 2) ทางที่ผ่านเงื่อนไขมีสามแบบ: MACsec (B), private IP VPN (A) และ IPsec appliance บน EC2 (D) 3) qualifier คือ 'เร็วที่สุด': MACsec ต้องรอพอร์ตใหม่ 6–8 สัปดาห์ appliance ต้องสร้างและทดสอบ HA ส่วน private IP VPN เป็นการตั้งค่าบน Direct Connect gateway และ Transit Gateway ที่มีอยู่ 4) A จึงเร็วที่สุด โดยต้องใช้หลาย tunnel พร้อม ECMP ให้รับ 3 Gbps ได้",
+    "options": {
+      "A": "ถูก: private IP VPN ใช้ transit VIF และ Direct Connect gateway ที่มีอยู่ เพิ่มเพียง CIDR ของ tunnel และสร้าง VPN attachment บน Transit Gateway จึงทำได้ในไม่กี่วัน tunnel ใช้ private IP ทั้งสองฝั่งและวิ่งบน Direct Connect ไม่ผ่าน internet ส่วน 30 VPC ยังเชื่อมผ่าน route tables เดิม traffic 3 Gbps ต้องใช้หลาย tunnel พร้อม ECMP เพราะแต่ละ tunnel รับได้ประมาณ 1.25 Gbps",
+      "B": "ทำได้และเข้ารหัสระดับ link โดยไม่ผ่าน internet แต่ต้องรอพอร์ตใหม่ 6–8 สัปดาห์ตามที่ provider แจ้ง จึงไม่ทันกำหนด 2 สัปดาห์ MACsec เหมาะเป็นแผนระยะยาวเมื่อต้องการ throughput สูงแบบ line rate",
+      "C": "ไม่ผ่าน: VPN ผ่าน public VIF วิ่งบน Direct Connect ได้จริงและตั้งค่าได้เร็ว แต่ปลาย tunnel ฝั่ง AWS เป็น public IP ซึ่ง security ห้ามไว้โดยตรง และต้องดูแลการรับ public prefixes ของ AWS เพิ่ม",
+      "D": "ทำได้แบบ private แต่ไม่ใช่ทางที่เร็วที่สุด: ต้องสร้าง VPC ใหม่ ติดตั้งและทดสอบ HA ของ appliance แก้ route tables ทุกตาราง และดูแล license/patch เอง ซึ่งเสี่ยงไม่ทันกำหนดและเปลี่ยน attachment design ที่ทีมไม่ต้องการแก้"
+    },
+    "references": [
+      {
+        "title": "Private IP VPN with AWS Direct Connect",
+        "url": "https://docs.aws.amazon.com/vpn/latest/s2svpn/private-ip-dx.html"
+      },
+      {
+        "title": "MACsec in AWS Direct Connect",
+        "url": "https://docs.aws.amazon.com/directconnect/latest/UserGuide/MACsec.html"
+      },
+      {
+        "title": "Site-to-Site VPN quotas",
+        "url": "https://docs.aws.amazon.com/vpn/latest/s2svpn/vpn-limits.html"
+      }
+    ],
+    "reviewedAt": "2026-10-29"
+  }
+}

@@ -1,0 +1,29 @@
+{
+  "id": "csv-18",
+  "scope": "explanations",
+  "verdict": "FIX",
+  "verifiedCorrectIds": [
+    "A"
+  ],
+  "issues": [
+    "options.A.explanation: ไม่บอกว่าทำไมถูก (ราคา storage ต่ำสุดใน S3, เวลา restore) ",
+    "options.C.explanation: คลุมเครือ ไม่บอกเหตุผลด้านต้นทุน/ชนิด storage",
+    "options.D.explanation: คลุมเครือ ไม่เปรียบเทียบต้นทุนกับ Deep Archive"
+  ],
+  "changes": {
+    "options": {
+      "A": {
+        "explanation": "Deep Archive เป็น storage class ที่ราคาต่อ GB ต่ำสุดของ S3 สำหรับเก็บระยะยาวที่เข้าถึงปีละไม่กี่ครั้ง แลกกับ restore แบบ Standard ราว 12 ชม. (Bulk ราว 48 ชม.) มี minimum 180 วัน และมีค่า retrieval จึงตรงกับ archive ที่เน้น LOWEST cost"
+      },
+      "C": {
+        "explanation": "EBS เป็น block storage ที่ผูกกับ EC2 ใช้เป็น disk ของ workload ราคาต่อ GB สูงกว่า S3 archive classes มาก และไม่ใช่บริการ archive ระยะยาว จึงไม่ตอบโจทย์ค่า storage ต่ำสุดสำหรับข้อมูลที่แทบไม่ถูกอ่าน"
+      },
+      "D": {
+        "explanation": "EFS เป็น shared file system แบบ NFS สำหรับแอปที่ต้อง mount และอ่านเขียนทันที แม้มี Archive storage class แต่ราคาต่อ GB ยังสูงกว่า S3 Glacier Deep Archive หลายเท่า จึงไม่ใช่ตัวเลือกที่ถูกที่สุดสำหรับ archive"
+      }
+    }
+  },
+  "sources": [
+    "https://docs.aws.amazon.com/AmazonS3/latest/userguide/glacier-storage-classes.html"
+  ]
+}

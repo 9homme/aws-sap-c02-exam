@@ -1,0 +1,22 @@
+{
+  "id": "w8-25",
+  "scope": "explanations",
+  "verdict": "FIX",
+  "verifiedCorrectIds": [
+    "D"
+  ],
+  "issues": [
+    "options.D.explanation: does not note Spot Fleet is now a legacy mechanism (EC2 Auto Scaling mixed-instances group preferred) although the concept is unchanged"
+  ],
+  "changes": {
+    "options": {
+      "D": {
+        "explanation": "Reserved Instances ครอบ baseline ของเว็บที่ใช้แน่นอน On-Demand รองรับ peak ช่วงสั้น ส่วน worker หลัง SQS เป็นงาน CPU หนักที่ retry ได้ จึงใช้ C-family Spot ประหยัดสุด (Spot Fleet เป็นกลไกเดิม ปัจจุบัน AWS แนะนำ Auto Scaling group แบบ mixed instances แต่แนวคิดเดียวกัน)"
+      }
+    }
+  },
+  "sources": [
+    "https://docs.aws.amazon.com/decision-guides/latest/decision-guides/ec2-purchasing-options-aws-how-to-choose.html",
+    "https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/which-fleet-method-to-use.html"
+  ]
+}
